@@ -18,7 +18,6 @@ const Navbar = ({ isLoggedIn = false, user = null }) => {
     { label: 'Phòng nghỉ', href: '/rooms' },
     { label: 'Dịch vụ', href: '/services' },
     { label: 'Khuyến mãi', href: '/promotions' },
-    { label: 'Đặt phòng', href: '/bookings' },
     { label: 'Lịch sử', href: '/booking-history' },
   ];
 

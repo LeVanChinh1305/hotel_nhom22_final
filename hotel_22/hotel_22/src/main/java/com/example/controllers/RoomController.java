@@ -5,7 +5,6 @@ import com.example.services.RoomService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 import java.util.List;
 
 @Path("/api/rooms")
@@ -13,21 +12,28 @@ import java.util.List;
 @Consumes(MediaType.APPLICATION_JSON)
 public class RoomController {
 
-    @Inject 
+    @Inject
     RoomService roomService;
 
+    /**
+     * Lấy danh sách phòng (hỗ trợ lọc)
+     */
     @GET
-    public Response getAllRooms(
+    public List<RoomResponse> getAllRooms(
             @QueryParam("type") String type,
             @QueryParam("address") String address,
             @QueryParam("minPrice") Double minPrice,
             @QueryParam("maxPrice") Double maxPrice,
             @QueryParam("maxOccupancy") Integer maxOccupancy) {
-        return Response.ok(roomService.searchRooms(type, address, minPrice, maxPrice, maxOccupancy)).build();
+        return roomService.searchRooms(type, address, minPrice, maxPrice, maxOccupancy);
     }
 
-    @GET @Path("/{id}")
-    public Response getById(@PathParam("id") String id) {
-        return Response.ok(roomService.getById(id)).build();
+    /**
+     * Lấy thông tin chi tiết 1 phòng theo ID
+     */
+    @GET
+    @Path("/{id}")
+    public RoomResponse getRoomById(@PathParam("id") String id) {
+        return roomService.getById(id);
     }
 }

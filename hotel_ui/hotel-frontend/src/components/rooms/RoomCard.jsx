@@ -1,172 +1,82 @@
-import React, { useState } from 'react';
-import { Users, Star, ArrowRight, ImageOff } from 'lucide-react';
-
-// Lấy ảnh đầu tiên từ mảng images, fallback về nền xám nếu không có
-const getFirstImage = (images) => {
-  if (Array.isArray(images) && images.length > 0 && images[0]) return images[0];
-  return null;
-};
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Users, Maximize, ArrowRight } from 'lucide-react';
 
 const RoomCard = ({ room }) => {
-  const [hovered, setHovered] = useState(false);
-  const [imgError, setImgError] = useState(false);
-
-  const firstImage = getFirstImage(room.images);
-  const hasImage = firstImage && !imgError;
-
-  // Hiển thị tên loại phòng + số phòng
-  const title = room.type || 'Phòng';
-  const roomNum = room.roomNumber || '';
-
-  // Giá: basePrice (từ API)
-  const price = room.basePrice;
+  const navigate = useNavigate();
 
   return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        background: '#fff',
-        borderRadius: '18px',
-        overflow: 'hidden',
-        border: '1px solid #DBEAFE',
-        boxShadow: hovered
-          ? '0 12px 40px rgba(59,130,246,0.15), 0 4px 12px rgba(59,130,246,0.1)'
-          : '0 2px 8px rgba(59,130,246,0.07)',
-        transition: 'all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
-        transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
-        cursor: 'pointer',
-      }}
-    >
-      {/* Ảnh hoặc nền xám placeholder */}
-      <div style={{ position: 'relative', overflow: 'hidden', height: '200px' }}>
-        {hasImage ? (
-          <img
-            src={firstImage}
-            alt={title}
-            onError={() => setImgError(true)}
-            style={{
-              width: '100%', height: '100%', objectFit: 'cover',
-              transition: 'transform 0.5s ease',
-              transform: hovered ? 'scale(1.05)' : 'scale(1)',
-            }}
-          />
-        ) : (
-          // Nền xám mặc định khi không có ảnh
-          <div style={{
-            width: '100%', height: '100%',
-            background: 'linear-gradient(135deg, #CBD5E1 0%, #94A3B8 100%)',
-            display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center',
-            gap: '10px',
-          }}>
-            <ImageOff size={36} color="#64748B" strokeWidth={1.5} />
-            <span style={{ color: '#64748B', fontSize: '13px', fontWeight: '500' }}>Chưa có ảnh</span>
-          </div>
-        )}
-
-        {/* Overlay gradient */}
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(15,46,90,0.2) 0%, transparent 55%)' }} />
-
-        {/* Badge loại phòng */}
+    <div style={{
+      background: '#fff',
+      borderRadius: '18px',
+      border: '1px solid #DBEAFE',
+      overflow: 'hidden',
+      transition: 'all 0.3s ease',
+      display: 'flex',
+      flexDirection: 'column',
+      boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
+    }}>
+      {/* Ảnh minh họa */}
+      <div style={{ height: '200px', background: '#E2E8F0', position: 'relative' }}>
         <div style={{
-          position: 'absolute', top: '14px', left: '14px',
-          background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)',
-          color: '#1D4ED8', fontSize: '12px', fontWeight: '600',
-          padding: '4px 10px', borderRadius: '20px', border: '1px solid #BFDBFE',
-          letterSpacing: '0.02em',
-        }}>{title}</div>
-
-        {/* Rating */}
-        <div style={{
-          position: 'absolute', top: '14px', right: '14px',
-          background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)',
-          color: '#0F2E5A', fontSize: '12px', fontWeight: '600',
-          padding: '4px 10px', borderRadius: '20px', border: '1px solid #DBEAFE',
-          display: 'flex', alignItems: 'center', gap: '4px',
+          position: 'absolute', top: '12px', right: '12px',
+          padding: '4px 12px', background: 'rgba(255,255,255,0.9)',
+          borderRadius: '20px', fontSize: '12px', fontWeight: '700', color: '#1E40AF'
         }}>
-          <Star size={11} fill="#F59E0B" color="#F59E0B" />
-          4.8
+          {room.type}
+        </div>
+        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8' }}>
+          Ảnh phòng {room.roomNumber}
         </div>
       </div>
 
-      {/* Nội dung card */}
-      <div style={{ padding: '20px 22px 22px' }}>
-        <div style={{ marginBottom: '8px' }}>
-          <h3 style={{
-            fontFamily: "'Playfair Display', Georgia, serif",
-            fontSize: '19px', fontWeight: '700', color: '#0F2E5A', marginBottom: '2px',
-          }}>{title}</h3>
-          {roomNum && (
-            <span style={{ fontSize: '12px', color: '#93C5FD', fontWeight: '600', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              Phòng số {roomNum}
-            </span>
-          )}
+      <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#0F2E5A' }}>Phòng {room.roomNumber}</h3>
+          <div style={{ textAlign: 'right' }}>
+            <span style={{ fontSize: '18px', fontWeight: '800', color: '#2563EB' }}>{room.basePrice?.toLocaleString()}đ</span>
+            <span style={{ fontSize: '12px', color: '#64748B' }}>/đêm</span>
+          </div>
         </div>
 
-        {/* Mô tả */}
-        {room.description && (
-          <p style={{
-            fontSize: '14px', color: '#64748B', lineHeight: '1.65', marginBottom: '12px',
-            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-          }}>{room.description}</p>
-        )}
+        <p style={{ fontSize: '14px', color: '#64748B', marginBottom: '16px', height: '40px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+          {room.description || 'Không có mô tả cho phòng này.'}
+        </p>
 
-        {/* Địa chỉ */}
-        {room.address && (
-          <p style={{ fontSize: '13px', color: '#94A3B8', marginBottom: '12px' }}>📍 {room.address}</p>
-        )}
-
-        {/* Tiện nghi */}
-        {Array.isArray(room.amenities) && room.amenities.length > 0 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
-            {room.amenities.slice(0, 4).map((a, i) => (
-              <span key={i} style={{
-                fontSize: '11px', color: '#2563EB', background: '#EFF6FF',
-                border: '1px solid #BFDBFE', padding: '3px 8px', borderRadius: '20px', fontWeight: '500',
-              }}>{a}</span>
-            ))}
-            {room.amenities.length > 4 && (
-              <span style={{ fontSize: '11px', color: '#94A3B8', padding: '3px 8px' }}>+{room.amenities.length - 4}</span>
-            )}
+        <div style={{ display: 'flex', gap: '16px', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#475569', fontSize: '13px' }}>
+            <Users size={14} /> {room.maxOccupancy} người
           </div>
-        )}
-
-        {/* Sức chứa */}
-        {room.maxOccupancy && (
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: '6px',
-            fontSize: '13px', color: '#60A5FA', fontWeight: '500',
-            padding: '6px 12px', background: '#EFF6FF', borderRadius: '8px',
-            marginBottom: '18px',
-          }}>
-            <Users size={14} />
-            Tối đa {room.maxOccupancy} khách
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#475569', fontSize: '13px' }}>
+            <Maximize size={14} /> 30m²
           </div>
-        )}
+        </div>
 
-        {/* Giá & Nút */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '16px', borderTop: '1px solid #EFF6FF' }}>
-          <div>
-            {price != null ? (
-              <>
-                <div style={{ fontSize: '20px', fontWeight: '700', color: '#1D4ED8', lineHeight: 1, fontFamily: "'DM Sans', sans-serif" }}>
-                  {price.toLocaleString('vi-VN')} ₫
-                </div>
-                <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '3px' }}>mỗi đêm</div>
-              </>
-            ) : (
-              <div style={{ fontSize: '14px', color: '#94A3B8' }}>Liên hệ báo giá</div>
-            )}
-          </div>
-          <button style={{
-            display: 'flex', alignItems: 'center', gap: '6px',
-            background: hovered ? '#1D4ED8' : '#3B82F6',
-            color: '#fff', border: 'none', padding: '10px 18px',
-            borderRadius: '10px', fontSize: '14px', fontWeight: '600',
-            cursor: 'pointer', transition: 'all 0.2s', fontFamily: "'DM Sans', sans-serif",
-          }}>
-            Chi tiết <ArrowRight size={15} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: 'auto' }}>
+          <button
+            onClick={() => navigate(`/rooms/${room.id}`)}
+            style={{
+              padding: '10px', borderRadius: '10px', border: '1px solid #DBEAFE',
+              background: '#F8FBFF', color: '#2563EB', fontWeight: '600',
+              fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+              transition: 'background 0.2s'
+            }}
+            onMouseEnter={e => e.target.style.background = '#EFF6FF'}
+            onMouseLeave={e => e.target.style.background = '#F8FBFF'}
+          >
+            Chi tiết <ArrowRight size={14} />
+          </button>
+          <button
+            onClick={() => navigate(`/rooms/${room.id}`)}
+            style={{
+              padding: '10px', borderRadius: '10px', border: 'none',
+              background: '#3B82F6', color: '#fff', fontWeight: '600',
+              fontSize: '14px', cursor: 'pointer', transition: 'background 0.2s'
+            }}
+            onMouseEnter={e => e.target.style.background = '#2563EB'}
+            onMouseLeave={e => e.target.style.background = '#3B82F6'}
+          >
+            Đặt ngay
           </button>
         </div>
       </div>

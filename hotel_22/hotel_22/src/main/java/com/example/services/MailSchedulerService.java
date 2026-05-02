@@ -23,6 +23,10 @@ public class MailSchedulerService {
     private static final Logger LOG =
             Logger.getLogger(MailSchedulerService.class.getName());
 
+    private static final String TYPE_CONFIRMATION = "CONFIRMATION";
+    private static final String TYPE_REMINDER     = "REMINDER";
+    private static final String TYPE_CANCELLATION = "CANCELLATION";
+
     @Inject BookingRepository      bookingRepository;
     @Inject MailTemplateRepository mailTemplateRepository;
     @Inject Mailer                 mailer;
@@ -34,7 +38,7 @@ public class MailSchedulerService {
     @Scheduled(every = "60s")
     public void sendConfirmationMails() {
         Optional<MailTemplate> templateOpt =
-                mailTemplateRepository.findByType("CONFIRMATION");
+            mailTemplateRepository.findByType(TYPE_CONFIRMATION);
         if (templateOpt.isEmpty()) {
             LOG.warning("⚠️  Chưa có template CONFIRMATION trong DB, bỏ qua.");
             return;
@@ -71,7 +75,7 @@ public class MailSchedulerService {
     @Scheduled(cron = "0 0 8 * * ?")
     public void sendReminderMails() {
         Optional<MailTemplate> templateOpt =
-                mailTemplateRepository.findByType("REMINDER");
+            mailTemplateRepository.findByType(TYPE_REMINDER);
         if (templateOpt.isEmpty()) {
             LOG.warning("⚠️  Chưa có template REMINDER trong DB, bỏ qua.");
             return;
@@ -107,7 +111,7 @@ public class MailSchedulerService {
      * Gửi mail hủy đơn theo yêu cầu (gọi thủ công từ BookingService).
      */
     public void sendCancellationMail(Booking booking) {
-        mailTemplateRepository.findByType("CANCELLATION").ifPresentOrElse(
+        mailTemplateRepository.findByType(TYPE_CANCELLATION).ifPresentOrElse(
             template -> {
                 try {
                     String html = MailContentBuilder.build(template, booking.user, booking);

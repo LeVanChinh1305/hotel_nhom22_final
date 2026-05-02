@@ -15,26 +15,37 @@ public class ServiceMapper {
         res.serviceName = s.serviceName;
         res.description = s.description;
         res.price       = s.price;
-        res.unit        = s.unit;
+        // Nếu ServiceResponse.unit là String, ta lấy displayName để hiển thị cho đẹp
+        res.unit        = (s.unit != null) ? s.unit.displayName : null; 
         res.isAvailable = s.isAvailable;
         return res;
     }
 
     public Service toEntity(CreateServiceRequest req) {
+        if (req == null) return null;
         Service s = new Service();
         s.serviceName = req.serviceName;
         s.description = req.description;
         s.price       = req.price;
-        s.unit        = req.unit;
-        s.isAvailable = req.isAvailable;
+        
+        // Sửa lỗi tại đây: Sử dụng hàm static từ class Service
+        s.unit        = Service.ServiceUnit.fromString(req.unit);
+        
+        s.isAvailable = (req.isAvailable != null) ? req.isAvailable : true;
         return s;
     }
 
     public void updateEntity(Service s, CreateServiceRequest req) {
+        if (s == null || req == null) return;
         s.serviceName = req.serviceName;
         s.description = req.description;
         s.price       = req.price;
-        s.unit        = req.unit;
-        s.isAvailable = req.isAvailable;
+        
+        // Cập nhật enum unit
+        s.unit        = Service.ServiceUnit.fromString(req.unit);
+        
+        if (req.isAvailable != null) {
+            s.isAvailable = req.isAvailable;
+        }
     }
 }

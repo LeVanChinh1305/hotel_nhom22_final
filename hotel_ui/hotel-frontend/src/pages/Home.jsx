@@ -7,23 +7,38 @@ const API_BASE = 'http://localhost:8080';
 
 const Home = () => {
   const [rooms, setRooms] = useState([]);
+  const [vouchers, setVouchers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/rooms`)
-      .then(res => {
-        if (!res.ok) throw new Error(`Lỗi server: ${res.status}`);
-        return res.json();
-      })
-      .then(data => {
-        setRooms(data);
-        setLoading(false);
-      })
-      .catch(err => {
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+        const [roomsRes, vouchersRes] = await Promise.all([
+          fetch(`${API_BASE}/api/rooms`, { headers }),
+          fetch(`${API_BASE}/api/vouchers`, { headers })
+        ]);
+
+        if (!roomsRes.ok) throw new Error(`Lỗi tải phòng: ${roomsRes.status}`);
+        
+        const roomsData = await roomsRes.json();
+        setRooms(roomsData);
+
+        if (vouchersRes.ok) {
+          const vouchersData = await vouchersRes.json();
+          setVouchers(vouchersData);
+        }
+      } catch (err) {
         setError(err.message);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchData();
   }, []);
 
   const amenities = [
@@ -31,6 +46,12 @@ const Home = () => {
     { icon: Coffee, label: 'Bữa sáng', desc: 'Buffet từ 6h–10h' },
     { icon: Car, label: 'Đưa đón sân bay', desc: 'Đặt lịch trước 24h' },
     { icon: Shield, label: 'An ninh 24/7', desc: 'Camera & bảo vệ' },
+  ];
+
+  const voucherVisuals = [
+    { bg: '#EFF6FF', border: '#BFDBFE', iconBg: '#DBEAFE', iconColor: '#2563EB', titleColor: '#1E40AF' },
+    { bg: '#F0FDF4', border: '#BBF7D0', iconBg: '#DCFCE7', iconColor: '#16A34A', titleColor: '#14532D' },
+    { bg: '#FDF4FF', border: '#E9D5FF', iconBg: '#F3E8FF', iconColor: '#9333EA', titleColor: '#581C87' },
   ];
 
   return (
@@ -95,24 +116,28 @@ const Home = () => {
           </a>
         </div>
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '10px' }}>
-          {[
-            { icon: Gift, title: 'Giảm 20% Hè rực rỡ', sub: 'Mã: SUM22 · Hạn 30/06', bg: '#EFF6FF', border: '#BFDBFE', iconBg: '#DBEAFE', iconColor: '#2563EB', titleColor: '#1E40AF' },
-            { icon: Newspaper, title: 'Hồ bơi vô cực mở cửa', sub: 'Cocktail miễn phí 17h–19h', bg: '#F0FDF4', border: '#BBF7D0', iconBg: '#DCFCE7', iconColor: '#16A34A', titleColor: '#14532D' },
-            { icon: Gift, title: 'Voucher 500k khách mới', sub: 'Áp dụng đơn từ 2 triệu đồng', bg: '#FDF4FF', border: '#E9D5FF', iconBg: '#F3E8FF', iconColor: '#9333EA', titleColor: '#581C87' },
-          ].map((v, i) => (
-            <div key={i} style={{ flexShrink: 0, minWidth: '280px', background: v.bg, border: `1px solid ${v.border}`, borderRadius: '14px', padding: '18px 20px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.2s' }}
+          {vouchers.length > 0 ? vouchers.map((v, i) => {
+            const style = voucherVisuals[i % voucherVisuals.length];
+            return (
+              <div key={v.id || i} style={{ flexShrink: 0, minWidth: '280px', background: style.bg, border: `1px solid ${style.border}`, borderRadius: '14px', padding: '18px 20px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.2s' }}
               onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.07)'; }}
               onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
             >
-              <div style={{ width: '46px', height: '46px', background: v.iconBg, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <v.icon size={22} color={v.iconColor} />
+              <div style={{ width: '46px', height: '46px', background: style.iconBg, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Gift size={22} color={style.iconColor} />
               </div>
               <div>
-                <div style={{ fontSize: '14px', fontWeight: '700', color: v.titleColor, marginBottom: '3px' }}>{v.title}</div>
-                <div style={{ fontSize: '12px', color: '#64748B' }}>{v.sub}</div>
+                <div style={{ fontSize: '14px', fontWeight: '700', color: style.titleColor, marginBottom: '3px' }}>
+                  {v.discountPercent ? `Giảm ${v.discountPercent}%` : 'Giảm giá'} - {v.code || 'N/A'}
+                </div>
+                <div style={{ fontSize: '12px', color: '#64748B' }}>
+                  {v.minOrderValue ? `Đơn từ ${v.minOrderValue.toLocaleString()}đ` : 'Mọi đơn hàng'} · Hạn {v.expiryDate || 'N/A'}
+                </div>
               </div>
-            </div>
-          ))}
+            </div>);
+          }) : !loading && (
+            <p style={{ color: '#94A3B8', fontSize: '14px', fontStyle: 'italic' }}>Hiện không có khuyến mãi nào khả dụng.</p>
+          )}
         </div>
       </section>
 

@@ -1,6 +1,7 @@
 package com.example.services;
 
 import com.example.dto.request.CreateServiceRequest;
+import com.example.entity.mongodb.Service.ServiceUnit;
 import com.example.dto.response.ServiceResponse;
 import com.example.entity.mongodb.Service;
 import com.example.exceptions.AppException;
@@ -37,16 +38,18 @@ public class HotelServiceService {
     }
 
     public ServiceResponse create(CreateServiceRequest req) {
-        validateServiceRequest(req);
+        ServiceUnit unit = validateServiceRequest(req);
         Service s = serviceMapper.toEntity(req);
+        s.unit = unit; // Manually assign to resolve type mismatch in mapper
         serviceRepository.persist(s);
         return serviceMapper.toResponse(s);
     }
 
     public ServiceResponse update(String id, CreateServiceRequest req) {
-        validateServiceRequest(req);
+        ServiceUnit unit = validateServiceRequest(req);
         Service s = findByIdOrThrow(id);
         serviceMapper.updateEntity(s, req);
+        s.unit = unit; // Manually assign to resolve type mismatch in mapper
         serviceRepository.update(s);
         return serviceMapper.toResponse(s);
     }
@@ -74,12 +77,19 @@ public class HotelServiceService {
         }
     }
 
-    private void validateServiceRequest(CreateServiceRequest req) {
+    private ServiceUnit validateServiceRequest(CreateServiceRequest req) {
         if (req.serviceName == null || req.serviceName.isBlank())
             throw new AppException("Tên dịch vụ không được để trống", 400);
         if (req.price == null || req.price < 0)
             throw new AppException("Giá dịch vụ không hợp lệ", 400);
         if (req.unit == null || req.unit.isBlank())
             throw new AppException("Đơn vị tính không được để trống", 400);
+
+        // Validate unit against allowed enum values
+        ServiceUnit unit = ServiceUnit.fromString(req.unit);
+        if (unit == null) {
+            throw new AppException("Đơn vị tính không hợp lệ. Chỉ chấp nhận: Lượt, Ngày, Người", 400);
+        }
+        return unit;
     }
 }

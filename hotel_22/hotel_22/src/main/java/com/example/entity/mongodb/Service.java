@@ -16,7 +16,28 @@ public class Service extends PanacheMongoEntityBase {
 
     public Double price;
 
-    public String unit;         // "Lượt", "Ngày", "Người"
+    public ServiceUnit unit;         // "Lượt", "Ngày", "Người"
 
     public Boolean isAvailable = true;
+
+    public enum ServiceUnit {
+        LUOT("Lượt"),
+        NGAY("Ngày"),
+        NGUOI("Người");
+
+        public final String displayName;
+
+        private ServiceUnit(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public static ServiceUnit fromString(String value) {
+            for (ServiceUnit unit : ServiceUnit.values()) {
+                if (unit.name().equalsIgnoreCase(value) || unit.displayName.equalsIgnoreCase(value)) {
+                    return unit;
+                }
+            }
+            return null;
+        }
+    }
 }

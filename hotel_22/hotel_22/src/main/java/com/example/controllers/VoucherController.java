@@ -1,22 +1,42 @@
 package com.example.controllers;
 
+import com.example.dto.response.VoucherResponse;
 import com.example.services.VoucherService;
+import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 
 @Path("/api/vouchers")
 @Produces(MediaType.APPLICATION_JSON)
-@RolesAllowed({"CUSTOMER", "ADMIN"})
+@Consumes(MediaType.APPLICATION_JSON)
 public class VoucherController {
 
-    @Inject VoucherService voucherService;
+    @Inject
+    VoucherService voucherService;
 
-    @GET @Path("/validate")
-    public Response validate(@QueryParam("code") String code,
-                             @QueryParam("totalPrice") Double totalPrice) {
-        return Response.ok(voucherService.validateVoucher(code, totalPrice)).build();
+    /**
+     * Endpoint cho khách hàng xem các mã giảm giá hiện có
+     */
+    @GET
+    @PermitAll
+    public Response getAvailableVouchers() {
+        List<VoucherResponse> vouchers = voucherService.getAvailableVouchers();
+        return Response.ok(vouchers).build();
+    }
+
+    /**
+     * Endpoint để kiểm tra nhanh một mã voucher (dùng trong trang đặt phòng)
+     */
+    @GET
+    @Path("/validate")
+    @RolesAllowed({"CUSTOMER", "ADMIN"})
+    public Response validateVoucher(@QueryParam("code") String code, 
+                                   @QueryParam("totalPrice") Double totalPrice) {
+        VoucherResponse response = voucherService.validateVoucher(code, totalPrice);
+        return Response.ok(response).build();
     }
 }

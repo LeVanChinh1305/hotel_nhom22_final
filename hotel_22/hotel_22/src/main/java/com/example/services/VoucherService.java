@@ -32,6 +32,14 @@ public class VoucherService {
         return voucherMapper.toResponse(v);
     }
 
+    /** Dùng cho Customer: lấy danh sách voucher còn hiệu lực */
+    public List<VoucherResponse> getAvailableVouchers() {
+        return voucherRepository.findAvailableVouchers()
+                .stream()
+                .map(voucherMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
     // ─── ADMIN ───────────────────────────────────────────────────────────────
 
     public List<VoucherResponse> getAll() {

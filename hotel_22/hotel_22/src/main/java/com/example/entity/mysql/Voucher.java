@@ -33,7 +33,7 @@ public class Voucher extends PanacheEntityBase {
     @Column(name = "expiry_date", nullable = false)
     public LocalDate expiryDate;
 
-    @Column(nullable = false)
+    @Column(nullable = false) 
     public Integer quantity;
 
     @Column(nullable = false)

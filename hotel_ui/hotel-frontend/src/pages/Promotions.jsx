@@ -1,13 +1,40 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/layout/Navbar';
-import { Gift, Newspaper, Mail, Phone, MapPin, ChevronRight } from 'lucide-react';
+import { Gift, Mail, Phone, MapPin, AlertCircle } from 'lucide-react';
+
+const API_BASE = 'http://localhost:8080';
 
 const Promotions = () => {
-  const promoList = [
-    { icon: Gift, title: 'Giảm 20% Hè rực rỡ', sub: 'Mã: SUM22 · Áp dụng cho phòng Deluxe và Suite. Hạn đến 30/06/2026', bg: '#EFF6FF', border: '#BFDBFE', iconBg: '#DBEAFE', iconColor: '#2563EB', titleColor: '#1E40AF' },
-    { icon: Newspaper, title: 'Hồ bơi vô cực mở cửa', sub: 'Thưởng thức Cocktail miễn phí từ 17h–19h hàng ngày cho khách lưu trú.', bg: '#F0FDF4', border: '#BBF7D0', iconBg: '#DCFCE7', iconColor: '#16A34A', titleColor: '#14532D' },
-    { icon: Gift, title: 'Voucher 500k khách mới', sub: 'Đăng ký tài khoản và đặt phòng lần đầu để nhận ngay ưu đãi từ 2 triệu đồng.', bg: '#FDF4FF', border: '#E9D5FF', iconBg: '#F3E8FF', iconColor: '#9333EA', titleColor: '#581C87' },
-    { icon: Gift, title: 'Ưu đãi đặt sớm 30 ngày', sub: 'Giảm trực tiếp 15% tổng hóa đơn khi đặt phòng trước ngày nhận ít nhất 1 tháng.', bg: '#FFF7ED', border: '#FFEDD5', iconBg: '#FFEDD5', iconColor: '#EA580C', titleColor: '#7C2D12' },
+  const [vouchers, setVouchers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchVouchers = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        
+        const res = await fetch(`${API_BASE}/api/vouchers`, { headers });
+        if (!res.ok) throw new Error('Không thể tải danh sách khuyến mãi');
+        
+        const data = await res.json();
+        setVouchers(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVouchers();
+  }, []);
+
+  const voucherVisuals = [
+    { bg: '#EFF6FF', border: '#BFDBFE', iconBg: '#DBEAFE', iconColor: '#2563EB', titleColor: '#1E40AF' },
+    { bg: '#F0FDF4', border: '#BBF7D0', iconBg: '#DCFCE7', iconColor: '#16A34A', titleColor: '#14532D' },
+    { bg: '#FDF4FF', border: '#E9D5FF', iconBg: '#F3E8FF', iconColor: '#9333EA', titleColor: '#581C87' },
+    { bg: '#FFF7ED', border: '#FFEDD5', iconBg: '#FFEDD5', iconColor: '#EA580C', titleColor: '#7C2D12' },
   ];
 
   return (
@@ -23,11 +50,33 @@ const Promotions = () => {
 
       {/* Main Content */}
       <section style={{ maxWidth: '1200px', margin: '0 auto', padding: '30px 2rem 60px' }}>
+        {loading && (
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <div style={{ color: '#64748B' }}>Đang tải danh sách ưu đãi...</div>
+          </div>
+        )}
+
+        {error && (
+          <div style={{ textAlign: 'center', padding: '40px', background: '#FEF2F2', borderRadius: '12px', border: '1px solid #FECACA' }}>
+            <AlertCircle size={40} color="#EF4444" style={{ marginBottom: '12px' }} />
+            <p style={{ color: '#B91C1C', fontWeight: '500' }}>{error}</p>
+          </div>
+        )}
+
+        {!loading && !error && vouchers.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '60px', color: '#94A3B8' }}>
+            <Gift size={48} style={{ marginBottom: '16px', opacity: 0.5 }} />
+            <p>Hiện tại không có chương trình khuyến mãi nào.</p>
+          </div>
+        )}
+
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '24px' }}>
-          {promoList.map((v, i) => (
-            <div key={i} style={{ 
-              background: v.bg, 
-              border: `1px solid ${v.border}`, 
+          {!loading && vouchers.map((v, i) => {
+            const style = voucherVisuals[i % voucherVisuals.length];
+            return (
+              <div key={v.id || i} style={{ 
+              background: style.bg, 
+              border: `1px solid ${style.border}`, 
               borderRadius: '20px', 
               padding: '30px', 
               display: 'flex', 
@@ -38,29 +87,41 @@ const Promotions = () => {
             onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 10px 25px rgba(0,0,0,0.05)'; }}
             onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
             >
-              <div style={{ width: '56px', height: '56px', background: v.iconBg, borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <v.icon size={28} color={v.iconColor} />
+              <div style={{ width: '56px', height: '56px', background: style.iconBg, borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Gift size={28} color={style.iconColor} />
               </div>
               <div>
-                <h3 style={{ fontSize: '20px', fontWeight: '700', color: v.titleColor, marginBottom: '10px' }}>{v.title}</h3>
-                <p style={{ fontSize: '15px', color: '#64748B', lineHeight: 1.6 }}>{v.sub}</p>
+                <h3 style={{ fontSize: '20px', fontWeight: '700', color: style.titleColor, marginBottom: '10px' }}>
+                  Giảm {v.discountPercent}% - Mã: {v.code}
+                </h3>
+                <p style={{ fontSize: '15px', color: '#64748B', lineHeight: 1.6 }}>
+                  • Giảm tối đa: {v.maxDiscountAmount?.toLocaleString()}đ<br/>
+                  • Đơn tối thiểu: {v.minOrderValue?.toLocaleString()}đ<br/>
+                  • Hạn sử dụng: {v.expiryDate || 'N/A'}
+                </p>
               </div>
               <button style={{ 
                 marginTop: 'auto', 
                 background: '#fff', 
-                border: `1px solid ${v.border}`, 
-                color: v.iconColor, 
+                border: `1px solid ${style.border}`, 
+                color: style.iconColor, 
                 padding: '10px 20px', 
                 borderRadius: '10px', 
                 fontWeight: '600', 
                 fontSize: '14px', 
                 cursor: 'pointer',
-                alignSelf: 'flex-start'
-              }}>
-                Chi tiết ưu đãi
+                alignSelf: 'flex-start',
+                background: '#fff'
+              }}
+              onClick={() => {
+                navigator.clipboard.writeText(v.code);
+                alert(`Đã sao chép mã: ${v.code}`);
+              }}
+              >
+                Copy mã: {v.code}
               </button>
-            </div>
-          ))}
+            </div>);
+          })}
         </div>
       </section>
 

@@ -1,15 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, User, LogIn, UserPlus, Heart, BookOpen, X } from 'lucide-react';
+import { Menu, User, LogIn, UserPlus, Heart, BookOpen, X, Settings, History, ConciergeBell } from 'lucide-react';
 
-const Navbar = ({ isLoggedIn = false }) => {
+const Navbar = ({ isLoggedIn = false, user = null }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const currentPath = window.location.pathname;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  // Danh sách menu chính
+  const navItems = [
+    { label: 'Trang chủ', href: '/' },
+    { label: 'Phòng nghỉ', href: '/rooms' },
+    { label: 'Dịch vụ', href: '/services' },
+    { label: 'Khuyến mãi', href: '/promotions' },
+    { label: 'Đặt phòng', href: '/bookings' },
+    { label: 'Lịch sử', href: '/booking-history' },
+  ];
+
+  // Thêm mục Quản trị nếu là ADMIN
+  const isAdmin = user?.role === 'ADMIN';
 
   return (
     <nav style={{
@@ -60,21 +74,18 @@ const Navbar = ({ isLoggedIn = false }) => {
       {/* Desktop Nav */}
       <div style={{
         display: 'flex',
-        gap: '2rem',
+        gap: '1.5rem',
         alignItems: 'center',
       }} className="nav-desktop">
-        {[
-          { label: 'Trang chủ', href: '/' },
-          { label: 'Phòng nghỉ', href: '/rooms' },
-          { label: 'Khuyến mãi', href: '#vouchers' },
-          { label: 'Hỗ trợ', href: '#support' },
-        ].map(item => (
-          <a key={item.label} href={item.href} style={{
-            color: '#475569',
-            fontSize: '15px',
-            fontWeight: '500',
+        {navItems.map(item => {
+          const isActive = currentPath === item.href;
+          return (
+            <a key={item.label} href={item.href} style={{
+            color: isActive ? '#2563EB' : '#475569',
+            fontSize: '14px',
+            fontWeight: isActive ? '600' : '500',
             padding: '6px 2px',
-            borderBottom: '2px solid transparent',
+            borderBottom: isActive ? '2px solid #2563EB' : '2px solid transparent',
             transition: 'all 0.2s',
             textDecoration: 'none',
           }}
@@ -83,35 +94,40 @@ const Navbar = ({ isLoggedIn = false }) => {
             e.target.style.borderBottomColor = '#93C5FD';
           }}
           onMouseLeave={e => {
-            e.target.style.color = '#475569';
-            e.target.style.borderBottomColor = 'transparent';
+            e.target.style.color = isActive ? '#2563EB' : '#475569';
+            e.target.style.borderBottomColor = isActive ? '#2563EB' : 'transparent';
           }}
-          >{item.label}</a>
-        ))}
+            >{item.label}</a>
+          );
+        })}
+        
+        {/* Link Quản trị cho Admin */}
+        {isAdmin && (
+          <a href="/admin" style={{
+            color: '#D97706',
+            fontSize: '14px',
+            fontWeight: '600',
+            padding: '6px 10px',
+            background: '#FEF3C7',
+            borderRadius: '6px',
+            textDecoration: 'none',
+          }}>Quản trị</a>
+        )}
       </div>
 
       {/* Right actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        {!isLoggedIn && (
-          <a href="/login" style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            color: '#2563EB',
-            fontSize: '14px',
-            fontWeight: '500',
-            padding: '8px 16px',
-            border: '1px solid #BFDBFE',
-            borderRadius: '8px',
-            background: '#EFF6FF',
-            textDecoration: 'none',
-            transition: 'all 0.2s',
-          }}
-          className="nav-login-btn"
-          >
-            <LogIn size={15} />
-            Đăng nhập
-          </a>
+        {/* Hiển thị lời chào nếu đã đăng nhập */}
+        {isLoggedIn && (
+          <div style={{ 
+            fontSize: '14px', 
+            color: '#1E40AF', 
+            fontWeight: '600',
+            marginRight: '8px',
+            display: 'none', // Sẽ ẩn trên mobile qua class (nếu có CSS)
+          }} className="welcome-text">
+            Xin chào, {user?.fullName || 'Khách'}
+          </div>
         )}
 
         {/* Hamburger */}
@@ -162,21 +178,23 @@ const Navbar = ({ isLoggedIn = false }) => {
               ) : (
                 <>
                   <div style={{ padding: '10px 12px 8px', borderBottom: '1px solid #DBEAFE', marginBottom: '4px' }}>
-                    <p style={{ fontSize: '13px', color: '#94A3B8', margin: 0 }}>Xin chào,</p>
-                    <p style={{ fontSize: '15px', fontWeight: '600', color: '#0F2E5A', margin: 0 }}>Người dùng</p>
+                    <p style={{ fontSize: '12px', color: '#94A3B8', margin: 0 }}>Tài khoản của</p>
+                    <p style={{ fontSize: '14px', fontWeight: '600', color: '#0F2E5A', margin: 0 }}>{user?.fullName}</p>
                   </div>
                   <a href="/profile" style={menuItemStyle}>
                     <div style={{ ...iconWrap, background: '#EFF6FF' }}><User size={15} color="#3B82F6" /></div>
-                    Tài khoản
+                    Thông tin cá nhân
                   </a>
-                  <a href="/bookings" style={menuItemStyle}>
-                    <div style={{ ...iconWrap, background: '#F5F3FF' }}><BookOpen size={15} color="#8B5CF6" /></div>
-                    Đơn đặt phòng
+                  <a href="/booking-history" style={menuItemStyle}>
+                    <div style={{ ...iconWrap, background: '#F5F3FF' }}><History size={15} color="#8B5CF6" /></div>
+                    Lịch sử đặt phòng
                   </a>
-                  <a href="/wishlist" style={menuItemStyle}>
-                    <div style={{ ...iconWrap, background: '#FFF1F2' }}><Heart size={15} color="#F43F5E" /></div>
-                    Yêu thích
-                  </a>
+                  {isAdmin && (
+                    <a href="/admin/dashboard" style={menuItemStyle}>
+                      <div style={{ ...iconWrap, background: '#FEF3C7' }}><Settings size={15} color="#D97706" /></div>
+                      Bảng điều khiển Admin
+                    </a>
+                  )}
                   <button style={{
                     ...menuItemStyle,
                     width: '100%',

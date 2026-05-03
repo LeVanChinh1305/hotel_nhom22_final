@@ -2,13 +2,16 @@ package com.example.controllers;
 
 import com.example.entity.mysql.User;
 import com.example.services.UserService;
+
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-@Path("/api/profile")
+@Path("/profile")
 @Produces(MediaType.APPLICATION_JSON)
 @RolesAllowed({"CUSTOMER", "ADMIN"})
 public class UserController {

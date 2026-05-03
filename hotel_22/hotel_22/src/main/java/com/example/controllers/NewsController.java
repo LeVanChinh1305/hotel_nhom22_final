@@ -6,7 +6,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-@Path("/api/news")
+@Path("/news")
 @Produces(MediaType.APPLICATION_JSON)
 public class NewsController {
 

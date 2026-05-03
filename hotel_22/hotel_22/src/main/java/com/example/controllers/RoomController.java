@@ -1,15 +1,21 @@
 package com.example.controllers;
 
-import com.example.dto.response.RoomResponse;
-import com.example.services.RoomService;
-import jakarta.inject.Inject;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 
-@Path("/api/rooms")
+import com.example.dto.response.RoomResponse;
+import com.example.services.RoomService;
+
+import jakarta.inject.Inject;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.MediaType;
+
+@Path("/rooms")
 @Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
 public class RoomController {
 
     @Inject

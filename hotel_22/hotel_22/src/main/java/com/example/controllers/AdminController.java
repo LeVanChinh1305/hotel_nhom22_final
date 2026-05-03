@@ -1,15 +1,36 @@
 package com.example.controllers;
 
-import com.example.dto.request.*;
+import com.example.dto.request.CreateMailTemplateRequest;
+import com.example.dto.request.CreateNewsRequest;
+import com.example.dto.request.CreateRoomRequest;
+import com.example.dto.request.CreateServiceRequest;
+import com.example.dto.request.CreateVoucherRequest;
+import com.example.dto.request.UpdateBookingStatusRequest;
+import com.example.dto.request.UpdateRoomStatusRequest;
 import com.example.entity.mysql.User;
-import com.example.services.*;
+import com.example.services.BookingService;
+import com.example.services.HotelServiceService;
+import com.example.services.MailTemplateService;
+import com.example.services.NewsService;
+import com.example.services.RoomService;
+import com.example.services.RoomStatusLogService;
+import com.example.services.UserService;
+import com.example.services.VoucherService;
+
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-@Path("/api/admin")
+@Path("/admin")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @RolesAllowed("ADMIN")

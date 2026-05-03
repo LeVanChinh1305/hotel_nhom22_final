@@ -1,18 +1,23 @@
 package com.example.controllers;
 
+import java.util.List;
+
 import com.example.dto.response.VoucherResponse;
 import com.example.services.VoucherService;
+
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.util.List;
 
-@Path("/api/vouchers")
+@Path("/vouchers")
 @Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
 public class VoucherController {
 
     @Inject

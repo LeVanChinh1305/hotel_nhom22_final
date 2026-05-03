@@ -21,6 +21,12 @@ public class BookingServiceItem extends PanacheEntityBase {
     @Column(nullable = false)
     public Integer quantity;
 
+    @Column(name = "num_people")
+    public Integer numberOfPeople;
+
+    @Column(name = "num_days")
+    public Integer numberOfDays;
+
     @Column(name = "price_at_booking", nullable = false)
     public Double priceAtBooking; // Lưu giá tại thời điểm đặt
 }

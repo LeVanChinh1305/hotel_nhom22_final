@@ -47,9 +47,6 @@ const RoomCard = ({ room }) => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#475569', fontSize: '13px' }}>
             <Users size={14} /> {room.maxOccupancy} người
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#475569', fontSize: '13px' }}>
-            <Maximize size={14} /> 30m²
-          </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: 'auto' }}>

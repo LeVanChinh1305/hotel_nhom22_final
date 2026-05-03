@@ -57,21 +57,54 @@ public class BookingService {
 
         if (req.services != null && !req.services.isEmpty()) {
             for (BookingRequest.BookingServiceItemRequest sr : req.services) {
-                if (sr.quantity == null || sr.quantity <= 0)
-                    throw new AppException("Số lượng dịch vụ phải lớn hơn 0", 400);
-
                 Service svc = findServiceOrThrow(sr.serviceId);
 
                 if (!svc.isAvailable)
                     throw new AppException("Dịch vụ '" + svc.serviceName + "' hiện không còn cung cấp", 400);
 
-                double itemTotal = PriceUtils.round(svc.price * sr.quantity);
+                double itemTotal;
+                Integer effectiveQuantity;
+                Integer numPeopleToStore = null;
+                Integer numDaysToStore = null;
+
+                if (svc.unit == Service.ServiceUnit.NGUOI_NGAY) {
+                    if (sr.numberOfPeople == null || sr.numberOfPeople <= 0 ||
+                        sr.numberOfDays == null || sr.numberOfDays <= 0) {
+                        throw new AppException("Dịch vụ '" + svc.serviceName + "' yêu cầu nhập số người và số ngày", 400);
+                    }
+                    effectiveQuantity = sr.numberOfPeople * sr.numberOfDays;
+                    numPeopleToStore = sr.numberOfPeople;
+                    numDaysToStore = sr.numberOfDays;
+                } else if (svc.unit == Service.ServiceUnit.NGUOI) {
+                    if (sr.numberOfPeople == null || sr.numberOfPeople <= 0) {
+                        throw new AppException("Dịch vụ '" + svc.serviceName + "' yêu cầu nhập số người", 400);
+                    }
+                    effectiveQuantity = sr.numberOfPeople;
+                    numPeopleToStore = sr.numberOfPeople;
+                } else if (svc.unit == Service.ServiceUnit.NGAY) {
+                    if (sr.numberOfDays == null || sr.numberOfDays <= 0) {
+                        // Mặc định số ngày là số đêm của booking nếu không nhập
+                        effectiveQuantity = (int) nights;
+                    } else {
+                        effectiveQuantity = sr.numberOfDays;
+                    }
+                    numDaysToStore = effectiveQuantity; // Lưu số ngày thực tế được tính
+                } else {
+                    if (sr.quantity == null || sr.quantity <= 0)
+                        throw new AppException("Số lượng dịch vụ '" + svc.serviceName + "' phải lớn hơn 0", 400);
+                    effectiveQuantity = sr.quantity;
+                }
+                
+                itemTotal = PriceUtils.round(svc.price * effectiveQuantity);
+
                 servicePrice += itemTotal;
 
                 BookingServiceItem item = new BookingServiceItem();
-                item.serviceId      = sr.serviceId;
-                item.quantity       = sr.quantity;
-                item.priceAtBooking = svc.price;   // Lưu giá tại thời điểm đặt
+                item.serviceId       = sr.serviceId;
+                item.quantity        = effectiveQuantity;
+                item.numberOfPeople  = numPeopleToStore;
+                item.numberOfDays    = numDaysToStore;
+                item.priceAtBooking  = svc.price;   // Lưu giá tại thời điểm đặt
                 items.add(item);
             }
         }

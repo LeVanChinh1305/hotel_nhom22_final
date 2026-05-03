@@ -20,7 +20,7 @@ const RoomDetail = () => {
   // Booking State
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
-  const [selectedServices, setSelectedServices] = useState([]);
+  const [selectedServices, setSelectedServices] = useState([]); // Array of {serviceId, quantity, numberOfPeople, numberOfDays}
   const [selectedVoucher, setSelectedVoucher] = useState(null);
 
   useEffect(() => {
@@ -59,16 +59,35 @@ const RoomDetail = () => {
     if (isNaN(nights) || nights <= 0) return null;
 
     const roomTotal = room.basePrice * nights;
-    const serviceTotal = selectedServices.reduce((sum, svcId) => {
-      const svc = services.find(s => s.id === svcId);
-      return sum + (svc ? svc.price : 0);
+    const serviceTotal = selectedServices.reduce((sum, item) => {
+      const svc = services.find(s => s.id === item.serviceId);
+      if (!svc) return sum;
+      
+      // Logic tính tiền dịch vụ theo đơn vị (khớp với Backend)
+      if (svc.unit === 'Người/Ngày') {
+        return sum + (svc.price * (item.numberOfPeople || 1) * (item.numberOfDays || 1));
+      } else if (svc.unit === 'Người') {
+        return sum + (svc.price * (item.numberOfPeople || 1));
+      } else if (svc.unit === 'Ngày') {
+        return sum + (svc.price * (item.numberOfDays || nights));
+      }
+      return sum + (svc.price * (item.quantity || 1));
     }, 0);
 
     const subtotal = roomTotal + serviceTotal;
     let discount = 0;
 
     if (selectedVoucher) {
-      discount = (subtotal * selectedVoucher.discountPercent) / 100;
+      // Logic tính discount dựa trên phần trăm
+      if (selectedVoucher.discountPercent) {
+        discount = (subtotal * selectedVoucher.discountPercent) / 100;
+      } else {
+        // Nếu voucher là số tiền cố định (tùy theo thiết kế DB của bạn)
+        // discount = selectedVoucher.discountAmount || 0;
+        discount = 0;
+      }
+
+      // Kiểm tra giá trị giảm tối đa
       if (selectedVoucher.maxDiscountAmount && discount > selectedVoucher.maxDiscountAmount) {
         discount = selectedVoucher.maxDiscountAmount;
       }
@@ -77,10 +96,26 @@ const RoomDetail = () => {
     return { nights, roomTotal, serviceTotal, subtotal, discount, total: subtotal - discount };
   }, [room, checkIn, checkOut, selectedServices, selectedVoucher, services]);
 
-  const handleServiceToggle = (svcId) => {
-    setSelectedServices(prev => 
-      prev.includes(svcId) ? prev.filter(id => id !== svcId) : [...prev, svcId]
-    );
+  const handleServiceToggle = (svc) => {
+    setSelectedServices(prev => {
+      const isExist = prev.find(s => s.serviceId === svc.id);
+      if (isExist) {
+        return prev.filter(s => s.serviceId !== svc.id);
+      }
+      return [...prev, { 
+        serviceId: svc.id, 
+        quantity: 1, 
+        numberOfPeople: 1, 
+        numberOfDays: 1 
+      }];
+    });
+  };
+
+  const updateServiceField = (svcId, field, value) => {
+    const val = parseInt(value) || 0;
+    setSelectedServices(prev => prev.map(s => 
+      s.serviceId === svcId ? { ...s, [field]: val } : s
+    ));
   };
 
   const handleBooking = async () => {
@@ -95,7 +130,7 @@ const RoomDetail = () => {
       checkInDate: checkIn,
       checkOutDate: checkOut,
       voucherCode: selectedVoucher?.code || null,
-      services: selectedServices.map(id => ({ serviceId: id, quantity: 1 }))
+      services: selectedServices
     };
 
     const res = await fetch(`${API_BASE}/api/bookings`, {
@@ -158,24 +193,88 @@ const RoomDetail = () => {
           {/* Dịch vụ bổ sung (Trả phí) */}
           <div style={{ marginBottom: '30px' }}>
             <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#0F2E5A', marginBottom: '15px' }}>Nâng tầm trải nghiệm (Có phí)</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-              {addonServices.map(s => (
-                <label key={s.id} style={{ 
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', 
-                  border: `2px solid ${selectedServices.includes(s.id) ? '#3B82F6' : '#E2E8F0'}`, 
-                  borderRadius: '16px', cursor: 'pointer', background: selectedServices.includes(s.id) ? '#EFF6FF' : '#fff',
-                  transition: '0.2s'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <input type="checkbox" checked={selectedServices.includes(s.id)} onChange={() => handleServiceToggle(s.id)} style={{ width: '18px', height: '18px' }} />
-                    <div>
-                      <div style={{ fontWeight: '600', color: '#1E293B' }}>{s.serviceName}</div>
-                      <div style={{ fontSize: '13px', color: '#64748B' }}>+{s.price.toLocaleString()}đ</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              {addonServices.map(s => {
+                const selectedItem = selectedServices.find(item => item.serviceId === s.id);
+                const isSelected = !!selectedItem;
+                
+                return (
+                  <div key={s.id} style={{ 
+                    padding: '16px', 
+                    border: `2px solid ${isSelected ? '#3B82F6' : '#E2E8F0'}`, 
+                    borderRadius: '16px', background: isSelected ? '#EFF6FF' : '#fff',
+                    transition: '0.2s'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', flex: 1 }}>
+                        <input type="checkbox" checked={isSelected} onChange={() => handleServiceToggle(s)} style={{ width: '18px', height: '18px' }} />
+                        <div>
+                          <div style={{ fontWeight: '600', color: '#1E293B' }}>{s.serviceName}</div>
+                          <div style={{ fontSize: '13px', color: '#64748B' }}>
+                            +{s.price.toLocaleString()}đ / {s.unit}
+                          </div>
+                        </div>
+                      </label>
+                      <Plus size={18} color={isSelected ? '#3B82F6' : '#94A3B8'} />
                     </div>
+
+                    {isSelected && (
+                      <div style={{ marginTop: '15px', padding: '12px', background: '#fff', borderRadius: '12px', display: 'flex', gap: '20px', border: '1px solid #DBEAFE' }}>
+                        {/* Trường hợp: Người/Ngày -> Nhập cả 2 */}
+                        {s.unit === 'Người/Ngày' && (
+                          <>
+                            <div style={{ flex: 1 }}>
+                              <label style={{ fontSize: '12px', color: '#64748B', fontWeight: '600' }}>Số người</label>
+                              <input 
+                                type="number" min="1" 
+                                value={selectedItem.numberOfPeople} 
+                                onChange={(e) => updateServiceField(s.id, 'numberOfPeople', e.target.value)}
+                                style={{ ...inputStyle, padding: '8px' }} 
+                              />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <label style={{ fontSize: '12px', color: '#64748B', fontWeight: '600' }}>Số ngày</label>
+                              <input 
+                                type="number" min="1" 
+                                value={selectedItem.numberOfDays} 
+                                onChange={(e) => updateServiceField(s.id, 'numberOfDays', e.target.value)}
+                                style={{ ...inputStyle, padding: '8px' }} 
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        {/* Trường hợp: Người -> Chỉ nhập số người */}
+                        {s.unit === 'Người' && (
+                          <div style={{ flex: 1 }}>
+                            <label style={{ fontSize: '12px', color: '#64748B', fontWeight: '600' }}>Số người</label>
+                            <input 
+                              type="number" min="1" 
+                              value={selectedItem.numberOfPeople} 
+                              onChange={(e) => updateServiceField(s.id, 'numberOfPeople', e.target.value)}
+                              style={{ ...inputStyle, padding: '8px' }} 
+                            />
+                          </div>
+                        )}
+
+                        {/* Trường hợp: Ngày -> Nhập số ngày, mặc định lấy số đêm ở */}
+                        {s.unit === 'Ngày' && (
+                          <div style={{ flex: 1 }}>
+                            <label style={{ fontSize: '12px', color: '#64748B', fontWeight: '600' }}>Số ngày (Mặc định: {invoice?.nights || 1} đêm)</label>
+                            <input 
+                              type="number" min="1" 
+                              value={selectedItem.numberOfDays} 
+                              onChange={(e) => updateServiceField(s.id, 'numberOfDays', e.target.value)}
+                              style={{ ...inputStyle, padding: '8px' }} 
+                              placeholder={invoice?.nights}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <Plus size={18} color={selectedServices.includes(s.id) ? '#3B82F6' : '#94A3B8'} />
-                </label>
-              ))}
+                );
+              })}
             </div>
           </div>
 

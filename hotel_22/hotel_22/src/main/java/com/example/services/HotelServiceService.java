@@ -88,7 +88,7 @@ public class HotelServiceService {
         // Validate unit against allowed enum values
         ServiceUnit unit = ServiceUnit.fromString(req.unit);
         if (unit == null) {
-            throw new AppException("Đơn vị tính không hợp lệ. Chỉ chấp nhận: Lượt, Ngày, Người", 400);
+            throw new AppException("Đơn vị tính không hợp lệ. Chỉ chấp nhận: Lượt, Ngày, Người, Người/Ngày", 400);
         }
         return unit;
     }

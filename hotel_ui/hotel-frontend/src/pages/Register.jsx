@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
-import { UserPlus, Mail, Lock, User, Phone, AlertCircle, ChevronRight, Gift, Star, ShieldCheck } from 'lucide-react';
+import { 
+  Mail, Lock, User, Phone, AlertCircle, 
+  ChevronRight, Gift, Star, ShieldCheck, Eye, EyeOff 
+} from 'lucide-react';
 
 const API_BASE = 'http://localhost:8080';
 
@@ -9,6 +12,7 @@ const Register = () => {
   const [formData, setFormData] = useState({
     username: '', fullName: '', email: '', phone: '', password: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -89,7 +93,6 @@ const Register = () => {
                 <p style={subtitleStyle}>Điền thông tin để tạo tài khoản mới</p>
             </div>
 
-            {/* SỬA LỖI TẠI ĐÂY: Hiển thị lỗi nếu có */}
             {error && (
               <div style={errorBoxStyle}>
                 <AlertCircle size={18} />
@@ -161,13 +164,20 @@ const Register = () => {
                 <div style={inputWrapperStyle}>
                   <Lock style={iconStyle} size={18} />
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="Ít nhất 6 ký tự & 1 ký tự đặc biệt"
                     style={inputStyle}
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={eyeButtonStyle}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
               </div>
 
@@ -186,7 +196,7 @@ const Register = () => {
   );
 };
 
-// Styles - ĐÃ FIX CÁC LỖI TYPO
+// Styles 
 const containerStyle = { display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', minHeight: 'calc(100vh - 68px)' };
 const wrapperStyle = { display: 'flex', width: '100%', maxWidth: '1000px', background: '#fff', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 20px 50px rgba(15, 46, 90, 0.1)' };
 const benefitsSideStyle = { flex: 1, background: 'linear-gradient(135deg, #065F46 0%, #059669 100%)', padding: '50px', display: 'flex', flexDirection: 'column', justifyContent: 'center' };
@@ -202,7 +212,8 @@ const inputGroupStyle = { display: 'flex', flexDirection: 'column', gap: '6px' }
 const labelStyle = { fontSize: '13px', fontWeight: '600', color: '#1E293B' };
 const inputWrapperStyle = { position: 'relative' };
 const iconStyle = { position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' };
-const inputStyle = { width: '100%', padding: '11px 16px 11px 44px', borderRadius: '12px', border: '1px solid #CBD5E1', fontSize: '14px', outline: 'none', boxSizing: 'border-box' };
+const inputStyle = { width: '100%', padding: '11px 40px 11px 44px', borderRadius: '12px', border: '1px solid #CBD5E1', fontSize: '14px', outline: 'none', boxSizing: 'border-box' };
+const eyeButtonStyle = { position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px', zIndex: 2 };
 const buttonStyle = { width: '100%', padding: '14px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #10B981, #059669)', color: '#fff', fontSize: '16px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '10px' };
 const footerTextStyle = { textAlign: 'center', marginTop: '24px', fontSize: '14px', color: '#64748B' };
 const linkStyle = { color: '#059669', fontWeight: '700', textDecoration: 'none' };

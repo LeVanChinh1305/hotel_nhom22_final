@@ -13,5 +13,8 @@ public class BookingRequest {
     public static class BookingServiceItemRequest {
         public String serviceId;
         public Integer quantity;
+        public Integer numberOfPeople;
+        public Integer numberOfDays;
+
     }
 }

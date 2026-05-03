@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
-import { LogIn, Mail, Lock, AlertCircle, ChevronRight, Heart, ShieldCheck, History } from 'lucide-react';
+import { 
+  Mail, Lock, AlertCircle, ChevronRight, Heart, 
+  ShieldCheck, History, Eye, EyeOff 
+} from 'lucide-react';
 
 const API_BASE = 'http://localhost:8080';
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -71,60 +75,67 @@ const Login = () => {
 
           {/* Bên phải: Form */}
           <div style={formSideStyle}>
-          <div style={headerStyle}>
-              <h1 style={titleStyle}>Đăng nhập</h1>
-              <p style={subtitleStyle}>Nhập thông tin tài khoản của bạn</p>
+            <div style={headerStyle}>
+                <h1 style={titleStyle}>Đăng nhập</h1>
+                <p style={subtitleStyle}>Nhập thông tin tài khoản của bạn</p>
+            </div>
+
+            {error && (
+              <div style={errorBoxStyle}>
+                <AlertCircle size={18} />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} style={formStyle}>
+              <div style={inputGroupStyle}>
+                <label style={labelStyle}>Địa chỉ Email</label>
+                <div style={inputWrapperStyle}>
+                  <Mail style={iconStyle} size={18} />
+                  <input
+                    type="email"
+                    placeholder="vidu@email.com"
+                    style={inputStyle}
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div style={inputGroupStyle}>
+                <label style={labelStyle}>Mật khẩu</label>
+                <div style={inputWrapperStyle}>
+                  <Lock style={iconStyle} size={18} />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    style={inputStyle}
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={eyeButtonStyle}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" disabled={loading} style={buttonStyle}>
+                {loading ? 'Đang xử lý...' : 'Đăng nhập ngay'} <ChevronRight size={18} />
+              </button>
+            </form>
+
+            <p style={footerTextStyle}>
+                Chưa có tài khoản? <Link to="/register" style={linkStyle}>Đăng ký ngay</Link>
+            </p>
           </div>
-
-          {error && (
-            <div style={errorBoxStyle}>
-              <AlertCircle size={18} />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} style={formStyle}>
-            <div style={inputGroupStyle}>
-              <label style={labelStyle}>Địa chỉ Email</label>
-              <div style={inputWrapperStyle}>
-                <Mail style={iconStyle} size={18} />
-                <input
-                  type="email"
-                  placeholder="vidu@email.com"
-                  style={inputStyle}
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                />
-              </div>
-            </div>
-
-            <div style={inputGroupStyle}>
-              <label style={labelStyle}>Mật khẩu</label>
-              <div style={inputWrapperStyle}>
-                <Lock style={iconStyle} size={18} />
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  style={inputStyle}
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  required
-                />
-              </div>
-            </div>
-
-            <button type="submit" disabled={loading} style={buttonStyle}>
-              {loading ? 'Đang xử lý...' : 'Đăng nhập ngay'} <ChevronRight size={18} />
-            </button>
-          </form>
-
-          <p style={footerTextStyle}>
-              Chưa có tài khoản? <Link to="/register" style={linkStyle}>Đăng ký ngay</Link>
-          </p>
         </div>
       </div>
-    </div>
     </div>
   );
 };
@@ -153,7 +164,8 @@ const inputGroupStyle = { display: 'flex', flexDirection: 'column', gap: '8px' }
 const labelStyle = { fontSize: '14px', fontWeight: '600', color: '#1E293B' };
 const inputWrapperStyle = { position: 'relative', display: 'flex', alignItems: 'center' };
 const iconStyle = { position: 'absolute', left: '14px', color: '#94A3B8' };
-const inputStyle = { width: '100%', padding: '12px 16px 12px 44px', borderRadius: '12px', border: '1px solid #CBD5E1', fontSize: '15px', outline: 'none', transition: '0.2s', boxSizing: 'border-box' };
+const inputStyle = { width: '100%', padding: '12px 40px 12px 44px', borderRadius: '12px', border: '1px solid #CBD5E1', fontSize: '15px', outline: 'none', transition: '0.2s', boxSizing: 'border-box' };
+const eyeButtonStyle = { position: 'absolute', right: '12px', background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px' };
 const buttonStyle = { 
   width: '100%', padding: '14px', borderRadius: '12px', border: 'none', 
   background: 'linear-gradient(135deg, #3B82F6, #1D4ED8)', color: '#fff', 

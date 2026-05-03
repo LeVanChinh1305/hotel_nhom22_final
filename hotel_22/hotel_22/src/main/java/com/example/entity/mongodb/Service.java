@@ -23,7 +23,8 @@ public class Service extends PanacheMongoEntityBase {
     public enum ServiceUnit {
         LUOT("Lượt"),
         NGAY("Ngày"),
-        NGUOI("Người");
+        NGUOI("Người"),
+        NGUOI_NGAY("Người/Ngày");
 
         public final String displayName;
 

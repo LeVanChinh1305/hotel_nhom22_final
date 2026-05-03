@@ -1,6 +1,5 @@
 package com.example.controllers;
 
-import com.example.dto.request.CreateMailTemplateRequest;
 import com.example.dto.request.CreateNewsRequest;
 import com.example.dto.request.CreateRoomRequest;
 import com.example.dto.request.CreateServiceRequest;
@@ -10,7 +9,6 @@ import com.example.dto.request.UpdateRoomStatusRequest;
 import com.example.entity.mysql.User;
 import com.example.services.BookingService;
 import com.example.services.HotelServiceService;
-import com.example.services.MailTemplateService;
 import com.example.services.NewsService;
 import com.example.services.RoomService;
 import com.example.services.RoomStatusLogService;
@@ -43,7 +41,6 @@ public class AdminController {
     @Inject NewsService newsService;
     @Inject UserService userService;
     @Inject RoomStatusLogService roomStatusLogService;
-    @Inject MailTemplateService mailTemplateService;
     @Inject User currentUser;
 
     // ===== ROOMS =====
@@ -146,19 +143,5 @@ public class AdminController {
     @GET @Path("/room-status/{roomId}")
     public Response getRoomStatusHistory(@PathParam("roomId") String roomId) {
         return Response.ok(roomStatusLogService.getHistory(roomId)).build();
-    }
-
-    // ===== MAIL TEMPLATES =====
-    @GET @Path("/mail-templates")
-    public Response getAllTemplates() {
-        return Response.ok(mailTemplateService.getAll()).build();
-    }
-    @POST @Path("/mail-templates")
-    public Response createTemplate(CreateMailTemplateRequest req) {
-        return Response.status(201).entity(mailTemplateService.create(req)).build();
-    }
-    @PUT @Path("/mail-templates/{id}")
-    public Response updateTemplate(@PathParam("id") String id, CreateMailTemplateRequest req) {
-        return Response.ok(mailTemplateService.update(id, req)).build();
     }
 }

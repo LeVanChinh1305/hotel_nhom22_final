@@ -41,7 +41,13 @@ public class BookingService {
             throw new AppException("Ngày nhận/trả phòng không được để trống", 400);
         if (DateUtils.isPast(req.checkInDate))
             throw new AppException("Ngày nhận phòng không được ở quá khứ", 400);
-        long nights = DateUtils.countNights(req.checkInDate, req.checkOutDate);
+        
+        long nights;
+        try {
+            nights = DateUtils.countNights(req.checkInDate, req.checkOutDate);
+        } catch (IllegalArgumentException e) {
+            throw new AppException(e.getMessage(), 400);
+        }
 
         // 2. Kiểm tra overbooking
         if (bookingRepository.isRoomBooked(req.roomId, req.checkInDate, req.checkOutDate))
@@ -140,6 +146,12 @@ public class BookingService {
         booking.totalPrice        = PriceUtils.round(totalPrice);
         booking.status            = Booking.BookingStatus.PENDING;
         booking.paymentStatus     = false;
+
+        // Lưu thông tin liên lạc (Ưu tiên thông tin nhập tại trang xác nhận)
+        booking.guestFullName     = (req.guestFullName != null && !req.guestFullName.isBlank()) ? req.guestFullName : currentUser.fullName;
+        booking.guestEmail        = (req.guestEmail != null && !req.guestEmail.isBlank()) ? req.guestEmail : currentUser.email;
+        booking.guestPhone        = (req.guestPhone != null && !req.guestPhone.isBlank()) ? req.guestPhone : currentUser.phone;
+
         bookingRepository.persist(booking);
 
         // 8. Lưu từng booking service item

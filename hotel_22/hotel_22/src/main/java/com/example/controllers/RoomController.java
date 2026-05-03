@@ -5,6 +5,7 @@ import java.util.List;
 import com.example.dto.response.RoomResponse;
 import com.example.services.RoomService;
 
+import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -16,6 +17,7 @@ import jakarta.ws.rs.core.MediaType;
 
 @Path("/rooms")
 @Produces(MediaType.APPLICATION_JSON)
+@PermitAll
 public class RoomController {
 
     @Inject

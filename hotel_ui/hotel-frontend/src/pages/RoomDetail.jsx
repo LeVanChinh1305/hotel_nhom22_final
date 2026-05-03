@@ -125,27 +125,22 @@ const RoomDetail = () => {
       return navigate('/login');
     }
 
-    const payload = {
-      roomId: room.id,
-      checkInDate: checkIn,
-      checkOutDate: checkOut,
-      voucherCode: selectedVoucher?.code || null,
-      services: selectedServices
-    };
-
-    const res = await fetch(`${API_BASE}/api/bookings`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify(payload)
-    });
-
-    if (res.ok) {
-      alert("Đặt phòng thành công!");
-      navigate('/booking-history');
-    } else {
-      const err = await res.json();
-      alert("Lỗi: " + err.message);
+    if (!checkIn || !checkOut) {
+      alert("Vui lòng chọn ngày nhận phòng và ngày trả phòng!");
+      return;
     }
+
+    // Thay vì gọi API trực tiếp, chuyển sang trang xác nhận kèm theo thông tin đã chọn
+    navigate('/booking-confirmation', { 
+      state: { 
+        room, 
+        checkIn, 
+        checkOut, 
+        selectedServices, 
+        selectedVoucher,
+        invoice 
+      } 
+    });
   };
 
   if (loading) return <div style={{ padding: '100px', textAlign: 'center' }}>Đang tải thông tin phòng...</div>;

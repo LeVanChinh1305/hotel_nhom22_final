@@ -14,12 +14,11 @@ const Home = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-
+        // Loại bỏ Authorization cho danh sách công khai để tránh lỗi 401 nếu token hết hạn/lỗi
+        // Quarkus đã được cấu hình @PermitAll cho các endpoint này
         const [roomsRes, vouchersRes] = await Promise.all([
-          fetch(`${API_BASE}/api/rooms`, { headers }),
-          fetch(`${API_BASE}/api/vouchers`, { headers })
+          fetch(`${API_BASE}/api/rooms`),
+          fetch(`${API_BASE}/api/vouchers`)
         ]);
 
         if (!roomsRes.ok) throw new Error(`Lỗi tải phòng: ${roomsRes.status}`);

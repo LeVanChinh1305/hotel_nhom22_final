@@ -12,10 +12,8 @@ const Promotions = () => {
   useEffect(() => {
     const fetchVouchers = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-        
-        const res = await fetch(`${API_BASE}/api/vouchers`, { headers });
+        // Loại bỏ Authorization để tránh lỗi 401 khi xem khuyến mãi công khai
+        const res = await fetch(`${API_BASE}/api/vouchers`);
         if (!res.ok) throw new Error('Không thể tải danh sách khuyến mãi');
         
         const data = await res.json();

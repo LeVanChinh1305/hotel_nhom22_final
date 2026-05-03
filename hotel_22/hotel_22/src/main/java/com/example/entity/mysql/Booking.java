@@ -52,6 +52,15 @@ public class Booking extends PanacheEntityBase {
     @Column(name = "payment_status", nullable = false)
     public Boolean paymentStatus = false;
 
+    @Column(name = "guest_full_name")
+    public String guestFullName;
+
+    @Column(name = "guest_email")
+    public String guestEmail;
+
+    @Column(name = "guest_phone")
+    public String guestPhone;
+
     @Column(name = "is_confirmed_mail_sent", nullable = false)
     public Boolean isConfirmedMailSent = false;
 

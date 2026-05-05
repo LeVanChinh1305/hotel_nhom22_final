@@ -1,5 +1,6 @@
 package com.example.controllers;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import com.example.dto.response.RoomResponse;
@@ -32,8 +33,14 @@ public class RoomController {
             @QueryParam("address") String address,
             @QueryParam("minPrice") Double minPrice,
             @QueryParam("maxPrice") Double maxPrice,
-            @QueryParam("maxOccupancy") Integer maxOccupancy) {
-        return roomService.searchRooms(type, address, minPrice, maxPrice, maxOccupancy);
+            @QueryParam("maxOccupancy") Integer maxOccupancy,
+            @QueryParam("checkInDate") String checkInDateStr,
+            @QueryParam("checkOutDate") String checkOutDateStr) {
+        LocalDate checkInDate = checkInDateStr == null ? null : LocalDate.parse(checkInDateStr);
+        LocalDate checkOutDate = checkOutDateStr == null ? null : LocalDate.parse(checkOutDateStr);
+        return roomService.searchRooms(
+                type, address, minPrice, maxPrice, maxOccupancy,
+                checkInDate, checkOutDate);
     }
 
     /**

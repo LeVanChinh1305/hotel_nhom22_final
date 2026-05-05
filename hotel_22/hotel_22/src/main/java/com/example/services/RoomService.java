@@ -1,5 +1,6 @@
 package com.example.services;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -10,6 +11,7 @@ import com.example.dto.response.RoomResponse;
 import com.example.entity.mongodb.Room;
 import com.example.exceptions.AppException;
 import com.example.mapper.RoomMapper;
+import com.example.repository.mongodb.RoomAvailabilityRepository;
 import com.example.repository.mongodb.RoomRepository;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -19,14 +21,24 @@ import jakarta.inject.Inject;
 public class RoomService {
 
     @Inject RoomRepository roomRepository;
+    @Inject RoomAvailabilityRepository roomAvailabilityRepository;
     @Inject RoomMapper     roomMapper;
 
     public List<RoomResponse> searchRooms(String type, String address,
                                            Double minPrice, Double maxPrice,
-                                           Integer maxOccupancy) {
-        return roomRepository
-                .search(type, address, minPrice, maxPrice, maxOccupancy)
-                .stream()
+                                           Integer maxOccupancy,
+                                           LocalDate checkInDate, LocalDate checkOutDate) {
+        List<Room> rooms = roomRepository
+                .search(type, address, minPrice, maxPrice, maxOccupancy);
+
+        if (checkInDate != null && checkOutDate != null) {
+            rooms = rooms.stream()
+                    .filter(room -> roomAvailabilityRepository.isRoomAvailable(
+                            room.id.toString(), checkInDate, checkOutDate))
+                    .collect(Collectors.toList());
+        }
+
+        return rooms.stream()
                 .map(roomMapper::toResponse)
                 .collect(Collectors.toList());
     }

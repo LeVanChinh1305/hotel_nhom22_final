@@ -20,9 +20,22 @@ public class CurrentUserProducer {
     @Produces
     @RequestScoped
     public User getCurrentUser() {
-        String email = jwt.getName();
-        return userRepository.find("email", email)
+        String email = jwt.getClaim("upn");
+        if (email == null || email.isBlank()) {
+            email = jwt.getName(); // fallback
+        }
+        if (email == null || email.isBlank()) {
+            throw new AppException("JWT token không chứa thông tin email", 401);
+        }
+
+        User user = userRepository.find("email", email)
                 .firstResultOptional()
-                .orElseThrow(() -> new AppException("User not found", 404));
+                .orElseThrow(() -> new AppException("Người dùng không tồn tại với email: " + email, 404));
+
+        if (user.id == null) {
+            throw new AppException("User ID không hợp lệ", 500);
+        }
+
+        return user;
     }
 }

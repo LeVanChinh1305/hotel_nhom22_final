@@ -14,7 +14,8 @@ public class ServiceResponse {
         ServiceResponse r = new ServiceResponse();
         r.id = s.id.toHexString(); r.serviceName = s.serviceName;
         r.description = s.description; r.price = s.price;
-        r.unit = s.unit; r.isAvailable = s.isAvailable;
+        r.unit = (s.unit != null) ? s.unit.displayName : null;
+        r.isAvailable = s.isAvailable;
         return r;
     }
 }

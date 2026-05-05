@@ -9,6 +9,7 @@ import com.example.exceptions.AppException;
 import com.example.mapper.BookingMapper;
 import com.example.repository.mongodb.RoomRepository;
 import com.example.repository.mongodb.ServiceRepository;
+import com.example.repository.mongodb.RoomAvailabilityRepository;
 import com.example.repository.mysql.*;
 import com.example.utils.DateUtils;
 import com.example.utils.PriceUtils;
@@ -29,6 +30,7 @@ public class BookingService {
     @Inject VoucherRepository             voucherRepository;
     @Inject RoomRepository                roomRepository;
     @Inject ServiceRepository             serviceRepository;
+    @Inject RoomAvailabilityRepository    roomAvailabilityRepository;
     @Inject BookingMapper                 bookingMapper;
 
     // ─── CUSTOMER ────────────────────────────────────────────────────────────
@@ -49,9 +51,9 @@ public class BookingService {
             throw new AppException(e.getMessage(), 400);
         }
 
-        // 2. Kiểm tra overbooking
-        if (bookingRepository.isRoomBooked(req.roomId, req.checkInDate, req.checkOutDate))
-            throw new AppException("Phòng đã được đặt trong khoảng thời gian này", 409);
+        // 2. Kiểm tra phòng trống
+        if (!roomAvailabilityRepository.isRoomAvailable(req.roomId, req.checkInDate, req.checkOutDate))
+            throw new AppException("Phòng đã được đặt hoặc không khả dụng trong khoảng thời gian này", 409);
 
         // 3. Lấy thông tin phòng & tính tiền phòng
         Room room = findRoomOrThrow(req.roomId);
@@ -133,7 +135,12 @@ public class BookingService {
         // 6. Tính tổng tiền cuối
         double totalPrice = PriceUtils.calcTotal(roomPrice, servicePrice, discount);
 
-        // 7. Tạo Booking
+        // 7. Validate currentUser
+        if (currentUser == null || currentUser.id == null) {
+            throw new AppException("Người dùng chưa đăng nhập", 401);
+        }
+
+        // 8. Tạo Booking
         Booking booking = new Booking();
         booking.user              = currentUser;
         booking.roomId            = req.roomId;
@@ -154,7 +161,10 @@ public class BookingService {
 
         bookingRepository.persist(booking);
 
-        // 8. Lưu từng booking service item
+        // 9. Cập nhật trạng thái phòng thành BOOKED
+        roomAvailabilityRepository.updateRoomStatusRange(req.roomId, req.checkInDate, req.checkOutDate, "BOOKED", booking.id);
+
+        // 10. Lưu từng booking service item
         for (BookingServiceItem item : items) {
             item.booking = booking;
             bookingServiceItemRepository.persist(item);
@@ -248,6 +258,10 @@ public class BookingService {
         }
 
         bookingRepository.persist(booking);
+
+        // Cập nhật trạng thái phòng dựa trên booking status
+        updateRoomAvailabilityForBooking(booking);
+
         return bookingMapper.toResponse(booking);
     }
 
@@ -270,10 +284,30 @@ public class BookingService {
     private Service findServiceOrThrow(String serviceId) {
         try {
             return serviceRepository.findByIdOptional(new ObjectId(serviceId))
-                    .orElseThrow(() -> new AppException("Dịch vụ không tồn tại: " + serviceId, 404));
+                    .orElseThrow(() -> new AppException("Dịch vụ không tồn tại", 404));
         } catch (IllegalArgumentException e) {
-            throw new AppException("ID dịch vụ không hợp lệ: " + serviceId, 400);
+            throw new AppException("ID dịch vụ không hợp lệ", 400);
         }
+    }
+
+    private void updateRoomAvailabilityForBooking(Booking booking) {
+        String newStatus;
+        switch (booking.status) {
+            case CONFIRMED:
+            case PENDING:
+                newStatus = "BOOKED";
+                break;
+            case COMPLETED:
+            case CANCELLED:
+                newStatus = "AVAILABLE";
+                break;
+            default:
+                newStatus = "AVAILABLE";
+        }
+
+        Long bookingId = (booking.status == Booking.BookingStatus.CONFIRMED || booking.status == Booking.BookingStatus.PENDING)
+                ? booking.id : null;
+        roomAvailabilityRepository.updateRoomStatusRange(booking.roomId, booking.checkInDate, booking.checkOutDate, newStatus, bookingId);
     }
 
     /**

@@ -5,8 +5,10 @@ import com.example.dto.request.CreateRoomRequest;
 import com.example.dto.request.CreateServiceRequest;
 import com.example.dto.request.CreateVoucherRequest;
 import com.example.dto.request.UpdateBookingStatusRequest;
+import com.example.dto.request.UpdateRoomAvailabilityRequest;
 import com.example.dto.request.UpdateRoomStatusRequest;
 import com.example.entity.mysql.User;
+import com.example.repository.mongodb.RoomAvailabilityRepository;
 import com.example.services.BookingService;
 import com.example.services.HotelServiceService;
 import com.example.services.NewsService;
@@ -41,12 +43,13 @@ public class AdminController {
     @Inject NewsService newsService;
     @Inject UserService userService;
     @Inject RoomStatusLogService roomStatusLogService;
+    @Inject RoomAvailabilityRepository roomAvailabilityRepository;
     @Inject User currentUser;
 
     // ===== ROOMS =====
     @GET @Path("/rooms")
     public Response getAllRooms() {
-        return Response.ok(roomService.searchRooms(null, null, null, null, null)).build();
+        return Response.ok(roomService.searchRooms(null, null, null, null, null, null, null)).build();
     }
 
     @POST @Path("/rooms")
@@ -90,6 +93,14 @@ public class AdminController {
     @PUT @Path("/bookings/{id}")
     public Response updateBooking(@PathParam("id") Long id, UpdateBookingStatusRequest req) {
         return Response.ok(bookingService.updateBookingStatus(id, req.status, req.paymentStatus)).build();
+    }
+
+    // ===== ROOM AVAILABILITY =====
+    @PUT @Path("/rooms/availability")
+    public Response updateRoomAvailability(UpdateRoomAvailabilityRequest req) {
+        roomAvailabilityRepository.updateRoomStatusRange(
+                req.roomId, req.date, req.date.plusDays(1), req.status, req.bookingId);
+        return Response.ok().build();
     }
 
     // ===== VOUCHERS =====

@@ -24,7 +24,12 @@ const RoomCalendar = ({ roomId, bookings }) => {
         const maintenanceSet = new Set();
         availabilities.forEach(avail => {
           if (avail.status === 'MAINTENANCE') {
-            maintenanceSet.add(new Date(avail.date).toDateString());
+            // Parse chuỗi YYYY-MM-DD theo local date để tránh lệch múi giờ
+            const dateParts = avail.date.split('-');
+            if (dateParts.length === 3) {
+              const dateObj = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+              maintenanceSet.add(dateObj.toDateString());
+            }
           }
         });
         setMaintenanceDates(maintenanceSet);
@@ -49,6 +54,11 @@ const RoomCalendar = ({ roomId, bookings }) => {
     return () => window.removeEventListener('roomDataChanged', handleDataChange);
   }, [roomId]);
 
+  // Kiểm tra ngày có đang bảo trì không
+  const isMaintenance = (date) => {
+    return date && maintenanceDates.has(date.toDateString());
+  };
+
   // Lọc bookings của phòng này
   const roomBookings = bookings.filter(b => b.room?.id === roomId || b.roomId === roomId);
 
@@ -56,8 +66,12 @@ const RoomCalendar = ({ roomId, bookings }) => {
   const bookedDates = new Set();
   roomBookings.forEach(booking => {
     if (booking.checkInDate && booking.checkOutDate) {
-      const start = new Date(booking.checkInDate);
-      const end = new Date(booking.checkOutDate);
+      // Parse chuỗi date từ backend theo local time
+      const startParts = booking.checkInDate.split('-');
+      const endParts = booking.checkOutDate.split('-');
+      
+      const start = new Date(startParts[0], startParts[1] - 1, startParts[2]);
+      const end = new Date(endParts[0], endParts[1] - 1, endParts[2]);
       const current = new Date(start);
 
       while (current <= end) {
@@ -66,8 +80,6 @@ const RoomCalendar = ({ roomId, bookings }) => {
       }
     }
   });
-
-  // Handle click vào ngày
   const handleDateClick = (date) => {
     if (!date || isPast(date)) return; // Không cho click ngày quá khứ
     setSelectedDate(date);
@@ -81,6 +93,13 @@ const RoomCalendar = ({ roomId, bookings }) => {
     setSettingMaintenance(true);
     try {
       const API_BASE = 'http://localhost:8080';
+      
+      // Định dạng YYYY-MM-DD theo giờ địa phương thay vì sử dụng toISOString()
+      const year = selectedDate.getFullYear();
+      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(selectedDate.getDate()).padStart(2, '0');
+      const localDateStr = `${year}-${month}-${day}`;
+
       const response = await fetch(`${API_BASE}/api/admin/rooms/${roomId}/set-maintenance`, {
         method: 'POST',
         headers: {
@@ -88,7 +107,7 @@ const RoomCalendar = ({ roomId, bookings }) => {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
-          date: selectedDate.toISOString().split('T')[0], // Format YYYY-MM-DD
+          date: localDateStr,
           status: 'MAINTENANCE'
         })
       });
@@ -102,6 +121,48 @@ const RoomCalendar = ({ roomId, bookings }) => {
       } else {
         const error = await response.json();
         alert('Lỗi: ' + (error.message || 'Không thể đặt bảo trì'));
+      }
+    } catch (error) {
+      alert('Lỗi kết nối: ' + error.message);
+    } finally {
+      setSettingMaintenance(false);
+    }
+  };
+
+  // Hủy bảo trì cho ngày cụ thể
+  const handleCancelMaintenance = async () => {
+    if (!selectedDate) return;
+
+    setSettingMaintenance(true);
+    try {
+      const API_BASE = 'http://localhost:8080';
+      
+      const year = selectedDate.getFullYear();
+      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(selectedDate.getDate()).padStart(2, '0');
+      const localDateStr = `${year}-${month}-${day}`;
+
+      const response = await fetch(`${API_BASE}/api/admin/rooms/${roomId}/cancel-maintenance`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          date: localDateStr
+        })
+      });
+
+      if (response.ok) {
+        alert(`Đã hủy bảo trì cho ngày ${selectedDate.toLocaleDateString('vi-VN')}`);
+        setShowDateMenu(false);
+        setSelectedDate(null);
+        // Gọi lại hàm fetch để cập nhật giao diện ngay lập tức
+        fetchMaintenanceDates();
+        window.dispatchEvent(new CustomEvent('roomDataChanged'));
+      } else {
+        const error = await response.json();
+        alert('Lỗi: ' + (error.message || 'Không thể hủy bảo trì'));
       }
     } catch (error) {
       alert('Lỗi kết nối: ' + error.message);
@@ -220,7 +281,7 @@ const RoomCalendar = ({ roomId, bookings }) => {
           <div
             key={index}
             style={{
-              background: date ? (isBooked(date) ? '#2563EB' : '#FFFFFF') : '#F8FAFC',
+              background: date ? (isBooked(date) ? '#2563EB' : (isMaintenance(date) ? '#F59E0B' : '#FFFFFF')) : '#F8FAFC',
               padding: '12px 8px', textAlign: 'center', minHeight: '60px',
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               cursor: date && !isPast(date) ? 'pointer' : 'default',
@@ -230,12 +291,12 @@ const RoomCalendar = ({ roomId, bookings }) => {
             }}
             onClick={() => handleDateClick(date)}
             onMouseEnter={(e) => {
-              if (date && !isBooked(date) && !isPast(date)) {
+              if (date && !isBooked(date) && !isMaintenance(date) && !isPast(date)) {
                 e.currentTarget.style.background = '#F8FAFC';
               }
             }}
             onMouseLeave={(e) => {
-              if (date && !isBooked(date) && !isPast(date)) {
+              if (date && !isBooked(date) && !isMaintenance(date) && !isPast(date)) {
                 e.currentTarget.style.background = '#FFFFFF';
               }
             }}
@@ -243,8 +304,7 @@ const RoomCalendar = ({ roomId, bookings }) => {
             {date && (
               <>
                 <span style={{
-                  fontSize: '14px', fontWeight: '600',
-                  color: isBooked(date) ? '#FFFFFF' : (isToday(date) ? '#EF4444' : '#334155')
+                  fontSize: '14px', fontWeight: '600', color: (isBooked(date) || isMaintenance(date)) ? '#FFFFFF' : (isToday(date) ? '#EF4444' : '#334155')
                 }}>
                   {date.getDate()}
                 </span>
@@ -253,6 +313,13 @@ const RoomCalendar = ({ roomId, bookings }) => {
                     fontSize: '10px', color: '#BFDBFE', marginTop: '2px'
                   }}>
                     Đã đặt
+                  </span>
+                )}
+                {isMaintenance(date) && (
+                  <span style={{
+                    fontSize: '10px', color: '#FEF3C7', marginTop: '2px'
+                  }}>
+                    Bảo trì
                   </span>
                 )}
               </>
@@ -297,7 +364,7 @@ const RoomCalendar = ({ roomId, bookings }) => {
                 fontSize: '14px',
                 color: '#64748B'
               }}>
-                {isBooked(selectedDate) ? 'Trạng thái: Đã đặt phòng' : 'Trạng thái: Trống'}
+                {isBooked(selectedDate) ? 'Trạng thái: Đã đặt phòng' : (isMaintenance(selectedDate) ? 'Trạng thái: Đang bảo trì' : 'Trạng thái: Trống')}
               </p>
             </div>
 
@@ -321,7 +388,7 @@ const RoomCalendar = ({ roomId, bookings }) => {
                 Hủy
               </button>
 
-              {!isBooked(selectedDate) && (
+              {!isBooked(selectedDate) && !isMaintenance(selectedDate) && (
                 <button
                   onClick={handleSetMaintenance}
                   disabled={settingMaintenance}
@@ -338,6 +405,25 @@ const RoomCalendar = ({ roomId, bookings }) => {
                   }}
                 >
                   {settingMaintenance ? 'Đang xử lý...' : 'Đặt bảo trì'}
+                </button>
+              )}
+
+              {isMaintenance(selectedDate) && (
+                <button
+                  onClick={handleCancelMaintenance}
+                  disabled={settingMaintenance}
+                  style={{
+                    padding: '8px 16px',
+                    background: settingMaintenance ? '#9CA3AF' : '#EF4444',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: settingMaintenance ? 'not-allowed' : 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                  }}
+                >
+                  {settingMaintenance ? 'Đang xử lý...' : 'Hủy bảo trì'}
                 </button>
               )}
             </div>

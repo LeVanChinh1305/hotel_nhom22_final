@@ -18,6 +18,7 @@ import com.example.repository.mysql.BookingRepository;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 
 @ApplicationScoped
 public class RoomService {
@@ -51,6 +52,7 @@ public class RoomService {
         return roomMapper.toResponse(room);
     }
 
+    @Transactional
     public RoomResponse create(CreateRoomRequest req) {
         validateRoomRequest(req);
 
@@ -63,6 +65,7 @@ public class RoomService {
         return roomMapper.toResponse(room);
     }
 
+    @Transactional
     public RoomResponse update(String id, CreateRoomRequest req) {
         validateRoomRequest(req);
         Room room = findRoomOrThrow(id);
@@ -77,6 +80,7 @@ public class RoomService {
         return roomMapper.toResponse(room);
     }
 
+    @Transactional
     public void delete(String id) {
         Room room = findRoomOrThrow(id);
         roomRepository.delete(room);
@@ -97,6 +101,7 @@ public class RoomService {
     /**
      * Set trạng thái maintenance cho một ngày cụ thể của phòng
      */
+    @Transactional
     public void setRoomMaintenance(String roomId, LocalDate date, String status) {
         // Kiểm tra phòng tồn tại
         findRoomOrThrow(roomId);
@@ -124,6 +129,24 @@ public class RoomService {
         // Set maintenance status trong room availability
         roomAvailabilityRepository.updateRoomStatusRange(
             roomId, date, date.plusDays(1), status, null
+        );
+    }
+
+    /**
+     * Hủy trạng thái bảo trì (trả về AVAILABLE)
+     */
+    @Transactional
+    public void cancelRoomMaintenance(String roomId, LocalDate date) {
+        findRoomOrThrow(roomId);
+        
+        // Kiểm tra xem ngày đó có thực sự đang bảo trì không
+        String currentStatus = roomAvailabilityRepository.getRoomStatus(roomId, date);
+        if (!"MAINTENANCE".equals(currentStatus)) {
+            throw new AppException("Ngày này không ở trạng thái bảo trì", 400);
+        }
+
+        roomAvailabilityRepository.updateRoomStatusRange(
+            roomId, date, date.plusDays(1), "AVAILABLE", null
         );
     }
 

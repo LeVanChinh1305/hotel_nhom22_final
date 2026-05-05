@@ -86,6 +86,13 @@ public class AdminController {
         roomService.setRoomMaintenance(id, req.date, req.status);
         return Response.ok().build();
     }
+
+    @POST @Path("/rooms/{id}/cancel-maintenance")
+    public Response cancelRoomMaintenance(@PathParam("id") String id, SetRoomMaintenanceRequest req) {
+        roomService.cancelRoomMaintenance(id, req.date);
+        return Response.ok().build();
+    }
+
     @DELETE @Path("/rooms/{id}")
     public Response deleteRoom(@PathParam("id") String id) {
         roomService.delete(id);

@@ -97,6 +97,20 @@ const Admin = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [lastFetch, setLastFetch] = useState(null);
 
+  /* Modal states */
+  const [showAddRoomModal, setShowAddRoomModal] = useState(false);
+  const [roomForm, setRoomForm] = useState({
+    roomNumber: '',
+    type: '',
+    basePrice: '',
+    address: '',
+    description: '',
+    maxOccupancy: '',
+    amenities: [],
+    images: []
+  });
+  const [creatingRoom, setCreatingRoom] = useState(false);
+
   const loadData = async () => {
     setLoading(true);
     setError('');
@@ -129,6 +143,63 @@ const Admin = () => {
       setError(e.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const createRoom = async () => {
+    if (!roomForm.roomNumber.trim() || !roomForm.type.trim() || !roomForm.basePrice) {
+      alert('Vui lòng điền đầy đủ thông tin bắt buộc: Số phòng, Loại phòng, Giá cơ bản');
+      return;
+    }
+
+    setCreatingRoom(true);
+    try {
+      const requestData = {
+        roomNumber: roomForm.roomNumber.trim(),
+        type: roomForm.type.trim(),
+        basePrice: parseFloat(roomForm.basePrice),
+        address: roomForm.address.trim() || null,
+        description: roomForm.description.trim() || null,
+        maxOccupancy: roomForm.maxOccupancy ? parseInt(roomForm.maxOccupancy) : null,
+        amenities: roomForm.amenities.filter(a => a.trim()).map(a => a.trim()),
+        images: roomForm.images.filter(i => i.trim()).map(i => i.trim())
+      };
+
+      const response = await fetch(`${API_BASE}/api/admin/rooms`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getStoredToken()}`
+        },
+        body: JSON.stringify(requestData)
+      });
+
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          throw new Error('Không có quyền truy cập hoặc token không hợp lệ');
+        }
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Lỗi ${response.status}`);
+      }
+
+      const newRoom = await response.json();
+      setRooms(prev => [...prev, newRoom]);
+      setShowAddRoomModal(false);
+      setRoomForm({
+        roomNumber: '',
+        type: '',
+        basePrice: '',
+        address: '',
+        description: '',
+        maxOccupancy: '',
+        amenities: [],
+        images: []
+      });
+      alert('Thêm phòng thành công!');
+    } catch (e) {
+      alert('Lỗi khi thêm phòng: ' + e.message);
+    } finally {
+      setCreatingRoom(false);
     }
   };
 
@@ -351,7 +422,7 @@ const Admin = () => {
             <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
               <div style={{ padding: '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ margin: 0, fontSize: '18px', color: '#0F2E5A' }}>Quản lý Phòng ({rooms.length})</h2>
-                <button style={{ ...addBtnStyle, background: '#3B82F6' }} onClick={() => alert('Chức năng thêm phòng chưa được triển khai')}>
+                <button style={{ ...addBtnStyle, background: '#3B82F6' }} onClick={() => setShowAddRoomModal(true)}>
                   <Plus size={14} /> Thêm mới
                 </button>
               </div>
@@ -564,6 +635,196 @@ const Admin = () => {
           )}
         </div>
       </div>
+
+      {/* Modal thêm phòng */}
+      {showAddRoomModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center',
+          justifyContent: 'center', zIndex: 1000, padding: '20px'
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: '16px', width: '100%',
+            maxWidth: '600px', maxHeight: '90vh', overflow: 'auto'
+          }}>
+            <div style={{
+              padding: '24px', borderBottom: '1px solid #E2E8F0',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+            }}>
+              <h2 style={{ margin: 0, fontSize: '20px', color: '#0F2E5A' }}>Thêm phòng mới</h2>
+              <button
+                onClick={() => setShowAddRoomModal(false)}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: '#64748B', padding: '4px'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ padding: '24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>
+                    Số phòng <span style={{ color: '#EF4444' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={roomForm.roomNumber}
+                    onChange={(e) => setRoomForm({...roomForm, roomNumber: e.target.value})}
+                    placeholder="VD: 101"
+                    style={{
+                      width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
+                      borderRadius: '8px', fontSize: '14px', outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>
+                    Loại phòng <span style={{ color: '#EF4444' }}>*</span>
+                  </label>
+                  <select
+                    value={roomForm.type}
+                    onChange={(e) => setRoomForm({...roomForm, type: e.target.value})}
+                    style={{
+                      width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
+                      borderRadius: '8px', fontSize: '14px', outline: 'none'
+                    }}
+                  >
+                    <option value="">Chọn loại phòng</option>
+                    <option value="STANDARD">Standard</option>
+                    <option value="DELUXE">Deluxe</option>
+                    <option value="SUITE">Suite</option>
+                    <option value="PRESIDENTIAL">Presidential</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>
+                    Giá cơ bản (₫) <span style={{ color: '#EF4444' }}>*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={roomForm.basePrice}
+                    onChange={(e) => setRoomForm({...roomForm, basePrice: e.target.value})}
+                    placeholder="VD: 500000"
+                    style={{
+                      width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
+                      borderRadius: '8px', fontSize: '14px', outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>
+                    Sức chứa tối đa
+                  </label>
+                  <input
+                    type="number"
+                    value={roomForm.maxOccupancy}
+                    onChange={(e) => setRoomForm({...roomForm, maxOccupancy: e.target.value})}
+                    placeholder="VD: 2"
+                    style={{
+                      width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
+                      borderRadius: '8px', fontSize: '14px', outline: 'none'
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>
+                  Địa chỉ
+                </label>
+                <input
+                  type="text"
+                  value={roomForm.address}
+                  onChange={(e) => setRoomForm({...roomForm, address: e.target.value})}
+                  placeholder="VD: Tầng 1, Khách sạn ABC"
+                  style={{
+                    width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
+                    borderRadius: '8px', fontSize: '14px', outline: 'none'
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>
+                  Mô tả
+                </label>
+                <textarea
+                  value={roomForm.description}
+                  onChange={(e) => setRoomForm({...roomForm, description: e.target.value})}
+                  placeholder="Mô tả chi tiết về phòng..."
+                  rows={3}
+                  style={{
+                    width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
+                    borderRadius: '8px', fontSize: '14px', outline: 'none', resize: 'vertical'
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>
+                  Tiện nghi (mỗi tiện nghi một dòng)
+                </label>
+                <textarea
+                  value={roomForm.amenities.join('\n')}
+                  onChange={(e) => setRoomForm({...roomForm, amenities: e.target.value.split('\n').filter(a => a.trim())})}
+                  placeholder="WiFi miễn phí&#10;Điều hòa&#10;Tivi&#10;Minibar"
+                  rows={4}
+                  style={{
+                    width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
+                    borderRadius: '8px', fontSize: '14px', outline: 'none', resize: 'vertical'
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>
+                  URL hình ảnh (mỗi URL một dòng)
+                </label>
+                <textarea
+                  value={roomForm.images.join('\n')}
+                  onChange={(e) => setRoomForm({...roomForm, images: e.target.value.split('\n').filter(i => i.trim())})}
+                  placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
+                  rows={3}
+                  style={{
+                    width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
+                    borderRadius: '8px', fontSize: '14px', outline: 'none', resize: 'vertical'
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <button
+                  onClick={() => setShowAddRoomModal(false)}
+                  style={{
+                    padding: '10px 20px', background: '#F3F4F6', color: '#374151',
+                    border: '1px solid #D1D5DB', borderRadius: '8px', cursor: 'pointer',
+                    fontSize: '14px', fontWeight: '600'
+                  }}
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={createRoom}
+                  disabled={creatingRoom}
+                  style={{
+                    padding: '10px 20px', background: '#2563EB', color: '#fff',
+                    border: 'none', borderRadius: '8px', cursor: creatingRoom ? 'not-allowed' : 'pointer',
+                    fontSize: '14px', fontWeight: '600', opacity: creatingRoom ? 0.7 : 1
+                  }}
+                >
+                  {creatingRoom ? 'Đang tạo...' : 'Tạo phòng'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Spin keyframe */}
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>

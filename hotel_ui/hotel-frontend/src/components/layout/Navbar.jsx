@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, User, LogIn, UserPlus, X, Settings, History, LogOut } from 'lucide-react';
+import { Menu, User, LogIn, UserPlus, X, Settings, History, LogOut, LayoutDashboard } from 'lucide-react';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -180,7 +180,7 @@ const Navbar = () => {
                 </>
               )}
 
-              {/* ── ĐÃ LOGIN: chỉ hiện Logout ── */}
+              {/* ── ĐÃ LOGIN ── */}
               {isLoggedIn && (
                 <>
                   {/* header tên */}
@@ -189,7 +189,40 @@ const Navbar = () => {
                     <p style={{ fontSize: '14px', fontWeight: '600', color: '#0F2E5A', margin: '2px 0 0' }}>
                       {user?.fullName || user?.username}
                     </p>
+                    {isAdmin && (
+                      <span style={{
+                        display: 'inline-block', marginTop: '4px',
+                        fontSize: '11px', fontWeight: '700', color: '#D97706',
+                        background: '#FEF3C7', padding: '2px 8px', borderRadius: '20px',
+                        letterSpacing: '0.3px',
+                      }}>
+                        ADMIN
+                      </span>
+                    )}
                   </div>
+
+                  {/* Trang quản trị — chỉ hiện với ADMIN */}
+                  {isAdmin && (
+                    <a
+                      href="/admin"
+                      onClick={() => setIsMenuOpen(false)}
+                      style={{
+                        ...menuItemStyle,
+                        color: '#92400E',
+                        background: currentPath === '/admin' ? '#FEF3C7' : 'transparent',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#FEF3C7'}
+                      onMouseLeave={e => e.currentTarget.style.background = currentPath === '/admin' ? '#FEF3C7' : 'transparent'}
+                    >
+                      <div style={{ ...iconWrap, background: '#FDE68A' }}>
+                        <LayoutDashboard size={15} color="#D97706" />
+                      </div>
+                      Trang quản trị
+                    </a>
+                  )}
+
+                  {/* Đường kẻ phân cách trước Logout */}
+                  <div style={{ height: '1px', background: '#EFF6FF', margin: '6px 0' }} />
 
                   {/* Logout */}
                   <button

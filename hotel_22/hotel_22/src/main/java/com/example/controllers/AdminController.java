@@ -44,6 +44,11 @@ public class AdminController {
     @Inject User currentUser;
 
     // ===== ROOMS =====
+    @GET @Path("/rooms")
+    public Response getAllRooms() {
+        return Response.ok(roomService.searchRooms(null, null, null, null, null)).build();
+    }
+
     @POST @Path("/rooms")
     public Response createRoom(CreateRoomRequest req) {
         return Response.status(201).entity(roomService.create(req)).build();

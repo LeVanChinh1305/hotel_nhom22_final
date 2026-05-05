@@ -1,0 +1,629 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Navbar from '../components/layout/Navbar';
+import {
+  LayoutDashboard, Users, BedDouble, CalendarCheck,
+  Tag, Newspaper, AlertTriangle, RefreshCw,
+  CheckCircle, XCircle, Clock, TrendingUp,
+  ChevronDown, ChevronUp, Shield, Edit, Trash2,
+  Plus, ConciergeBell, Eye
+} from 'lucide-react';
+
+const API_BASE = 'http://localhost:8080';
+
+/* ─────────────────────────────────────────────
+   Helper: fetch với Bearer token
+───────────────────────────────────────────── */
+const authFetch = (path) => {
+  const token = localStorage.getItem('token');
+  return fetch(`${API_BASE}/api${path}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+};
+
+/* ─────────────────────────────────────────────
+   STATUS BADGE helper
+───────────────────────────────────────────── */
+const StatusBadge = ({ value }) => {
+  const map = {
+    CONFIRMED:  { bg: '#D1FAE5', color: '#065F46', label: 'Xác nhận' },
+    PENDING:    { bg: '#FEF3C7', color: '#92400E', label: 'Chờ duyệt' },
+    CANCELLED:  { bg: '#FEE2E2', color: '#991B1B', label: 'Đã huỷ' },
+    CHECKED_IN: { bg: '#DBEAFE', color: '#1E40AF', label: 'Đang ở' },
+    CHECKED_OUT:{ bg: '#F3F4F6', color: '#374151', label: 'Đã trả phòng' },
+    PAID:       { bg: '#D1FAE5', color: '#065F46', label: 'Đã thanh toán' },
+    UNPAID:     { bg: '#FEE2E2', color: '#991B1B', label: 'Chưa TT' },
+    ACTIVE:     { bg: '#D1FAE5', color: '#065F46', label: 'Hoạt động' },
+    INACTIVE:   { bg: '#F3F4F6', color: '#374151', label: 'Tắt' },
+    AVAILABLE:  { bg: '#D1FAE5', color: '#065F46', label: 'Sẵn sàng' },
+    BOOKED:     { bg: '#FEF3C7', color: '#92400E', label: 'Đã đặt' },
+  };
+  const s = map[value] || { bg: '#F3F4F6', color: '#374151', label: value };
+  return (
+    <span style={{
+      background: s.bg, color: s.color,
+      padding: '2px 10px', borderRadius: '20px',
+      fontSize: '12px', fontWeight: '600',
+    }}>{s.label}</span>
+  );
+};
+
+/* ─────────────────────────────────────────────
+   STAT CARD
+───────────────────────────────────────────── */
+const StatCard = ({ icon, label, value, color, sub }) => (
+  <div style={{
+    background: '#fff', borderRadius: '16px',
+    padding: '22px 24px', flex: '1 1 180px',
+    border: '1px solid #E2E8F0',
+    boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+    display: 'flex', flexDirection: 'column', gap: '10px',
+  }}>
+    <div style={{
+      width: '44px', height: '44px', borderRadius: '12px',
+      background: color + '22', display: 'flex',
+      alignItems: 'center', justifyContent: 'center',
+    }}>
+      {React.cloneElement(icon, { size: 22, color })}
+    </div>
+    <div>
+      <p style={{ margin: 0, fontSize: '13px', color: '#64748B', fontWeight: '500' }}>{label}</p>
+      <p style={{ margin: '4px 0 0', fontSize: '26px', fontWeight: '700', color: '#0F2E5A' }}>{value}</p>
+      {sub && <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#94A3B8' }}>{sub}</p>}
+    </div>
+  </div>
+);
+
+/* ─────────────────────────────────────────────
+   TABLE SECTION (collapsible)
+───────────────────────────────────────────── */
+const Section = ({ title, icon, color, children, defaultOpen = false }) => {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <div
+      style={{
+        background: '#fff',
+        borderRadius: '16px',
+        border: '1px solid #E2E8F0',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+        overflow: 'hidden',
+      }}
+    >
+      <div
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '18px 24px',
+          cursor: 'pointer',
+          borderBottom: open ? '1px solid #EFF6FF' : 'none',
+        }}
+      >
+        <div
+          onClick={() => setOpen(o => !o)}
+          style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
+        >
+          <div
+            style={{
+              width: '34px',
+              height: '34px',
+              borderRadius: '9px',
+              background: color + '18',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {React.cloneElement(icon, { size: 18, color })}
+          </div>
+
+          <span
+            style={{
+              fontSize: '15px',
+              fontWeight: '700',
+              color: '#0F2E5A',
+            }}
+          >
+            {title}
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              padding: '6px 12px',
+              background: color,
+              color: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '12px',
+              fontWeight: '600',
+              cursor: 'pointer',
+            }}
+          >
+            <Plus size={14} /> Thêm mới
+          </button>
+
+          <div
+            onClick={() => setOpen(o => !o)}
+            style={{
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            {open ? (
+              <ChevronUp size={18} color="#94A3B8" />
+            ) : (
+              <ChevronDown size={18} color="#94A3B8" />
+            )}
+          </div>
+        </div>
+      </div>
+
+      {open && <div style={{ padding: '0 0 8px' }}>{children}</div>}
+    </div>
+  );
+};
+
+const actionBtnStyle = {
+  padding: '6px', border: 'none', background: 'none', cursor: 'pointer', borderRadius: '6px', transition: '0.2s'
+};
+
+/* ─────────────────────────────────────────────
+   MAIN ADMIN PAGE
+───────────────────────────────────────────── */
+const Admin = () => {
+  const navigate = useNavigate();
+
+  /* Auth guard */
+  const [authOk, setAuthOk] = useState(null); // null=loading, true/false
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const stored = localStorage.getItem('user');
+    if (!token || !stored) { setAuthOk(false); return; }
+    try {
+      const data = JSON.parse(stored);
+      const role = (data.user || data)?.role;
+      setAuthOk(role === 'ADMIN');
+    } catch { setAuthOk(false); }
+  }, []);
+
+  /* Data states */
+  const [bookings, setBookings] = useState([]);
+  const [users,    setUsers]    = useState([]);
+  const [vouchers, setVouchers] = useState([]);
+  const [news,     setNews]     = useState([]);
+  const [rooms,    setRooms]    = useState([]);
+  const [services, setServices] = useState([]);
+  const [loading,  setLoading]  = useState(false);
+  const [error,    setError]    = useState('');
+  const [lastFetch, setLastFetch] = useState(null);
+
+  const loadData = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const [bRes, uRes, vRes, nRes, rRes, sRes] = await Promise.all([
+        authFetch('/admin/bookings'),
+        authFetch('/admin/users'),
+        authFetch('/admin/vouchers'),
+        authFetch('/admin/news'),
+        authFetch('/admin/rooms'),
+        authFetch('/admin/services'),
+      ]);
+      if (!bRes.ok || !uRes.ok || !vRes.ok || !nRes.ok || !rRes.ok || !sRes.ok) {
+        throw new Error('Không đủ quyền hoặc server lỗi');
+      }
+      const [b, u, v, n, r, s] = await Promise.all([bRes.json(), uRes.json(), vRes.json(), nRes.json(), rRes.json(), sRes.json()]);
+      setBookings(Array.isArray(b) ? b : []);
+      setUsers(Array.isArray(u) ? u : []);
+      setVouchers(Array.isArray(v) ? v : []);
+      setNews(Array.isArray(n) ? n : []);
+      setRooms(Array.isArray(r) ? r : []);
+      setServices(Array.isArray(s) ? s : []);
+      setLastFetch(new Date().toLocaleTimeString('vi-VN'));
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (authOk === true) loadData();
+  }, [authOk]);
+
+  /* ── Render: loading auth ── */
+  if (authOk === null) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#F8FBFF' }}>
+        <Navbar />
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 'calc(100vh - 68px)' }}>
+          <p style={{ color: '#64748B' }}>Đang xác thực...</p>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Render: not admin ── */
+  if (authOk === false) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#F8FBFF' }}>
+        <Navbar />
+        <div style={{
+          display: 'flex', flexDirection: 'column', justifyContent: 'center',
+          alignItems: 'center', height: 'calc(100vh - 68px)', gap: '16px',
+        }}>
+          <AlertTriangle size={48} color="#EF4444" />
+          <h2 style={{ color: '#0F2E5A', margin: 0 }}>Không có quyền truy cập</h2>
+          <p style={{ color: '#64748B', margin: 0 }}>Bạn cần đăng nhập bằng tài khoản Admin.</p>
+          <button
+            onClick={() => navigate('/login')}
+            style={{
+              padding: '10px 24px', background: '#2563EB', color: '#fff',
+              border: 'none', borderRadius: '10px', cursor: 'pointer',
+              fontWeight: '600', fontSize: '14px',
+            }}
+          >Đăng nhập</button>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Derived stats ── */
+  const totalRevenue = bookings
+    .filter(b => b.paymentStatus === 'PAID')
+    .reduce((s, b) => s + (b.totalPrice || 0), 0);
+
+  const pendingBookings = bookings.filter(b => b.status === 'PENDING').length;
+  const activeVouchers  = vouchers.filter(v => v.active).length;
+
+  /* ── TABLE STYLES ── */
+  const th = {
+    padding: '10px 16px', background: '#F8FAFC',
+    fontSize: '12px', fontWeight: '700', color: '#64748B',
+    textTransform: 'uppercase', letterSpacing: '0.05em',
+    textAlign: 'left', borderBottom: '1px solid #E2E8F0',
+  };
+  const td = {
+    padding: '12px 16px', fontSize: '13px',
+    color: '#334155', borderBottom: '1px solid #F1F5F9',
+  };
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#F0F6FF', fontFamily: "'DM Sans', sans-serif" }}>
+      <Navbar />
+
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 20px' }}>
+
+        {/* ── HEADER ── */}
+        <div style={{
+          display: 'flex', justifyContent: 'space-between',
+          alignItems: 'flex-start', marginBottom: '28px', flexWrap: 'wrap', gap: '12px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              width: '48px', height: '48px', borderRadius: '14px',
+              background: 'linear-gradient(135deg, #0F2E5A, #2563EB)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Shield size={24} color="#fff" />
+            </div>
+            <div>
+              <h1 style={{ margin: 0, fontSize: '22px', fontWeight: '800', color: '#0F2E5A' }}>
+                Trang Quản Trị
+              </h1>
+              <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>
+                Hotel 22 — Admin Dashboard
+                {lastFetch && ` · Cập nhật lúc ${lastFetch}`}
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={loadData}
+            disabled={loading}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              padding: '10px 20px', background: '#2563EB', color: '#fff',
+              border: 'none', borderRadius: '10px', cursor: loading ? 'not-allowed' : 'pointer',
+              fontWeight: '600', fontSize: '14px', opacity: loading ? 0.7 : 1,
+              fontFamily: "'DM Sans', sans-serif",
+            }}
+          >
+            <RefreshCw size={16} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+            {loading ? 'Đang tải...' : 'Làm mới'}
+          </button>
+        </div>
+
+        {/* ── ERROR ── */}
+        {error && (
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            background: '#FEF2F2', border: '1px solid #FCA5A5',
+            color: '#EF4444', padding: '14px 18px', borderRadius: '12px',
+            marginBottom: '24px', fontSize: '14px',
+          }}>
+            <AlertTriangle size={18} />
+            <span>{error} — Kiểm tra kết nối backend và đăng nhập lại nếu cần.</span>
+          </div>
+        )}
+
+        {/* ── STAT CARDS ── */}
+        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '28px' }}>
+          <StatCard
+            icon={<CalendarCheck />} color="#2563EB"
+            label="Tổng đặt phòng" value={bookings.length}
+            sub={`${pendingBookings} chờ duyệt`}
+          />
+          <StatCard
+            icon={<BedDouble />} color="#8B5CF6"
+            label="Phòng nghỉ" value={rooms.length}
+            sub={`${rooms.filter(r => r.status === 'AVAILABLE').length} phòng trống`}
+          />
+          <StatCard
+            icon={<Users />} color="#7C3AED"
+            label="Người dùng" value={users.length}
+            sub={`${users.filter(u => u.active !== false).length} đang hoạt động`}
+          />
+          <StatCard
+            icon={<TrendingUp />} color="#10B981"
+            label="Doanh thu (đã TT)" value={totalRevenue.toLocaleString('vi-VN') + '₫'}
+          />
+          <StatCard
+            icon={<Tag />} color="#D97706"
+            label="Voucher" value={vouchers.length}
+            sub={`${activeVouchers} đang kích hoạt`}
+          />
+          <StatCard
+            icon={<ConciergeBell />} color="#EC4899"
+            label="Dịch vụ" value={services.length}
+          />
+        </div>
+
+        {/* ── SECTIONS ── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+          {/* BOOKINGS */}
+          <Section title={`Đặt phòng (${bookings.length})`} icon={<CalendarCheck />} color="#2563EB" defaultOpen={true}>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    {['ID', 'Khách hàng', 'Phòng', 'Nhận/Trả', 'Tổng tiền', 'Trạng thái', 'Thanh toán', 'Thao tác'].map(h => (
+                      <th key={h} style={{...th, textAlign: h === 'Thao tác' ? 'center' : 'left'}}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {bookings.length === 0 ? (
+                    <tr><td colSpan={8} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
+                  ) : bookings.map(b => (
+                    <tr key={b.id} style={{ transition: 'background 0.15s' }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <td style={td}>#{b.id}</td>
+                      <td style={td}>{b.customerName || b.user?.fullName || b.user?.username || '—'}</td>
+                      <td style={td}>P.{b.roomNumber || b.room?.roomNumber || b.room?.id || '—'}</td>
+                      <td style={td}>
+                        <div style={{fontSize: '11px', color: '#64748B'}}>{b.checkInDate}</div>
+                        <div style={{fontSize: '11px', color: '#64748B'}}>{b.checkOutDate}</div>
+                      </td>
+                      <td style={{ ...td, fontWeight: '600', color: '#059669' }}>
+                        {b.totalPrice ? b.totalPrice.toLocaleString('vi-VN') + '₫' : '—'}
+                      </td>
+                      <td style={td}><StatusBadge value={b.status} /></td>
+                      <td style={td}><StatusBadge value={b.paymentStatus} /></td>
+                      <td style={{...td, textAlign: 'center'}}>
+                        <div style={{display: 'flex', gap: '4px', justifyContent: 'center'}}>
+                          {b.status === 'PENDING' && (
+                            <button title="Duyệt đơn" style={{...actionBtnStyle, color: '#059669'}} onMouseEnter={e => e.currentTarget.style.background='#D1FAE5'} onMouseLeave={e => e.currentTarget.style.background='none'}><CheckCircle size={16}/></button>
+                          )}
+                          <button title="Xem chi tiết" style={{...actionBtnStyle, color: '#2563EB'}} onMouseEnter={e => e.currentTarget.style.background='#DBEAFE'} onMouseLeave={e => e.currentTarget.style.background='none'}><Eye size={16}/></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Section>
+
+          {/* ROOMS */}
+          <Section title={`Quản lý Phòng (${rooms.length})`} icon={<BedDouble />} color="#8B5CF6">
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    {['Số phòng', 'Loại phòng', 'Giá cơ bản', 'Trạng thái', 'Thao tác'].map(h => (
+                      <th key={h} style={{...th, textAlign: h === 'Thao tác' ? 'center' : 'left'}}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {rooms.length === 0 ? (
+                    <tr><td colSpan={5} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
+                  ) : rooms.map(r => (
+                    <tr key={r.id} onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                      <td style={{...td, fontWeight: '700'}}>P.{r.roomNumber}</td>
+                      <td style={td}>{r.type || r.roomType}</td>
+                      <td style={{...td, fontWeight: '600'}}>{r.basePrice?.toLocaleString()}₫</td>
+                      <td style={td}><StatusBadge value={r.status || 'AVAILABLE'} /></td>
+                      <td style={{...td, textAlign: 'center'}}>
+                        <div style={{display: 'flex', gap: '4px', justifyContent: 'center'}}>
+                          <button style={{...actionBtnStyle, color: '#D97706'}} onMouseEnter={e => e.currentTarget.style.background='#FEF3C7'} onMouseLeave={e => e.currentTarget.style.background='none'}><Edit size={16}/></button>
+                          <button style={{...actionBtnStyle, color: '#EF4444'}} onMouseEnter={e => e.currentTarget.style.background='#FEE2E2'} onMouseLeave={e => e.currentTarget.style.background='none'}><Trash2 size={16}/></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Section>
+
+          {/* SERVICES */}
+          <Section title={`Dịch vụ khách sạn (${services.length})`} icon={<ConciergeBell />} color="#EC4899">
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    {['Tên dịch vụ', 'Giá', 'Đơn vị', 'Trạng thái', 'Thao tác'].map(h => (
+                      <th key={h} style={{...th, textAlign: h === 'Thao tác' ? 'center' : 'left'}}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {services.length === 0 ? (
+                    <tr><td colSpan={5} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
+                  ) : services.map(s => (
+                    <tr key={s.id} onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                      <td style={{...td, fontWeight: '600'}}>{s.serviceName}</td>
+                      <td style={td}>{s.price?.toLocaleString()}₫</td>
+                      <td style={{...td, fontSize: '12px', color: '#64748B'}}>{s.unit}</td>
+                      <td style={td}>
+                        {s.available !== false 
+                          ? <span style={{color: '#059669', fontSize: '12px', fontWeight: '600'}}>Đang bán</span>
+                          : <span style={{color: '#94A3B8', fontSize: '12px', fontWeight: '600'}}>Ngừng</span>
+                        }
+                      </td>
+                      <td style={{...td, textAlign: 'center'}}>
+                        <div style={{display: 'flex', gap: '4px', justifyContent: 'center'}}>
+                          <button style={{...actionBtnStyle, color: '#D97706'}} onMouseEnter={e => e.currentTarget.style.background='#FEF3C7'} onMouseLeave={e => e.currentTarget.style.background='none'}><Edit size={16}/></button>
+                          <button style={{...actionBtnStyle, color: '#EF4444'}} onMouseEnter={e => e.currentTarget.style.background='#FEE2E2'} onMouseLeave={e => e.currentTarget.style.background='none'}><Trash2 size={16}/></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Section>
+
+          {/* USERS */}
+          <Section title={`Người dùng (${users.length})`} icon={<Users />} color="#7C3AED">
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    {['ID', 'Họ tên', 'Email', 'Vai trò', 'Trạng thái'].map(h => (
+                      <th key={h} style={th}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.length === 0 ? (
+                    <tr><td colSpan={5} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
+                  ) : users.map(u => (
+                    <tr key={u.id}
+                      onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <td style={td}>#{u.id}</td>
+                      <td style={td}>{u.fullName || '—'}</td>
+                      <td style={td}>{u.email || '—'}</td>
+                      <td style={td}>
+                        <span style={{
+                          background: u.role === 'ADMIN' ? '#FEF3C7' : '#EFF6FF',
+                          color: u.role === 'ADMIN' ? '#D97706' : '#2563EB',
+                          padding: '2px 10px', borderRadius: '20px',
+                          fontSize: '12px', fontWeight: '600',
+                        }}>{u.role || 'USER'}</span>
+                      </td>
+                      <td style={td}>
+                        {u.active === false
+                          ? <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#EF4444', fontSize: '13px' }}><XCircle size={14} /> Bị khoá</span>
+                          : <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#059669', fontSize: '13px' }}><CheckCircle size={14} /> Hoạt động</span>
+                        }
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Section>
+
+          {/* VOUCHERS */}
+          <Section title={`Voucher (${vouchers.length})`} icon={<Tag />} color="#D97706">
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    {['ID', 'Mã', 'Loại giảm', 'Giá trị', 'Số lần dùng còn lại', 'Hết hạn', 'Trạng thái'].map(h => (
+                      <th key={h} style={th}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {vouchers.length === 0 ? (
+                    <tr><td colSpan={7} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
+                  ) : vouchers.map(v => (
+                    <tr key={v.id}
+                      onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <td style={td}>#{v.id}</td>
+                      <td style={{ ...td, fontWeight: '700', fontFamily: 'monospace', color: '#D97706' }}>{v.code}</td>
+                      <td style={td}>{v.discountType === 'PERCENTAGE' ? 'Phần trăm (%)' : 'Số tiền (₫)'}</td>
+                      <td style={{ ...td, fontWeight: '600' }}>
+                        {v.discountType === 'PERCENTAGE'
+                          ? `${v.discountValue}%`
+                          : `${(v.discountValue || 0).toLocaleString('vi-VN')}₫`}
+                      </td>
+                      <td style={td}>{v.usageLimit ?? '∞'}</td>
+                      <td style={td}>{v.expiryDate || '—'}</td>
+                      <td style={td}><StatusBadge value={v.active ? 'ACTIVE' : 'INACTIVE'} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Section>
+
+          {/* NEWS */}
+          <Section title={`Tin tức (${news.length})`} icon={<Newspaper />} color="#DB2777">
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    {['ID', 'Tiêu đề', 'Tác giả', 'Ngày tạo'].map(h => (
+                      <th key={h} style={th}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {news.length === 0 ? (
+                    <tr><td colSpan={4} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
+                  ) : news.map(n => (
+                    <tr key={n.id}
+                      onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <td style={td}>#{n.id}</td>
+                      <td style={{ ...td, fontWeight: '600', maxWidth: '300px' }}>{n.title || '—'}</td>
+                      <td style={td}>{n.author?.fullName || n.author?.username || '—'}</td>
+                      <td style={td}>{n.createdAt ? new Date(n.createdAt).toLocaleDateString('vi-VN') : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Section>
+
+        </div>
+      </div>
+
+      {/* Spin keyframe */}
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+};
+
+export default Admin;

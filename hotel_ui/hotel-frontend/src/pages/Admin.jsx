@@ -4,75 +4,50 @@ import Navbar from '../components/layout/Navbar';
 import {
   LayoutDashboard, Users, BedDouble, CalendarCheck,
   Tag, Newspaper, AlertTriangle, RefreshCw,
-  CheckCircle, XCircle, Clock, TrendingUp,
   Shield, Edit, Trash2,
-  Plus, ConciergeBell, Eye
+  Plus, ConciergeBell, Eye, CheckCircle, XCircle,
 } from 'lucide-react';
+import AdminDashboard from '../components/admin/AdminDashboard';
+import AdminBookings from '../components/admin/AdminBookings';
+import AdminRooms from '../components/admin/AdminRooms';
+import AdminServices from '../components/admin/AdminServices';
+import AdminUsers from '../components/admin/AdminUsers';
+import AdminVouchers from '../components/admin/AdminVouchers';
+import AdminNews from '../components/admin/AdminNews';
+import StatusBadge from '../components/admin/StatusBadge';
 
 const API_BASE = 'http://localhost:8080';
 
 /* ─────────────────────────────────────────────
    Helper: fetch với Bearer token
 ───────────────────────────────────────────── */
-const authFetch = (path) => {
+const getStoredToken = () => {
+  // Thử lấy trực tiếp nếu bạn lưu riêng lẻ
   const token = localStorage.getItem('token');
-  return fetch(`${API_BASE}/api${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  if (token) return token;
+
+  // Lấy từ object 'user' mà bạn đã lưu khi đăng nhập
+  const stored = localStorage.getItem('user');
+  if (!stored) return null;
+
+  try {
+    const data = JSON.parse(stored);
+    // Dựa trên JSON bạn gửi: token nằm trực tiếp trong data
+    return data.token || null; 
+  } catch (e) {
+    console.error("Lỗi parse JSON từ localStorage:", e);
+    return null;
+  }
 };
 
-/* ─────────────────────────────────────────────
-   STATUS BADGE helper
-───────────────────────────────────────────── */
-const StatusBadge = ({ value }) => {
-  const map = {
-    CONFIRMED:  { bg: '#DBEAFE', color: '#1E40AF', label: 'Xác nhận' },
-    PENDING:    { bg: '#E0F2FE', color: '#0369A1', label: 'Chờ duyệt' },
-    CANCELLED:  { bg: '#FEE2E2', color: '#991B1B', label: 'Đã huỷ' },
-    CHECKED_IN: { bg: '#DBEAFE', color: '#1E40AF', label: 'Đang ở' },
-    CHECKED_OUT:{ bg: '#F3F4F6', color: '#374151', label: 'Đã trả phòng' },
-    PAID:       { bg: '#DBEAFE', color: '#1E40AF', label: 'Đã thanh toán' },
-    UNPAID:     { bg: '#FEE2E2', color: '#991B1B', label: 'Chưa TT' },
-    ACTIVE:     { bg: '#DBEAFE', color: '#1E40AF', label: 'Hoạt động' },
-    INACTIVE:   { bg: '#F3F4F6', color: '#374151', label: 'Tắt' },
-    AVAILABLE:  { bg: '#DBEAFE', color: '#1E40AF', label: 'Sẵn sàng' },
-    BOOKED:     { bg: '#E0F2FE', color: '#0369A1', label: 'Đã đặt' },
-  };
-  const s = map[value] || { bg: '#F3F4F6', color: '#374151', label: value };
-  return (
-    <span style={{
-      background: s.bg, color: s.color,
-      padding: '2px 10px', borderRadius: '20px',
-      fontSize: '12px', fontWeight: '600',
-    }}>{s.label}</span>
-  );
+const authFetch = (path) => {
+  const token = getStoredToken();
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  return fetch(`${API_BASE}/api${path}`, { headers });
 };
-
-/* ─────────────────────────────────────────────
-   STAT CARD
-───────────────────────────────────────────── */
-const StatCard = ({ icon, label, value, color, sub }) => (
-  <div style={{
-    background: '#fff', borderRadius: '16px',
-    padding: '22px 24px', flex: '1 1 180px',
-    border: '1px solid #E2E8F0',
-    boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
-    display: 'flex', flexDirection: 'column', gap: '10px',
-  }}>
-    <div style={{
-      width: '44px', height: '44px', borderRadius: '12px',
-      background: color + '22', display: 'flex',
-      alignItems: 'center', justifyContent: 'center',
-    }}>
-      {React.cloneElement(icon, { size: 22, color })}
-    </div>
-    <div>
-      <p style={{ margin: 0, fontSize: '13px', color: '#64748B', fontWeight: '500' }}>{label}</p>
-      <p style={{ margin: '4px 0 0', fontSize: '26px', fontWeight: '700', color: '#0F2E5A' }}>{value}</p>
-      {sub && <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#94A3B8' }}>{sub}</p>}
-    </div>
-  </div>
-);
 
 const actionBtnStyle = {
   padding: '6px', border: 'none', background: 'none', cursor: 'pointer', borderRadius: '6px', transition: '0.2s'
@@ -100,7 +75,7 @@ const Admin = () => {
   /* Auth guard */
   const [authOk, setAuthOk] = useState(null); // null=loading, true/false
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = getStoredToken();
     const stored = localStorage.getItem('user');
     if (!token || !stored) { setAuthOk(false); return; }
     try {
@@ -134,8 +109,13 @@ const Admin = () => {
         authFetch('/admin/rooms'),
         authFetch('/admin/services'),
       ]);
-      if (!bRes.ok || !uRes.ok || !vRes.ok || !nRes.ok || !rRes.ok || !sRes.ok) {
-        throw new Error('Không đủ quyền hoặc server lỗi');
+      const responses = [bRes, uRes, vRes, nRes, rRes, sRes];
+      const failed = responses.find(res => !res.ok);
+      if (failed) {
+        if (failed.status === 401 || failed.status === 403) {
+          throw new Error('Không có quyền truy cập hoặc token không hợp lệ. Vui lòng đăng nhập lại bằng tài khoản Admin.');
+        }
+        throw new Error(`Server trả về lỗi ${failed.status}`);
       }
       const [b, u, v, n, r, s] = await Promise.all([bRes.json(), uRes.json(), vRes.json(), nRes.json(), rRes.json(), sRes.json()]);
       setBookings(Array.isArray(b) ? b : []);
@@ -355,90 +335,17 @@ const Admin = () => {
 
           {/* Content based on activeTab */}
           {activeTab === 'dashboard' && (
-            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-              <StatCard
-                icon={<CalendarCheck />} color="#2563EB"
-                label="Tổng đặt phòng" value={bookings.length}
-                sub={`${pendingBookings} chờ duyệt`}
-              />
-              <StatCard
-                icon={<BedDouble />} color="#3B82F6"
-                label="Phòng nghỉ" value={rooms.length}
-                sub={`${rooms.filter(r => r.status === 'AVAILABLE').length} phòng trống`}
-              />
-              <StatCard
-                icon={<Users />} color="#2563EB"
-                label="Người dùng" value={users.length}
-                sub={`${users.filter(u => u.active !== false).length} đang hoạt động`}
-              />
-              <StatCard
-                icon={<TrendingUp />} color="#1D4ED8"
-                label="Doanh thu (đã TT)" value={totalRevenue.toLocaleString('vi-VN') + '₫'}
-              />
-              <StatCard
-                icon={<Tag />} color="#3B82F6"
-                label="Voucher" value={vouchers.length}
-                sub={`${activeVouchers} đang kích hoạt`}
-              />
-              <StatCard
-                icon={<ConciergeBell />} color="#2563EB"
-                label="Dịch vụ" value={services.length}
-              />
-            </div>
+            <AdminDashboard
+              bookings={bookings}
+              rooms={rooms}
+              users={users}
+              services={services}
+              vouchers={vouchers}
+              lastFetch={lastFetch}
+            />
           )}
 
-          {activeTab === 'bookings' && (
-            <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
-              <div style={{ padding: '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ margin: 0, fontSize: '18px', color: '#0F2E5A' }}>Đặt phòng ({bookings.length})</h2>
-                <button style={{ ...addBtnStyle, background: '#2563EB' }} onClick={() => alert('Chức năng thêm đặt phòng chưa được triển khai')}>
-                  <Plus size={14} /> Thêm mới
-                </button>
-              </div>
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr>
-                      {['ID', 'Khách hàng', 'Phòng', 'Nhận/Trả', 'Tổng tiền', 'Trạng thái', 'Thanh toán', 'Thao tác'].map(h => (
-                        <th key={h} style={{...th, textAlign: h === 'Thao tác' ? 'center' : 'left'}}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {bookings.length === 0 ? (
-                      <tr><td colSpan={8} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
-                    ) : bookings.map(b => (
-                      <tr key={b.id} style={{ transition: 'background 0.15s' }}
-                        onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                      >
-                        <td style={td}>#{b.id}</td>
-                        <td style={td}>{b.customerName || b.user?.fullName || b.user?.username || '—'}</td>
-                        <td style={td}>P.{b.roomNumber || b.room?.roomNumber || b.room?.id || '—'}</td>
-                        <td style={td}>
-                          <div style={{fontSize: '11px', color: '#64748B'}}>{b.checkInDate}</div>
-                          <div style={{fontSize: '11px', color: '#64748B'}}>{b.checkOutDate}</div>
-                        </td>
-                        <td style={{ ...td, fontWeight: '600', color: '#059669' }}>
-                          {b.totalPrice ? b.totalPrice.toLocaleString('vi-VN') + '₫' : '—'}
-                        </td>
-                        <td style={td}><StatusBadge value={b.status} /></td>
-                        <td style={td}><StatusBadge value={b.paymentStatus} /></td>
-                        <td style={{...td, textAlign: 'center'}}>
-                          <div style={{display: 'flex', gap: '4px', justifyContent: 'center'}}>
-                            {b.status === 'PENDING' && (
-                              <button title="Duyệt đơn" style={{...actionBtnStyle, color: '#2563EB'}} onMouseEnter={e => e.currentTarget.style.background='#DBEAFE'} onMouseLeave={e => e.currentTarget.style.background='none'}><CheckCircle size={16}/></button>
-                            )}
-                            <button title="Xem chi tiết" style={{...actionBtnStyle, color: '#2563EB'}} onMouseEnter={e => e.currentTarget.style.background='#DBEAFE'} onMouseLeave={e => e.currentTarget.style.background='none'}><Eye size={16}/></button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
+          {activeTab === 'bookings' && <AdminBookings bookings={bookings} />}
 
           {activeTab === 'rooms' && (
             <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>

@@ -75,6 +75,12 @@ public class AdminController {
             message
         )).build();
     }
+
+    @GET @Path("/rooms/{id}/availability")
+    public Response getRoomAvailability(@PathParam("id") String id) {
+        return Response.ok(roomAvailabilityRepository.find("roomId", id).list()).build();
+    }
+
     @POST @Path("/rooms/{id}/set-maintenance")
     public Response setRoomMaintenance(@PathParam("id") String id, SetRoomMaintenanceRequest req) {
         roomService.setRoomMaintenance(id, req.date, req.status);

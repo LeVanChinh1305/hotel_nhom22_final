@@ -164,7 +164,9 @@ public class BookingService {
     }
 
     public List<BookingResponse> getMyBookings(Long userId) {
-        return bookingRepository.findByUserId(userId)
+        List<Booking> bookings = bookingRepository.findByUserId(userId);
+        if (bookings == null) return new ArrayList<>();
+        return bookings
                 .stream()
                 .map(bookingMapper::toResponse)
                 .collect(Collectors.toList());

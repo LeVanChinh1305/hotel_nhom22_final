@@ -15,6 +15,7 @@ import AdminUsers from '../components/admin/AdminUsers';
 import AdminVouchers from '../components/admin/AdminVouchers';
 import AdminNews from '../components/admin/AdminNews';
 import StatusBadge from '../components/admin/StatusBadge';
+import RoomCalendar from '../components/admin/RoomCalendar';
 
 const API_BASE = 'http://localhost:8080';
 
@@ -99,6 +100,8 @@ const Admin = () => {
 
   /* Modal states */
   const [showAddRoomModal, setShowAddRoomModal] = useState(false);
+  const [showRoomDetailModal, setShowRoomDetailModal] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState(null);
   const [roomForm, setRoomForm] = useState({
     roomNumber: '',
     type: '',
@@ -146,7 +149,12 @@ const Admin = () => {
     }
   };
 
-  const createRoom = async () => {
+  const openRoomDetail = (room) => {
+    setSelectedRoom(room);
+    setShowRoomDetailModal(true);
+  };
+
+  const handleCreateRoom = async () => {
     if (!roomForm.roomNumber.trim() || !roomForm.type.trim() || !roomForm.basePrice) {
       alert('Vui lòng điền đầy đủ thông tin bắt buộc: Số phòng, Loại phòng, Giá cơ bản');
       return;
@@ -446,6 +454,7 @@ const Admin = () => {
                         <td style={td}><StatusBadge value={r.status || 'AVAILABLE'} /></td>
                         <td style={{...td, textAlign: 'center'}}>
                           <div style={{display: 'flex', gap: '4px', justifyContent: 'center'}}>
+                            <button title="Xem chi tiết" style={{...actionBtnStyle, color: '#059669'}} onMouseEnter={e => e.currentTarget.style.background='#D1FAE5'} onMouseLeave={e => e.currentTarget.style.background='none'} onClick={() => openRoomDetail(r)}><Eye size={16}/></button>
                             <button style={{...actionBtnStyle, color: '#2563EB'}} onMouseEnter={e => e.currentTarget.style.background='#DBEAFE'} onMouseLeave={e => e.currentTarget.style.background='none'}><Edit size={16}/></button>
                             <button style={{...actionBtnStyle, color: '#EF4444'}} onMouseEnter={e => e.currentTarget.style.background='#FEE2E2'} onMouseLeave={e => e.currentTarget.style.background='none'}><Trash2 size={16}/></button>
                           </div>
@@ -810,7 +819,7 @@ const Admin = () => {
                   Hủy
                 </button>
                 <button
-                  onClick={createRoom}
+                  onClick={handleCreateRoom}
                   disabled={creatingRoom}
                   style={{
                     padding: '10px 20px', background: '#2563EB', color: '#fff',
@@ -820,6 +829,90 @@ const Admin = () => {
                 >
                   {creatingRoom ? 'Đang tạo...' : 'Tạo phòng'}
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal chi tiết phòng */}
+      {showRoomDetailModal && selectedRoom && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center',
+          justifyContent: 'center', zIndex: 1000, padding: '20px'
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: '16px', width: '100%',
+            maxWidth: '800px', maxHeight: '90vh', overflow: 'auto'
+          }}>
+            <div style={{
+              padding: '24px', borderBottom: '1px solid #E2E8F0',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+            }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '20px', color: '#0F2E5A' }}>
+                  Chi tiết phòng P.{selectedRoom.roomNumber}
+                </h2>
+                <p style={{ margin: '4px 0 0', fontSize: '14px', color: '#64748B' }}>
+                  {selectedRoom.type || selectedRoom.roomType} - {selectedRoom.basePrice?.toLocaleString()}₫/đêm
+                </p>
+              </div>
+              <button
+                onClick={() => setShowRoomDetailModal(false)}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: '#64748B', padding: '4px'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ padding: '24px' }}>
+              {/* Thông tin phòng */}
+              <div style={{ marginBottom: '24px' }}>
+                <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: '#0F2E5A' }}>Thông tin phòng</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#64748B', marginBottom: '4px' }}>
+                      Địa chỉ
+                    </label>
+                    <p style={{ margin: 0, fontSize: '14px', color: '#334155' }}>
+                      {selectedRoom.address || 'Chưa cập nhật'}
+                    </p>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#64748B', marginBottom: '4px' }}>
+                      Sức chứa
+                    </label>
+                    <p style={{ margin: 0, fontSize: '14px', color: '#334155' }}>
+                      {selectedRoom.maxOccupancy ? `${selectedRoom.maxOccupancy} người` : 'Chưa cập nhật'}
+                    </p>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#64748B', marginBottom: '4px' }}>
+                      Trạng thái
+                    </label>
+                    <StatusBadge value={selectedRoom.status || 'AVAILABLE'} />
+                  </div>
+                </div>
+                {selectedRoom.description && (
+                  <div style={{ marginTop: '16px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#64748B', marginBottom: '4px' }}>
+                      Mô tả
+                    </label>
+                    <p style={{ margin: 0, fontSize: '14px', color: '#334155' }}>
+                      {selectedRoom.description}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Lịch đặt phòng */}
+              <div>
+                <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: '#0F2E5A' }}>Lịch đặt phòng</h3>
+                <RoomCalendar roomId={selectedRoom.id} bookings={bookings} />
               </div>
             </div>
           </div>

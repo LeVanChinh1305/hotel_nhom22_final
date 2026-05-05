@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Users, BedDouble, CalendarCheck,
   Tag, Newspaper, AlertTriangle, RefreshCw,
   CheckCircle, XCircle, Clock, TrendingUp,
-  ChevronDown, ChevronUp, Shield, Edit, Trash2,
+  Shield, Edit, Trash2,
   Plus, ConciergeBell, Eye
 } from 'lucide-react';
 
@@ -26,17 +26,17 @@ const authFetch = (path) => {
 ───────────────────────────────────────────── */
 const StatusBadge = ({ value }) => {
   const map = {
-    CONFIRMED:  { bg: '#D1FAE5', color: '#065F46', label: 'Xác nhận' },
-    PENDING:    { bg: '#FEF3C7', color: '#92400E', label: 'Chờ duyệt' },
+    CONFIRMED:  { bg: '#DBEAFE', color: '#1E40AF', label: 'Xác nhận' },
+    PENDING:    { bg: '#E0F2FE', color: '#0369A1', label: 'Chờ duyệt' },
     CANCELLED:  { bg: '#FEE2E2', color: '#991B1B', label: 'Đã huỷ' },
     CHECKED_IN: { bg: '#DBEAFE', color: '#1E40AF', label: 'Đang ở' },
     CHECKED_OUT:{ bg: '#F3F4F6', color: '#374151', label: 'Đã trả phòng' },
-    PAID:       { bg: '#D1FAE5', color: '#065F46', label: 'Đã thanh toán' },
+    PAID:       { bg: '#DBEAFE', color: '#1E40AF', label: 'Đã thanh toán' },
     UNPAID:     { bg: '#FEE2E2', color: '#991B1B', label: 'Chưa TT' },
-    ACTIVE:     { bg: '#D1FAE5', color: '#065F46', label: 'Hoạt động' },
+    ACTIVE:     { bg: '#DBEAFE', color: '#1E40AF', label: 'Hoạt động' },
     INACTIVE:   { bg: '#F3F4F6', color: '#374151', label: 'Tắt' },
-    AVAILABLE:  { bg: '#D1FAE5', color: '#065F46', label: 'Sẵn sàng' },
-    BOOKED:     { bg: '#FEF3C7', color: '#92400E', label: 'Đã đặt' },
+    AVAILABLE:  { bg: '#DBEAFE', color: '#1E40AF', label: 'Sẵn sàng' },
+    BOOKED:     { bg: '#E0F2FE', color: '#0369A1', label: 'Đã đặt' },
   };
   const s = map[value] || { bg: '#F3F4F6', color: '#374151', label: value };
   return (
@@ -74,105 +74,21 @@ const StatCard = ({ icon, label, value, color, sub }) => (
   </div>
 );
 
-/* ─────────────────────────────────────────────
-   TABLE SECTION (collapsible)
-───────────────────────────────────────────── */
-const Section = ({ title, icon, color, children, defaultOpen = false }) => {
-  const [open, setOpen] = useState(defaultOpen);
-
-  return (
-    <div
-      style={{
-        background: '#fff',
-        borderRadius: '16px',
-        border: '1px solid #E2E8F0',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
-        overflow: 'hidden',
-      }}
-    >
-      <div
-        style={{
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '18px 24px',
-          cursor: 'pointer',
-          borderBottom: open ? '1px solid #EFF6FF' : 'none',
-        }}
-      >
-        <div
-          onClick={() => setOpen(o => !o)}
-          style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
-        >
-          <div
-            style={{
-              width: '34px',
-              height: '34px',
-              borderRadius: '9px',
-              background: color + '18',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {React.cloneElement(icon, { size: 18, color })}
-          </div>
-
-          <span
-            style={{
-              fontSize: '15px',
-              fontWeight: '700',
-              color: '#0F2E5A',
-            }}
-          >
-            {title}
-          </span>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '5px',
-              padding: '6px 12px',
-              background: color,
-              color: '#fff',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '12px',
-              fontWeight: '600',
-              cursor: 'pointer',
-            }}
-          >
-            <Plus size={14} /> Thêm mới
-          </button>
-
-          <div
-            onClick={() => setOpen(o => !o)}
-            style={{
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-            }}
-          >
-            {open ? (
-              <ChevronUp size={18} color="#94A3B8" />
-            ) : (
-              <ChevronDown size={18} color="#94A3B8" />
-            )}
-          </div>
-        </div>
-      </div>
-
-      {open && <div style={{ padding: '0 0 8px' }}>{children}</div>}
-    </div>
-  );
-};
-
 const actionBtnStyle = {
   padding: '6px', border: 'none', background: 'none', cursor: 'pointer', borderRadius: '6px', transition: '0.2s'
+};
+
+const addBtnStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '5px',
+  padding: '8px 16px',
+  color: '#fff',
+  border: 'none',
+  borderRadius: '8px',
+  fontSize: '13px',
+  fontWeight: '600',
+  cursor: 'pointer',
 };
 
 /* ─────────────────────────────────────────────
@@ -203,6 +119,7 @@ const Admin = () => {
   const [services, setServices] = useState([]);
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState('');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [lastFetch, setLastFetch] = useState(null);
 
   const loadData = async () => {
@@ -296,327 +213,448 @@ const Admin = () => {
     color: '#334155', borderBottom: '1px solid #F1F5F9',
   };
 
+  const menuBtn = {
+    width: '100%', padding: '12px 20px', border: 'none',
+    background: 'transparent', textAlign: 'left', cursor: 'pointer',
+    fontSize: '14px', color: '#334155', fontWeight: '500',
+    borderRadius: '8px', marginBottom: '4px',
+  };
+
+  const activeMenuBtn = { ...menuBtn, background: '#F0F6FF', color: '#2563EB', fontWeight: '600' };
+
+  const getTabTitle = (tab) => {
+    const titles = {
+      dashboard: 'Dashboard',
+      bookings: 'Đặt phòng',
+      rooms: 'Quản lý Phòng',
+      services: 'Dịch vụ khách sạn',
+      users: 'Người dùng',
+      vouchers: 'Voucher',
+      news: 'Tin tức',
+    };
+    return titles[tab] || 'Dashboard';
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: '#F0F6FF', fontFamily: "'DM Sans', sans-serif" }}>
       <Navbar />
 
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 20px' }}>
-
-        {/* ── HEADER ── */}
+      <div style={{ display: 'flex', minHeight: 'calc(100vh - 68px)' }}>
+        {/* Sidebar */}
         <div style={{
-          display: 'flex', justifyContent: 'space-between',
-          alignItems: 'flex-start', marginBottom: '28px', flexWrap: 'wrap', gap: '12px',
+          width: '250px', background: '#fff', borderRight: '1px solid #E2E8F0',
+          padding: '20px 0', boxShadow: '2px 0 8px rgba(0,0,0,0.05)',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{
-              width: '48px', height: '48px', borderRadius: '14px',
-              background: 'linear-gradient(135deg, #0F2E5A, #2563EB)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <Shield size={24} color="#fff" />
-            </div>
-            <div>
-              <h1 style={{ margin: 0, fontSize: '22px', fontWeight: '800', color: '#0F2E5A' }}>
-                Trang Quản Trị
-              </h1>
-              <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>
-                Hotel 22 — Admin Dashboard
-                {lastFetch && ` · Cập nhật lúc ${lastFetch}`}
-              </p>
-            </div>
-          </div>
-
-          <button
-            onClick={loadData}
-            disabled={loading}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '8px',
-              padding: '10px 20px', background: '#2563EB', color: '#fff',
-              border: 'none', borderRadius: '10px', cursor: loading ? 'not-allowed' : 'pointer',
-              fontWeight: '600', fontSize: '14px', opacity: loading ? 0.7 : 1,
-              fontFamily: "'DM Sans', sans-serif",
-            }}
-          >
-            <RefreshCw size={16} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
-            {loading ? 'Đang tải...' : 'Làm mới'}
-          </button>
-        </div>
-
-        {/* ── ERROR ── */}
-        {error && (
           <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            background: '#FEF2F2', border: '1px solid #FCA5A5',
-            color: '#EF4444', padding: '14px 18px', borderRadius: '12px',
-            marginBottom: '24px', fontSize: '14px',
+            padding: '0 20px 20px', borderBottom: '1px solid #E2E8F0',
+            display: 'flex', alignItems: 'center', gap: '10px',
           }}>
-            <AlertTriangle size={18} />
-            <span>{error} — Kiểm tra kết nối backend và đăng nhập lại nếu cần.</span>
+            <Shield size={20} color="#2563EB" />
+            <h3 style={{ margin: 0, fontSize: '16px', color: '#0F2E5A' }}>Quản trị</h3>
           </div>
-        )}
 
-        {/* ── STAT CARDS ── */}
-        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '28px' }}>
-          <StatCard
-            icon={<CalendarCheck />} color="#2563EB"
-            label="Tổng đặt phòng" value={bookings.length}
-            sub={`${pendingBookings} chờ duyệt`}
-          />
-          <StatCard
-            icon={<BedDouble />} color="#8B5CF6"
-            label="Phòng nghỉ" value={rooms.length}
-            sub={`${rooms.filter(r => r.status === 'AVAILABLE').length} phòng trống`}
-          />
-          <StatCard
-            icon={<Users />} color="#7C3AED"
-            label="Người dùng" value={users.length}
-            sub={`${users.filter(u => u.active !== false).length} đang hoạt động`}
-          />
-          <StatCard
-            icon={<TrendingUp />} color="#10B981"
-            label="Doanh thu (đã TT)" value={totalRevenue.toLocaleString('vi-VN') + '₫'}
-          />
-          <StatCard
-            icon={<Tag />} color="#D97706"
-            label="Voucher" value={vouchers.length}
-            sub={`${activeVouchers} đang kích hoạt`}
-          />
-          <StatCard
-            icon={<ConciergeBell />} color="#EC4899"
-            label="Dịch vụ" value={services.length}
-          />
+          <nav style={{ padding: '20px 0' }}>
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              style={activeTab === 'dashboard' ? activeMenuBtn : menuBtn}
+            >
+              <LayoutDashboard size={16} style={{ marginRight: '8px' }} />
+              Dashboard
+            </button>
+            <button
+              onClick={() => setActiveTab('bookings')}
+              style={activeTab === 'bookings' ? activeMenuBtn : menuBtn}
+            >
+              <CalendarCheck size={16} style={{ marginRight: '8px' }} />
+              Đặt phòng
+            </button>
+            <button
+              onClick={() => setActiveTab('rooms')}
+              style={activeTab === 'rooms' ? activeMenuBtn : menuBtn}
+            >
+              <BedDouble size={16} style={{ marginRight: '8px' }} />
+              Phòng nghỉ
+            </button>
+            <button
+              onClick={() => setActiveTab('services')}
+              style={activeTab === 'services' ? activeMenuBtn : menuBtn}
+            >
+              <ConciergeBell size={16} style={{ marginRight: '8px' }} />
+              Dịch vụ
+            </button>
+            <button
+              onClick={() => setActiveTab('users')}
+              style={activeTab === 'users' ? activeMenuBtn : menuBtn}
+            >
+              <Users size={16} style={{ marginRight: '8px' }} />
+              Người dùng
+            </button>
+            <button
+              onClick={() => setActiveTab('vouchers')}
+              style={activeTab === 'vouchers' ? activeMenuBtn : menuBtn}
+            >
+              <Tag size={16} style={{ marginRight: '8px' }} />
+              Voucher
+            </button>
+            <button
+              onClick={() => setActiveTab('news')}
+              style={activeTab === 'news' ? activeMenuBtn : menuBtn}
+            >
+              <Newspaper size={16} style={{ marginRight: '8px' }} />
+              Tin tức
+            </button>
+          </nav>
         </div>
 
-        {/* ── SECTIONS ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-
-          {/* BOOKINGS */}
-          <Section title={`Đặt phòng (${bookings.length})`} icon={<CalendarCheck />} color="#2563EB" defaultOpen={true}>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr>
-                    {['ID', 'Khách hàng', 'Phòng', 'Nhận/Trả', 'Tổng tiền', 'Trạng thái', 'Thanh toán', 'Thao tác'].map(h => (
-                      <th key={h} style={{...th, textAlign: h === 'Thao tác' ? 'center' : 'left'}}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {bookings.length === 0 ? (
-                    <tr><td colSpan={8} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
-                  ) : bookings.map(b => (
-                    <tr key={b.id} style={{ transition: 'background 0.15s' }}
-                      onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                    >
-                      <td style={td}>#{b.id}</td>
-                      <td style={td}>{b.customerName || b.user?.fullName || b.user?.username || '—'}</td>
-                      <td style={td}>P.{b.roomNumber || b.room?.roomNumber || b.room?.id || '—'}</td>
-                      <td style={td}>
-                        <div style={{fontSize: '11px', color: '#64748B'}}>{b.checkInDate}</div>
-                        <div style={{fontSize: '11px', color: '#64748B'}}>{b.checkOutDate}</div>
-                      </td>
-                      <td style={{ ...td, fontWeight: '600', color: '#059669' }}>
-                        {b.totalPrice ? b.totalPrice.toLocaleString('vi-VN') + '₫' : '—'}
-                      </td>
-                      <td style={td}><StatusBadge value={b.status} /></td>
-                      <td style={td}><StatusBadge value={b.paymentStatus} /></td>
-                      <td style={{...td, textAlign: 'center'}}>
-                        <div style={{display: 'flex', gap: '4px', justifyContent: 'center'}}>
-                          {b.status === 'PENDING' && (
-                            <button title="Duyệt đơn" style={{...actionBtnStyle, color: '#059669'}} onMouseEnter={e => e.currentTarget.style.background='#D1FAE5'} onMouseLeave={e => e.currentTarget.style.background='none'}><CheckCircle size={16}/></button>
-                          )}
-                          <button title="Xem chi tiết" style={{...actionBtnStyle, color: '#2563EB'}} onMouseEnter={e => e.currentTarget.style.background='#DBEAFE'} onMouseLeave={e => e.currentTarget.style.background='none'}><Eye size={16}/></button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {/* Main Content */}
+        <div style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
+          {/* Header */}
+          <div style={{
+            display: 'flex', justifyContent: 'space-between',
+            alignItems: 'center', marginBottom: '28px',
+          }}>
+            <div>
+              <h1 style={{ margin: 0, fontSize: '24px', fontWeight: '800', color: '#0F2E5A' }}>
+                {getTabTitle(activeTab)}
+              </h1>
+              {lastFetch && activeTab === 'dashboard' && (
+                <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748B' }}>
+                  Cập nhật lúc {lastFetch}
+                </p>
+              )}
             </div>
-          </Section>
 
-          {/* ROOMS */}
-          <Section title={`Quản lý Phòng (${rooms.length})`} icon={<BedDouble />} color="#8B5CF6">
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr>
-                    {['Số phòng', 'Loại phòng', 'Giá cơ bản', 'Trạng thái', 'Thao tác'].map(h => (
-                      <th key={h} style={{...th, textAlign: h === 'Thao tác' ? 'center' : 'left'}}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {rooms.length === 0 ? (
-                    <tr><td colSpan={5} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
-                  ) : rooms.map(r => (
-                    <tr key={r.id} onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                      <td style={{...td, fontWeight: '700'}}>P.{r.roomNumber}</td>
-                      <td style={td}>{r.type || r.roomType}</td>
-                      <td style={{...td, fontWeight: '600'}}>{r.basePrice?.toLocaleString()}₫</td>
-                      <td style={td}><StatusBadge value={r.status || 'AVAILABLE'} /></td>
-                      <td style={{...td, textAlign: 'center'}}>
-                        <div style={{display: 'flex', gap: '4px', justifyContent: 'center'}}>
-                          <button style={{...actionBtnStyle, color: '#D97706'}} onMouseEnter={e => e.currentTarget.style.background='#FEF3C7'} onMouseLeave={e => e.currentTarget.style.background='none'}><Edit size={16}/></button>
-                          <button style={{...actionBtnStyle, color: '#EF4444'}} onMouseEnter={e => e.currentTarget.style.background='#FEE2E2'} onMouseLeave={e => e.currentTarget.style.background='none'}><Trash2 size={16}/></button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <button
+              onClick={loadData}
+              disabled={loading}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '8px',
+                padding: '10px 20px', background: '#2563EB', color: '#fff',
+                border: 'none', borderRadius: '10px', cursor: loading ? 'not-allowed' : 'pointer',
+                fontWeight: '600', fontSize: '14px', opacity: loading ? 0.7 : 1,
+                fontFamily: "'DM Sans', sans-serif",
+              }}
+            >
+              <RefreshCw size={16} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+              {loading ? 'Đang tải...' : 'Làm mới'}
+            </button>
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              background: '#FEF2F2', border: '1px solid #FCA5A5',
+              color: '#EF4444', padding: '14px 18px', borderRadius: '12px',
+              marginBottom: '24px', fontSize: '14px',
+            }}>
+              <AlertTriangle size={18} />
+              <span>{error} — Kiểm tra kết nối backend và đăng nhập lại nếu cần.</span>
             </div>
-          </Section>
+          )}
 
-          {/* SERVICES */}
-          <Section title={`Dịch vụ khách sạn (${services.length})`} icon={<ConciergeBell />} color="#EC4899">
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr>
-                    {['Tên dịch vụ', 'Giá', 'Đơn vị', 'Trạng thái', 'Thao tác'].map(h => (
-                      <th key={h} style={{...th, textAlign: h === 'Thao tác' ? 'center' : 'left'}}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {services.length === 0 ? (
-                    <tr><td colSpan={5} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
-                  ) : services.map(s => (
-                    <tr key={s.id} onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                      <td style={{...td, fontWeight: '600'}}>{s.serviceName}</td>
-                      <td style={td}>{s.price?.toLocaleString()}₫</td>
-                      <td style={{...td, fontSize: '12px', color: '#64748B'}}>{s.unit}</td>
-                      <td style={td}>
-                        {s.available !== false 
-                          ? <span style={{color: '#059669', fontSize: '12px', fontWeight: '600'}}>Đang bán</span>
-                          : <span style={{color: '#94A3B8', fontSize: '12px', fontWeight: '600'}}>Ngừng</span>
-                        }
-                      </td>
-                      <td style={{...td, textAlign: 'center'}}>
-                        <div style={{display: 'flex', gap: '4px', justifyContent: 'center'}}>
-                          <button style={{...actionBtnStyle, color: '#D97706'}} onMouseEnter={e => e.currentTarget.style.background='#FEF3C7'} onMouseLeave={e => e.currentTarget.style.background='none'}><Edit size={16}/></button>
-                          <button style={{...actionBtnStyle, color: '#EF4444'}} onMouseEnter={e => e.currentTarget.style.background='#FEE2E2'} onMouseLeave={e => e.currentTarget.style.background='none'}><Trash2 size={16}/></button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {/* Content based on activeTab */}
+          {activeTab === 'dashboard' && (
+            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+              <StatCard
+                icon={<CalendarCheck />} color="#2563EB"
+                label="Tổng đặt phòng" value={bookings.length}
+                sub={`${pendingBookings} chờ duyệt`}
+              />
+              <StatCard
+                icon={<BedDouble />} color="#3B82F6"
+                label="Phòng nghỉ" value={rooms.length}
+                sub={`${rooms.filter(r => r.status === 'AVAILABLE').length} phòng trống`}
+              />
+              <StatCard
+                icon={<Users />} color="#2563EB"
+                label="Người dùng" value={users.length}
+                sub={`${users.filter(u => u.active !== false).length} đang hoạt động`}
+              />
+              <StatCard
+                icon={<TrendingUp />} color="#1D4ED8"
+                label="Doanh thu (đã TT)" value={totalRevenue.toLocaleString('vi-VN') + '₫'}
+              />
+              <StatCard
+                icon={<Tag />} color="#3B82F6"
+                label="Voucher" value={vouchers.length}
+                sub={`${activeVouchers} đang kích hoạt`}
+              />
+              <StatCard
+                icon={<ConciergeBell />} color="#2563EB"
+                label="Dịch vụ" value={services.length}
+              />
             </div>
-          </Section>
+          )}
 
-          {/* USERS */}
-          <Section title={`Người dùng (${users.length})`} icon={<Users />} color="#7C3AED">
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr>
-                    {['ID', 'Họ tên', 'Email', 'Vai trò', 'Trạng thái'].map(h => (
-                      <th key={h} style={th}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.length === 0 ? (
-                    <tr><td colSpan={5} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
-                  ) : users.map(u => (
-                    <tr key={u.id}
-                      onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                    >
-                      <td style={td}>#{u.id}</td>
-                      <td style={td}>{u.fullName || '—'}</td>
-                      <td style={td}>{u.email || '—'}</td>
-                      <td style={td}>
-                        <span style={{
-                          background: u.role === 'ADMIN' ? '#FEF3C7' : '#EFF6FF',
-                          color: u.role === 'ADMIN' ? '#D97706' : '#2563EB',
-                          padding: '2px 10px', borderRadius: '20px',
-                          fontSize: '12px', fontWeight: '600',
-                        }}>{u.role || 'USER'}</span>
-                      </td>
-                      <td style={td}>
-                        {u.active === false
-                          ? <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#EF4444', fontSize: '13px' }}><XCircle size={14} /> Bị khoá</span>
-                          : <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#059669', fontSize: '13px' }}><CheckCircle size={14} /> Hoạt động</span>
-                        }
-                      </td>
+          {activeTab === 'bookings' && (
+            <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
+              <div style={{ padding: '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 style={{ margin: 0, fontSize: '18px', color: '#0F2E5A' }}>Đặt phòng ({bookings.length})</h2>
+                <button style={{ ...addBtnStyle, background: '#2563EB' }} onClick={() => alert('Chức năng thêm đặt phòng chưa được triển khai')}>
+                  <Plus size={14} /> Thêm mới
+                </button>
+              </div>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      {['ID', 'Khách hàng', 'Phòng', 'Nhận/Trả', 'Tổng tiền', 'Trạng thái', 'Thanh toán', 'Thao tác'].map(h => (
+                        <th key={h} style={{...th, textAlign: h === 'Thao tác' ? 'center' : 'left'}}>{h}</th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Section>
-
-          {/* VOUCHERS */}
-          <Section title={`Voucher (${vouchers.length})`} icon={<Tag />} color="#D97706">
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr>
-                    {['ID', 'Mã', 'Loại giảm', 'Giá trị', 'Số lần dùng còn lại', 'Hết hạn', 'Trạng thái'].map(h => (
-                      <th key={h} style={th}>{h}</th>
+                  </thead>
+                  <tbody>
+                    {bookings.length === 0 ? (
+                      <tr><td colSpan={8} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
+                    ) : bookings.map(b => (
+                      <tr key={b.id} style={{ transition: 'background 0.15s' }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                      >
+                        <td style={td}>#{b.id}</td>
+                        <td style={td}>{b.customerName || b.user?.fullName || b.user?.username || '—'}</td>
+                        <td style={td}>P.{b.roomNumber || b.room?.roomNumber || b.room?.id || '—'}</td>
+                        <td style={td}>
+                          <div style={{fontSize: '11px', color: '#64748B'}}>{b.checkInDate}</div>
+                          <div style={{fontSize: '11px', color: '#64748B'}}>{b.checkOutDate}</div>
+                        </td>
+                        <td style={{ ...td, fontWeight: '600', color: '#059669' }}>
+                          {b.totalPrice ? b.totalPrice.toLocaleString('vi-VN') + '₫' : '—'}
+                        </td>
+                        <td style={td}><StatusBadge value={b.status} /></td>
+                        <td style={td}><StatusBadge value={b.paymentStatus} /></td>
+                        <td style={{...td, textAlign: 'center'}}>
+                          <div style={{display: 'flex', gap: '4px', justifyContent: 'center'}}>
+                            {b.status === 'PENDING' && (
+                              <button title="Duyệt đơn" style={{...actionBtnStyle, color: '#2563EB'}} onMouseEnter={e => e.currentTarget.style.background='#DBEAFE'} onMouseLeave={e => e.currentTarget.style.background='none'}><CheckCircle size={16}/></button>
+                            )}
+                            <button title="Xem chi tiết" style={{...actionBtnStyle, color: '#2563EB'}} onMouseEnter={e => e.currentTarget.style.background='#DBEAFE'} onMouseLeave={e => e.currentTarget.style.background='none'}><Eye size={16}/></button>
+                          </div>
+                        </td>
+                      </tr>
                     ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {vouchers.length === 0 ? (
-                    <tr><td colSpan={7} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
-                  ) : vouchers.map(v => (
-                    <tr key={v.id}
-                      onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                    >
-                      <td style={td}>#{v.id}</td>
-                      <td style={{ ...td, fontWeight: '700', fontFamily: 'monospace', color: '#D97706' }}>{v.code}</td>
-                      <td style={td}>{v.discountType === 'PERCENTAGE' ? 'Phần trăm (%)' : 'Số tiền (₫)'}</td>
-                      <td style={{ ...td, fontWeight: '600' }}>
-                        {v.discountType === 'PERCENTAGE'
-                          ? `${v.discountValue}%`
-                          : `${(v.discountValue || 0).toLocaleString('vi-VN')}₫`}
-                      </td>
-                      <td style={td}>{v.usageLimit ?? '∞'}</td>
-                      <td style={td}>{v.expiryDate || '—'}</td>
-                      <td style={td}><StatusBadge value={v.active ? 'ACTIVE' : 'INACTIVE'} /></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </Section>
+          )}
 
-          {/* NEWS */}
-          <Section title={`Tin tức (${news.length})`} icon={<Newspaper />} color="#DB2777">
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr>
-                    {['ID', 'Tiêu đề', 'Tác giả', 'Ngày tạo'].map(h => (
-                      <th key={h} style={th}>{h}</th>
+          {activeTab === 'rooms' && (
+            <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
+              <div style={{ padding: '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 style={{ margin: 0, fontSize: '18px', color: '#0F2E5A' }}>Quản lý Phòng ({rooms.length})</h2>
+                <button style={{ ...addBtnStyle, background: '#3B82F6' }} onClick={() => alert('Chức năng thêm phòng chưa được triển khai')}>
+                  <Plus size={14} /> Thêm mới
+                </button>
+              </div>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      {['Số phòng', 'Loại phòng', 'Giá cơ bản', 'Trạng thái', 'Thao tác'].map(h => (
+                        <th key={h} style={{...th, textAlign: h === 'Thao tác' ? 'center' : 'left'}}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rooms.length === 0 ? (
+                      <tr><td colSpan={5} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
+                    ) : rooms.map(r => (
+                      <tr key={r.id} onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                        <td style={{...td, fontWeight: '700'}}>P.{r.roomNumber}</td>
+                        <td style={td}>{r.type || r.roomType}</td>
+                        <td style={{...td, fontWeight: '600'}}>{r.basePrice?.toLocaleString()}₫</td>
+                        <td style={td}><StatusBadge value={r.status || 'AVAILABLE'} /></td>
+                        <td style={{...td, textAlign: 'center'}}>
+                          <div style={{display: 'flex', gap: '4px', justifyContent: 'center'}}>
+                            <button style={{...actionBtnStyle, color: '#2563EB'}} onMouseEnter={e => e.currentTarget.style.background='#DBEAFE'} onMouseLeave={e => e.currentTarget.style.background='none'}><Edit size={16}/></button>
+                            <button style={{...actionBtnStyle, color: '#EF4444'}} onMouseEnter={e => e.currentTarget.style.background='#FEE2E2'} onMouseLeave={e => e.currentTarget.style.background='none'}><Trash2 size={16}/></button>
+                          </div>
+                        </td>
+                      </tr>
                     ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {news.length === 0 ? (
-                    <tr><td colSpan={4} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
-                  ) : news.map(n => (
-                    <tr key={n.id}
-                      onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                    >
-                      <td style={td}>#{n.id}</td>
-                      <td style={{ ...td, fontWeight: '600', maxWidth: '300px' }}>{n.title || '—'}</td>
-                      <td style={td}>{n.author?.fullName || n.author?.username || '—'}</td>
-                      <td style={td}>{n.createdAt ? new Date(n.createdAt).toLocaleDateString('vi-VN') : '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </Section>
+          )}
 
+          {activeTab === 'services' && (
+            <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
+              <div style={{ padding: '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 style={{ margin: 0, fontSize: '18px', color: '#0F2E5A' }}>Dịch vụ khách sạn ({services.length})</h2>
+                <button style={{ ...addBtnStyle, background: '#2563EB' }} onClick={() => alert('Chức năng thêm dịch vụ chưa được triển khai')}>
+                  <Plus size={14} /> Thêm mới
+                </button>
+              </div>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      {['Tên dịch vụ', 'Giá', 'Đơn vị', 'Trạng thái', 'Thao tác'].map(h => (
+                        <th key={h} style={{...th, textAlign: h === 'Thao tác' ? 'center' : 'left'}}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {services.length === 0 ? (
+                      <tr><td colSpan={5} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
+                    ) : services.map(s => (
+                      <tr key={s.id} onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                        <td style={{...td, fontWeight: '600'}}>{s.serviceName}</td>
+                        <td style={td}>{s.price?.toLocaleString()}₫</td>
+                        <td style={{...td, fontSize: '12px', color: '#64748B'}}>{s.unit}</td>
+                        <td style={td}>
+                          {s.available !== false 
+                            ? <span style={{color: '#059669', fontSize: '12px', fontWeight: '600'}}>Đang bán</span>
+                            : <span style={{color: '#94A3B8', fontSize: '12px', fontWeight: '600'}}>Ngừng</span>
+                          }
+                        </td>
+                        <td style={{...td, textAlign: 'center'}}>
+                          <div style={{display: 'flex', gap: '4px', justifyContent: 'center'}}>
+                            <button style={{...actionBtnStyle, color: '#2563EB'}} onMouseEnter={e => e.currentTarget.style.background='#DBEAFE'} onMouseLeave={e => e.currentTarget.style.background='none'}><Edit size={16}/></button>
+                            <button style={{...actionBtnStyle, color: '#EF4444'}} onMouseEnter={e => e.currentTarget.style.background='#FEE2E2'} onMouseLeave={e => e.currentTarget.style.background='none'}><Trash2 size={16}/></button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'users' && (
+            <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
+              <div style={{ padding: '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 style={{ margin: 0, fontSize: '18px', color: '#0F2E5A' }}>Người dùng ({users.length})</h2>
+                <button style={{ ...addBtnStyle, background: '#1E40AF' }} onClick={() => alert('Chức năng thêm người dùng chưa được triển khai')}>
+                  <Plus size={14} /> Thêm mới
+                </button>
+              </div>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      {['ID', 'Họ tên', 'Email', 'Vai trò', 'Trạng thái'].map(h => (
+                        <th key={h} style={th}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.length === 0 ? (
+                      <tr><td colSpan={5} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
+                    ) : users.map(u => (
+                      <tr key={u.id}
+                        onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                      >
+                        <td style={td}>#{u.id}</td>
+                        <td style={td}>{u.fullName || '—'}</td>
+                        <td style={td}>{u.email || '—'}</td>
+                        <td style={td}>
+                          <span style={{
+                            background: u.role === 'ADMIN' ? '#DBEAFE' : '#EFF6FF',
+                            color: u.role === 'ADMIN' ? '#1E40AF' : '#2563EB',
+                            padding: '2px 10px', borderRadius: '20px',
+                            fontSize: '12px', fontWeight: '600',
+                          }}>{u.role || 'USER'}</span>
+                        </td>
+                        <td style={td}>
+                          {u.active === false
+                            ? <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#EF4444', fontSize: '13px' }}><XCircle size={14} /> Bị khoá</span>
+                            : <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#059669', fontSize: '13px' }}><CheckCircle size={14} /> Hoạt động</span>
+                          }
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'vouchers' && (
+            <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
+              <div style={{ padding: '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 style={{ margin: 0, fontSize: '18px', color: '#0F2E5A' }}>Voucher ({vouchers.length})</h2>
+                <button style={{ ...addBtnStyle, background: '#3B82F6' }} onClick={() => alert('Chức năng thêm voucher chưa được triển khai')}>
+                  <Plus size={14} /> Thêm mới
+                </button>
+              </div>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      {['ID', 'Mã', 'Loại giảm', 'Giá trị', 'Số lần dùng còn lại', 'Hết hạn', 'Trạng thái'].map(h => (
+                        <th key={h} style={th}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {vouchers.length === 0 ? (
+                      <tr><td colSpan={7} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
+                    ) : vouchers.map(v => (
+                      <tr key={v.id}
+                        onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                      >
+                        <td style={td}>#{v.id}</td>
+                        <td style={{ ...td, fontWeight: '700', fontFamily: 'monospace', color: '#1E40AF' }}>{v.code}</td>
+                        <td style={td}>{v.discountType === 'PERCENTAGE' ? 'Phần trăm (%)' : 'Số tiền (₫)'}</td>
+                        <td style={{ ...td, fontWeight: '600' }}>
+                          {v.discountType === 'PERCENTAGE'
+                            ? `${v.discountValue}%`
+                            : `${(v.discountValue || 0).toLocaleString('vi-VN')}₫`}
+                        </td>
+                        <td style={td}>{v.usageLimit ?? '∞'}</td>
+                        <td style={td}>{v.expiryDate || '—'}</td>
+                        <td style={td}><StatusBadge value={v.active ? 'ACTIVE' : 'INACTIVE'} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'news' && (
+            <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
+              <div style={{ padding: '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 style={{ margin: 0, fontSize: '18px', color: '#0F2E5A' }}>Tin tức ({news.length})</h2>
+                <button style={{ ...addBtnStyle, background: '#2563EB' }} onClick={() => alert('Chức năng thêm tin tức chưa được triển khai')}>
+                  <Plus size={14} /> Thêm mới
+                </button>
+              </div>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      {['ID', 'Tiêu đề', 'Tác giả', 'Ngày tạo'].map(h => (
+                        <th key={h} style={th}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {news.length === 0 ? (
+                      <tr><td colSpan={4} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
+                    ) : news.map(n => (
+                      <tr key={n.id}
+                        onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                      >
+                        <td style={td}>#{n.id}</td>
+                        <td style={{ ...td, fontWeight: '600', maxWidth: '300px' }}>{n.title || '—'}</td>
+                        <td style={td}>{n.author?.fullName || n.author?.username || '—'}</td>
+                        <td style={td}>{n.createdAt ? new Date(n.createdAt).toLocaleDateString('vi-VN') : '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

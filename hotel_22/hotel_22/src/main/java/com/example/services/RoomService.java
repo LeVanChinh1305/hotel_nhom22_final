@@ -9,10 +9,12 @@ import org.bson.types.ObjectId;
 import com.example.dto.request.CreateRoomRequest;
 import com.example.dto.response.RoomResponse;
 import com.example.entity.mongodb.Room;
+import com.example.entity.mysql.Booking;
 import com.example.exceptions.AppException;
 import com.example.mapper.RoomMapper;
 import com.example.repository.mongodb.RoomAvailabilityRepository;
 import com.example.repository.mongodb.RoomRepository;
+import com.example.repository.mysql.BookingRepository;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -23,6 +25,7 @@ public class RoomService {
     @Inject RoomRepository roomRepository;
     @Inject RoomAvailabilityRepository roomAvailabilityRepository;
     @Inject RoomMapper     roomMapper;
+    @Inject BookingRepository bookingRepository;
 
     public List<RoomResponse> searchRooms(String type, String address,
                                            Double minPrice, Double maxPrice,
@@ -77,6 +80,51 @@ public class RoomService {
     public void delete(String id) {
         Room room = findRoomOrThrow(id);
         roomRepository.delete(room);
+    }
+
+    /**
+     * Kiểm tra xem phòng có thể xoá hay không
+     * Trả về thông tin về các booking active liên quan
+     */
+    public List<Booking> findActiveBookingsByRoom(String roomId) {
+        LocalDate today = LocalDate.now();
+        return bookingRepository.find(
+            "roomId = ?1 AND status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN') AND checkOutDate >= ?2",
+            roomId, today
+        ).list();
+    }
+
+    /**
+     * Set trạng thái maintenance cho một ngày cụ thể của phòng
+     */
+    public void setRoomMaintenance(String roomId, LocalDate date, String status) {
+        // Kiểm tra phòng tồn tại
+        findRoomOrThrow(roomId);
+
+        // Validate status
+        if (!"MAINTENANCE".equals(status)) {
+            throw new AppException("Chỉ hỗ trợ trạng thái MAINTENANCE", 400);
+        }
+
+        // Validate date không được là quá khứ
+        if (date.isBefore(LocalDate.now())) {
+            throw new AppException("Không thể đặt bảo trì cho ngày trong quá khứ", 400);
+        }
+
+        // Kiểm tra không có booking active trong ngày đó
+        List<Booking> conflictingBookings = bookingRepository.find(
+            "roomId = ?1 AND status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN') AND ?2 BETWEEN checkInDate AND checkOutDate",
+            roomId, date
+        ).list();
+
+        if (!conflictingBookings.isEmpty()) {
+            throw new AppException("Không thể đặt bảo trì vì có booking active trong ngày này", 409);
+        }
+
+        // Set maintenance status trong room availability
+        roomAvailabilityRepository.updateRoomStatusRange(
+            roomId, date, date.plusDays(1), status, null
+        );
     }
 
     // ─── helpers ────────────────────────────────────────────────────────────

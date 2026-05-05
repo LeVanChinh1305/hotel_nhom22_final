@@ -101,7 +101,13 @@ const Admin = () => {
   /* Modal states */
   const [showAddRoomModal, setShowAddRoomModal] = useState(false);
   const [showRoomDetailModal, setShowRoomDetailModal] = useState(false);
+  const [showEditRoomModal, setShowEditRoomModal] = useState(false);
+  const [showDeleteRoomModal, setShowDeleteRoomModal] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(null);
+  const [editingRoom, setEditingRoom] = useState(null);
+  const [deletingRoom, setDeletingRoom] = useState(null);
+  const [deleteCheckResult, setDeleteCheckResult] = useState(null);
+  const [deletingLoading, setDeletingLoading] = useState(false);
   const [roomForm, setRoomForm] = useState({
     roomNumber: '',
     type: '',
@@ -113,6 +119,7 @@ const Admin = () => {
     images: []
   });
   const [creatingRoom, setCreatingRoom] = useState(false);
+  const [updatingRoom, setUpdatingRoom] = useState(false);
 
   const loadData = async () => {
     setLoading(true);
@@ -152,6 +159,21 @@ const Admin = () => {
   const openRoomDetail = (room) => {
     setSelectedRoom(room);
     setShowRoomDetailModal(true);
+  };
+
+  const openEditRoom = (room) => {
+    setEditingRoom(room);
+    setRoomForm({
+      roomNumber: room.roomNumber || '',
+      type: room.type || room.roomType || '',
+      basePrice: room.basePrice || '',
+      address: room.address || '',
+      description: room.description || '',
+      maxOccupancy: room.maxOccupancy || '',
+      amenities: Array.isArray(room.amenities) ? room.amenities : [],
+      images: Array.isArray(room.images) ? room.images : []
+    });
+    setShowEditRoomModal(true);
   };
 
   const handleCreateRoom = async () => {
@@ -208,6 +230,114 @@ const Admin = () => {
       alert('Lỗi khi thêm phòng: ' + e.message);
     } finally {
       setCreatingRoom(false);
+    }
+  };
+
+  const handleUpdateRoom = async () => {
+    if (!roomForm.roomNumber.trim() || !roomForm.type.trim() || !roomForm.basePrice) {
+      alert('Vui lòng điền đầy đủ thông tin bắt buộc: Số phòng, Loại phòng, Giá cơ bản');
+      return;
+    }
+
+    setUpdatingRoom(true);
+    try {
+      const requestData = {
+        roomNumber: roomForm.roomNumber.trim(),
+        type: roomForm.type.trim(),
+        basePrice: parseFloat(roomForm.basePrice),
+        address: roomForm.address.trim() || null,
+        description: roomForm.description.trim() || null,
+        maxOccupancy: roomForm.maxOccupancy ? parseInt(roomForm.maxOccupancy) : null,
+        amenities: roomForm.amenities.filter(a => a.trim()).map(a => a.trim()),
+        images: roomForm.images.filter(i => i.trim()).map(i => i.trim())
+      };
+
+      const response = await fetch(`${API_BASE}/api/admin/rooms/${editingRoom.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getStoredToken()}`
+        },
+        body: JSON.stringify(requestData)
+      });
+
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          throw new Error('Không có quyền truy cập hoặc token không hợp lệ');
+        }
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Lỗi ${response.status}`);
+      }
+
+      const updatedRoom = await response.json();
+      setRooms(prev => prev.map(r => r.id === editingRoom.id ? updatedRoom : r));
+      setShowEditRoomModal(false);
+      setEditingRoom(null);
+      setRoomForm({
+        roomNumber: '',
+        type: '',
+        basePrice: '',
+        address: '',
+        description: '',
+        maxOccupancy: '',
+        amenities: [],
+        images: []
+      });
+      alert('Cập nhật phòng thành công!');
+    } catch (e) {
+      alert('Lỗi khi cập nhật phòng: ' + e.message);
+    } finally {
+      setUpdatingRoom(false);
+    }
+  };
+
+  const openDeleteRoom = async (room) => {
+    setDeletingRoom(room);
+    setDeleteCheckResult(null);
+    setDeletingLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/api/admin/rooms/${room.id}/check-deletion`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${getStoredToken()}`
+        }
+      });
+      if (!response.ok) throw new Error('Không thể kiểm tra phòng');
+      const result = await response.json();
+      setDeleteCheckResult(result);
+      setShowDeleteRoomModal(true);
+    } catch (e) {
+      alert('Lỗi khi kiểm tra phòng: ' + e.message);
+    } finally {
+      setDeletingLoading(false);
+    }
+  };
+
+  const handleDeleteRoom = async () => {
+    if (!deletingRoom) return;
+    setDeletingLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/api/admin/rooms/${deletingRoom.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${getStoredToken()}`
+        }
+      });
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          throw new Error('Không có quyền truy cập');
+        }
+        throw new Error('Không thể xoá phòng');
+      }
+      setRooms(prev => prev.filter(r => r.id !== deletingRoom.id));
+      setShowDeleteRoomModal(false);
+      setDeletingRoom(null);
+      setDeleteCheckResult(null);
+      alert('Xoá phòng thành công!');
+    } catch (e) {
+      alert('Lỗi khi xoá phòng: ' + e.message);
+    } finally {
+      setDeletingLoading(false);
     }
   };
 
@@ -455,8 +585,8 @@ const Admin = () => {
                         <td style={{...td, textAlign: 'center'}}>
                           <div style={{display: 'flex', gap: '4px', justifyContent: 'center'}}>
                             <button title="Xem chi tiết" style={{...actionBtnStyle, color: '#059669'}} onMouseEnter={e => e.currentTarget.style.background='#D1FAE5'} onMouseLeave={e => e.currentTarget.style.background='none'} onClick={() => openRoomDetail(r)}><Eye size={16}/></button>
-                            <button style={{...actionBtnStyle, color: '#2563EB'}} onMouseEnter={e => e.currentTarget.style.background='#DBEAFE'} onMouseLeave={e => e.currentTarget.style.background='none'}><Edit size={16}/></button>
-                            <button style={{...actionBtnStyle, color: '#EF4444'}} onMouseEnter={e => e.currentTarget.style.background='#FEE2E2'} onMouseLeave={e => e.currentTarget.style.background='none'}><Trash2 size={16}/></button>
+                            <button title="Chỉnh sửa" style={{...actionBtnStyle, color: '#2563EB'}} onMouseEnter={e => e.currentTarget.style.background='#DBEAFE'} onMouseLeave={e => e.currentTarget.style.background='none'} onClick={() => openEditRoom(r)}><Edit size={16}/></button>
+                            <button title="Xóa" style={{...actionBtnStyle, color: '#EF4444'}} onMouseEnter={e => e.currentTarget.style.background='#FEE2E2'} onMouseLeave={e => e.currentTarget.style.background='none'} onClick={() => openDeleteRoom(r)}><Trash2 size={16}/></button>
                           </div>
                         </td>
                       </tr>
@@ -914,6 +1044,302 @@ const Admin = () => {
                 <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: '#0F2E5A' }}>Lịch đặt phòng</h3>
                 <RoomCalendar roomId={selectedRoom.id} bookings={bookings} />
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal sửa phòng */}
+      {showEditRoomModal && editingRoom && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center',
+          justifyContent: 'center', zIndex: 1000, padding: '20px'
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: '16px', width: '100%',
+            maxWidth: '600px', maxHeight: '90vh', overflow: 'auto'
+          }}>
+            <div style={{
+              padding: '24px', borderBottom: '1px solid #E2E8F0',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+            }}>
+              <h2 style={{ margin: 0, fontSize: '20px', color: '#0F2E5A' }}>Chỉnh sửa phòng P.{editingRoom.roomNumber}</h2>
+              <button
+                onClick={() => {
+                  setShowEditRoomModal(false);
+                  setEditingRoom(null);
+                }}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: '#64748B', padding: '4px'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ padding: '24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>
+                    Số phòng <span style={{ color: '#EF4444' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={roomForm.roomNumber}
+                    onChange={(e) => setRoomForm({...roomForm, roomNumber: e.target.value})}
+                    placeholder="VD: 101"
+                    style={{
+                      width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
+                      borderRadius: '8px', fontSize: '14px', outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>
+                    Loại phòng <span style={{ color: '#EF4444' }}>*</span>
+                  </label>
+                  <select
+                    value={roomForm.type}
+                    onChange={(e) => setRoomForm({...roomForm, type: e.target.value})}
+                    style={{
+                      width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
+                      borderRadius: '8px', fontSize: '14px', outline: 'none'
+                    }}
+                  >
+                    <option value="">Chọn loại phòng</option>
+                    <option value="STANDARD">Standard</option>
+                    <option value="DELUXE">Deluxe</option>
+                    <option value="SUITE">Suite</option>
+                    <option value="PRESIDENTIAL">Presidential</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>
+                    Giá cơ bản (₫) <span style={{ color: '#EF4444' }}>*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={roomForm.basePrice}
+                    onChange={(e) => setRoomForm({...roomForm, basePrice: e.target.value})}
+                    placeholder="VD: 500000"
+                    style={{
+                      width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
+                      borderRadius: '8px', fontSize: '14px', outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>
+                    Sức chứa tối đa
+                  </label>
+                  <input
+                    type="number"
+                    value={roomForm.maxOccupancy}
+                    onChange={(e) => setRoomForm({...roomForm, maxOccupancy: e.target.value})}
+                    placeholder="VD: 2"
+                    style={{
+                      width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
+                      borderRadius: '8px', fontSize: '14px', outline: 'none'
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>
+                  Địa chỉ
+                </label>
+                <input
+                  type="text"
+                  value={roomForm.address}
+                  onChange={(e) => setRoomForm({...roomForm, address: e.target.value})}
+                  placeholder="VD: Tầng 1, Khách sạn ABC"
+                  style={{
+                    width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
+                    borderRadius: '8px', fontSize: '14px', outline: 'none'
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>
+                  Mô tả
+                </label>
+                <textarea
+                  value={roomForm.description}
+                  onChange={(e) => setRoomForm({...roomForm, description: e.target.value})}
+                  placeholder="Mô tả chi tiết về phòng..."
+                  rows={3}
+                  style={{
+                    width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
+                    borderRadius: '8px', fontSize: '14px', outline: 'none', resize: 'vertical'
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>
+                  Tiện nghi (mỗi tiện nghi một dòng)
+                </label>
+                <textarea
+                  value={roomForm.amenities.join('\n')}
+                  onChange={(e) => setRoomForm({...roomForm, amenities: e.target.value.split('\n').filter(a => a.trim())})}
+                  placeholder="WiFi miễn phí&#10;Điều hòa&#10;Tivi&#10;Minibar"
+                  rows={4}
+                  style={{
+                    width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
+                    borderRadius: '8px', fontSize: '14px', outline: 'none', resize: 'vertical'
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>
+                  URL hình ảnh (mỗi URL một dòng)
+                </label>
+                <textarea
+                  value={roomForm.images.join('\n')}
+                  onChange={(e) => setRoomForm({...roomForm, images: e.target.value.split('\n').filter(i => i.trim())})}
+                  placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
+                  rows={3}
+                  style={{
+                    width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
+                    borderRadius: '8px', fontSize: '14px', outline: 'none', resize: 'vertical'
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <button
+                  onClick={() => {
+                    setShowEditRoomModal(false);
+                    setEditingRoom(null);
+                  }}
+                  style={{
+                    padding: '10px 20px', background: '#F3F4F6', color: '#374151',
+                    border: '1px solid #D1D5DB', borderRadius: '8px', cursor: 'pointer',
+                    fontSize: '14px', fontWeight: '600'
+                  }}
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={handleUpdateRoom}
+                  disabled={updatingRoom}
+                  style={{
+                    padding: '10px 20px', background: '#2563EB', color: '#fff',
+                    border: 'none', borderRadius: '8px', cursor: updatingRoom ? 'not-allowed' : 'pointer',
+                    fontSize: '14px', fontWeight: '600', opacity: updatingRoom ? 0.7 : 1
+                  }}
+                >
+                  {updatingRoom ? 'Đang cập nhật...' : 'Lưu thay đổi'}
+                </button>
+              </div>
+
+              <div style={{ marginTop: '20px', padding: '12px', background: '#FEF3C7', borderRadius: '8px', border: '1px solid #FCD34D' }}>
+                <p style={{ margin: 0, fontSize: '13px', color: '#92400E' }}>
+                  <strong>Lưu ý:</strong> Chỉnh sửa thông tin phòng sẽ không ảnh hưởng đến các đơn đặt phòng hiện tại.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: Delete Room ── */}
+      {showDeleteRoomModal && deletingRoom && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: '16px', padding: '24px', width: '90%', maxWidth: '500px',
+            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <AlertTriangle size={24} color="#EF4444" />
+              <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '700', color: '#0F2E5A' }}>
+                Xác nhận xoá phòng
+              </h2>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <p style={{ margin: '0 0 12px', color: '#374151', fontSize: '16px' }}>
+                Bạn có chắc muốn xoá phòng <strong>P.{deletingRoom.roomNumber}</strong>?
+              </p>
+
+              {deletingLoading ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748B' }}>
+                  <div style={{
+                    width: '16px', height: '16px', border: '2px solid #E5E7EB',
+                    borderTop: '2px solid #2563EB', borderRadius: '50%', animation: 'spin 1s linear infinite'
+                  }}></div>
+                  Đang kiểm tra...
+                </div>
+              ) : deleteCheckResult ? (
+                <div style={{
+                  padding: '12px', borderRadius: '8px',
+                  background: deleteCheckResult.canDelete ? '#D1FAE5' : '#FEF3C7',
+                  border: `1px solid ${deleteCheckResult.canDelete ? '#10B981' : '#F59E0B'}`
+                }}>
+                  <p style={{ margin: 0, color: deleteCheckResult.canDelete ? '#065F46' : '#92400E' }}>
+                    {deleteCheckResult.message}
+                  </p>
+                  {!deleteCheckResult.canDelete && deleteCheckResult.activeBookingIds && deleteCheckResult.activeBookingIds.length > 0 && (
+                    <p style={{ margin: '8px 0 0', fontSize: '14px', color: '#92400E' }}>
+                      ID đơn đặt: {deleteCheckResult.activeBookingIds.join(', ')}
+                    </p>
+                  )}
+                </div>
+              ) : null}
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowDeleteRoomModal(false)}
+                style={{
+                  padding: '10px 20px', background: '#F3F4F6', color: '#374151',
+                  border: '1px solid #D1D5DB', borderRadius: '8px', cursor: 'pointer',
+                  fontSize: '14px', fontWeight: '600'
+                }}
+              >
+                Hủy
+              </button>
+              {deleteCheckResult?.canDelete && (
+                <button
+                  onClick={handleDeleteRoom}
+                  disabled={deletingLoading}
+                  style={{
+                    padding: '10px 20px', background: '#EF4444', color: '#fff',
+                    border: 'none', borderRadius: '8px', cursor: deletingLoading ? 'not-allowed' : 'pointer',
+                    fontSize: '14px', fontWeight: '600', opacity: deletingLoading ? 0.7 : 1
+                  }}
+                >
+                  {deletingLoading ? 'Đang xoá...' : 'Xoá phòng'}
+                </button>
+              )}
+              {!deleteCheckResult?.canDelete && (
+                <button
+                  onClick={() => {
+                    // Chuyển sang trạng thái MAINTENANCE
+                    alert('Chức năng chuyển sang trạng thái BẢO TRÌ sẽ được thêm sau');
+                    setShowDeleteRoomModal(false);
+                  }}
+                  style={{
+                    padding: '10px 20px', background: '#F59E0B', color: '#fff',
+                    border: 'none', borderRadius: '8px', cursor: 'pointer',
+                    fontSize: '14px', fontWeight: '600'
+                  }}
+                >
+                  Chuyển sang Bảo trì
+                </button>
+              )}
             </div>
           </div>
         </div>

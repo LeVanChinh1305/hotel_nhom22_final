@@ -28,9 +28,10 @@ public class CurrentUserProducer {
             throw new AppException("JWT token không chứa thông tin email", 401);
         }
 
-        User user = userRepository.find("email", email)
+        final String finalEmail = email; // Make effectively final for lambda
+        User user = userRepository.find("email", finalEmail)
                 .firstResultOptional()
-                .orElseThrow(() -> new AppException("Người dùng không tồn tại với email: " + email, 404));
+                .orElseThrow(() -> new AppException("Người dùng không tồn tại với email: " + finalEmail, 404));
 
         if (user.id == null) {
             throw new AppException("User ID không hợp lệ", 500);

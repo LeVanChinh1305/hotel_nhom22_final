@@ -4,9 +4,11 @@ import com.example.dto.request.CreateNewsRequest;
 import com.example.dto.request.CreateRoomRequest;
 import com.example.dto.request.CreateServiceRequest;
 import com.example.dto.request.CreateVoucherRequest;
+import com.example.dto.request.SetRoomMaintenanceRequest;
 import com.example.dto.request.UpdateBookingStatusRequest;
 import com.example.dto.request.UpdateRoomAvailabilityRequest;
 import com.example.dto.request.UpdateRoomStatusRequest;
+import com.example.dto.response.RoomDeletionCheckResponse;
 import com.example.entity.mysql.User;
 import com.example.repository.mongodb.RoomAvailabilityRepository;
 import com.example.services.BookingService;
@@ -59,6 +61,24 @@ public class AdminController {
     @PUT @Path("/rooms/{id}")
     public Response updateRoom(@PathParam("id") String id, CreateRoomRequest req) {
         return Response.ok(roomService.update(id, req)).build();
+    }
+    @GET @Path("/rooms/{id}/check-deletion")
+    public Response checkRoomDeletion(@PathParam("id") String id) {
+        var activeBookings = roomService.findActiveBookingsByRoom(id);
+        boolean canDelete = activeBookings.isEmpty();
+        String message = canDelete 
+            ? "Có thể xoá phòng này"
+            : "Phòng hiện có " + activeBookings.size() + " đơn đặt phòng đang hoạt động. Để bảo vệ dữ liệu, vui lòng chuyển sang trạng thái BẢO TRÌ (MAINTENANCE) thay vì xoá";
+        return Response.ok(new RoomDeletionCheckResponse(
+            canDelete,
+            activeBookings.stream().map(b -> b.id).toList(),
+            message
+        )).build();
+    }
+    @POST @Path("/rooms/{id}/set-maintenance")
+    public Response setRoomMaintenance(@PathParam("id") String id, SetRoomMaintenanceRequest req) {
+        roomService.setRoomMaintenance(id, req.date, req.status);
+        return Response.ok().build();
     }
     @DELETE @Path("/rooms/{id}")
     public Response deleteRoom(@PathParam("id") String id) {

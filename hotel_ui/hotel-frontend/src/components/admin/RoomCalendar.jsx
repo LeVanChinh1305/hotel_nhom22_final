@@ -1,7 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const RoomCalendar = ({ roomId, bookings }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [showDateMenu, setShowDateMenu] = useState(false);
+  const [settingMaintenance, setSettingMaintenance] = useState(false);
+  const [maintenanceDates, setMaintenanceDates] = useState(new Set());
+
+  // Fetch maintenance dates cho phòng
+  const fetchMaintenanceDates = async () => {
+    if (!roomId) return;
+
+    try {
+      const API_BASE = 'http://localhost:8080';
+      const response = await fetch(`${API_BASE}/api/admin/rooms/${roomId}/availability`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (response.ok) {
+        const availabilities = await response.json();
+        const maintenanceSet = new Set();
+        availabilities.forEach(avail => {
+          if (avail.status === 'MAINTENANCE') {
+            maintenanceSet.add(new Date(avail.date).toDateString());
+          }
+        });
+        setMaintenanceDates(maintenanceSet);
+      }
+    } catch (error) {
+      console.error('Lỗi khi tải dữ liệu maintenance:', error);
+    }
+  };
+
+  // Fetch data khi component mount hoặc roomId thay đổi
+  useEffect(() => {
+    fetchMaintenanceDates();
+  }, [roomId]);
+
+  // Listen for data changes
+  useEffect(() => {
+    const handleDataChange = () => {
+      fetchMaintenanceDates();
+    };
+
+    window.addEventListener('roomDataChanged', handleDataChange);
+    return () => window.removeEventListener('roomDataChanged', handleDataChange);
+  }, [roomId]);
 
   // Lọc bookings của phòng này
   const roomBookings = bookings.filter(b => b.room?.id === roomId || b.roomId === roomId);
@@ -20,6 +66,49 @@ const RoomCalendar = ({ roomId, bookings }) => {
       }
     }
   });
+
+  // Handle click vào ngày
+  const handleDateClick = (date) => {
+    if (!date || isPast(date)) return; // Không cho click ngày quá khứ
+    setSelectedDate(date);
+    setShowDateMenu(true);
+  };
+
+  // Set maintenance cho ngày cụ thể
+  const handleSetMaintenance = async () => {
+    if (!selectedDate) return;
+
+    setSettingMaintenance(true);
+    try {
+      const API_BASE = 'http://localhost:8080';
+      const response = await fetch(`${API_BASE}/api/admin/rooms/${roomId}/set-maintenance`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          date: selectedDate.toISOString().split('T')[0], // Format YYYY-MM-DD
+          status: 'MAINTENANCE'
+        })
+      });
+
+      if (response.ok) {
+        alert(`Đã đặt bảo trì cho ngày ${selectedDate.toLocaleDateString('vi-VN')}`);
+        setShowDateMenu(false);
+        setSelectedDate(null);
+        // Có thể emit event để refresh data ở parent component
+        window.dispatchEvent(new CustomEvent('roomDataChanged'));
+      } else {
+        const error = await response.json();
+        alert('Lỗi: ' + (error.message || 'Không thể đặt bảo trì'));
+      }
+    } catch (error) {
+      alert('Lỗi kết nối: ' + error.message);
+    } finally {
+      setSettingMaintenance(false);
+    }
+  };
 
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
@@ -134,18 +223,19 @@ const RoomCalendar = ({ roomId, bookings }) => {
               background: date ? (isBooked(date) ? '#2563EB' : '#FFFFFF') : '#F8FAFC',
               padding: '12px 8px', textAlign: 'center', minHeight: '60px',
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              cursor: date ? 'pointer' : 'default',
+              cursor: date && !isPast(date) ? 'pointer' : 'default',
               border: isToday(date) ? '2px solid #EF4444' : 'none',
               opacity: isPast(date) ? 0.5 : 1,
               transition: 'all 0.2s'
             }}
+            onClick={() => handleDateClick(date)}
             onMouseEnter={(e) => {
-              if (date && !isBooked(date)) {
+              if (date && !isBooked(date) && !isPast(date)) {
                 e.currentTarget.style.background = '#F8FAFC';
               }
             }}
             onMouseLeave={(e) => {
-              if (date && !isBooked(date)) {
+              if (date && !isBooked(date) && !isPast(date)) {
                 e.currentTarget.style.background = '#FFFFFF';
               }
             }}
@@ -171,6 +261,90 @@ const RoomCalendar = ({ roomId, bookings }) => {
         ))}
       </div>
 
+      {/* Popup menu cho ngày được chọn */}
+      {showDateMenu && selectedDate && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.1)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: '#FFFFFF',
+            borderRadius: '12px',
+            padding: '20px',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+            minWidth: '300px',
+            maxWidth: '400px'
+          }}>
+            <div style={{ marginBottom: '16px' }}>
+              <h3 style={{
+                margin: '0 0 8px',
+                fontSize: '18px',
+                fontWeight: '700',
+                color: '#0F2E5A'
+              }}>
+                Ngày {selectedDate.toLocaleDateString('vi-VN')}
+              </h3>
+              <p style={{
+                margin: 0,
+                fontSize: '14px',
+                color: '#64748B'
+              }}>
+                {isBooked(selectedDate) ? 'Trạng thái: Đã đặt phòng' : 'Trạng thái: Trống'}
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => {
+                  setShowDateMenu(false);
+                  setSelectedDate(null);
+                }}
+                style={{
+                  padding: '8px 16px',
+                  background: '#F3F4F6',
+                  color: '#374151',
+                  border: '1px solid #D1D5DB',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600'
+                }}
+              >
+                Hủy
+              </button>
+
+              {!isBooked(selectedDate) && (
+                <button
+                  onClick={handleSetMaintenance}
+                  disabled={settingMaintenance}
+                  style={{
+                    padding: '8px 16px',
+                    background: settingMaintenance ? '#9CA3AF' : '#F59E0B',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: settingMaintenance ? 'not-allowed' : 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    opacity: settingMaintenance ? 0.7 : 1
+                  }}
+                >
+                  {settingMaintenance ? 'Đang xử lý...' : 'Đặt bảo trì'}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Chú thích */}
       <div style={{
         display: 'flex', gap: '16px', justifyContent: 'center',
@@ -189,6 +363,13 @@ const RoomCalendar = ({ roomId, bookings }) => {
             borderRadius: '4px'
           }}></div>
           <span style={{ fontSize: '12px', color: '#64748B' }}>Đã đặt</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{
+            width: '16px', height: '16px', background: '#F59E0B',
+            borderRadius: '4px'
+          }}></div>
+          <span style={{ fontSize: '12px', color: '#64748B' }}>Bảo trì</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <div style={{

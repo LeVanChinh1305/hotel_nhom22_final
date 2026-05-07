@@ -211,7 +211,11 @@ public class BookingService {
 
         booking.status = Booking.BookingStatus.CANCELLED;
         bookingRepository.persist(booking);
+        
+        // Giải phóng phòng trong MongoDB
+        updateRoomAvailabilityForBooking(booking);
 
+        System.err.println(">>> [cancelBooking] Booking CANCELLED successfully: ID=" + bookingId);
         return bookingMapper.toResponse(booking);
     }
 

@@ -30,11 +30,7 @@ const BookingHistory = () => {
 
       const user = JSON.parse(userStr);
       const token = user.token;
-      if (!token) {
-        setError('Không tìm thấy token đăng nhập');
-        return;
-      }
-
+      
       const res = await fetch(`${API_BASE}/api/bookings`, {
         method: 'GET',
         headers: {
@@ -55,6 +51,35 @@ const BookingHistory = () => {
       setError(err.message || 'Failed to fetch');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCancelBooking = async (id) => {
+    if (!window.confirm('Bạn có chắc chắn muốn hủy đơn đặt phòng này?')) return;
+
+    try {
+      const userStr = localStorage.getItem('user');
+      const user = JSON.parse(userStr);
+      const token = user.token;
+
+      const res = await fetch(`${API_BASE}/api/bookings/${id}/cancel`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (res.ok) {
+        alert('Đã hủy đơn đặt phòng thành công');
+        setSelectedBooking(null);
+        loadBookings(); // Tải lại danh sách
+      } else {
+        const data = await res.json();
+        alert('Lỗi: ' + (data.message || 'Không thể hủy đơn'));
+      }
+    } catch (err) {
+      alert('Lỗi kết nối: ' + err.message);
     }
   };
 
@@ -266,7 +291,15 @@ const BookingHistory = () => {
                     <div style={{ ...statusBadgeStyle, background: selectedBooking.paymentStatus ? '#F0FDF4' : '#FFF7ED', color: selectedBooking.paymentStatus ? '#15803D' : '#C2410C', fontSize: '12px' }}>
                       {selectedBooking.paymentStatus ? 'Đã thanh toán' : 'Chờ thanh toán'}
                     </div>
-                    <span style={{ fontSize: '12px', color: '#94A3B8' }}>Hình thức: Chuyển khoản/Tiền mặt</span>
+                    
+                    {selectedBooking.status === 'PENDING' && (
+                      <button 
+                        onClick={() => handleCancelBooking(selectedBooking.id)}
+                        style={cancelButtonStyle}
+                      >
+                        Hủy đơn hàng
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -332,6 +365,10 @@ const stayDetailStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 
 const detailBoxStyle = { background: '#fff', padding: '10px', borderRadius: '12px', border: '1px solid #F1F5F9' };
 const detailLabelStyle = { display: 'block', fontSize: '11px', color: '#94A3B8', textTransform: 'uppercase', marginBottom: '4px' };
 const detailValueStyle = { display: 'block', fontSize: '14px', fontWeight: '700', color: '#1E293B' };
+const cancelButtonStyle = { 
+  padding: '8px 16px', background: '#FEF2F2', color: '#B91C1C', border: '1px solid #FECACA', 
+  borderRadius: '10px', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: '0.2s' 
+};
 
 const statusBoxStyle = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '40px', background: '#fff', borderRadius: '24px', color: '#64748B' };
 const emptyStateStyle = { textAlign: 'center', padding: '60px', background: '#fff', borderRadius: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' };

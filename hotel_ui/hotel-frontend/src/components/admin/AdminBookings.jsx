@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   CheckCircle, XCircle, Eye, Info, 
-  User, Calendar, CreditCard, Package, X 
+  User, Calendar, CreditCard, Package, X, Copy, Check, Gift
 } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 
@@ -11,6 +11,7 @@ const actionBtnStyle = {
 
 const AdminBookings = ({ bookings, onUpdateStatus }) => {
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [copied, setCopied] = useState(false);
 
   const handleApprove = (id) => {
     onUpdateStatus(id, 'CONFIRMED');
@@ -18,6 +19,13 @@ const AdminBookings = ({ bookings, onUpdateStatus }) => {
 
   const handleCancel = (id) => {
     onUpdateStatus(id, 'CANCELLED');
+  };
+
+  const handleCopyPhone = (phone) => {
+    if (!phone) return;
+    navigator.clipboard.writeText(phone);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -41,8 +49,8 @@ const AdminBookings = ({ bookings, onUpdateStatus }) => {
               <tr key={b.id} style={trStyle} onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                 <td style={tdStyle}><strong>#{b.id}</strong></td>
                 <td style={tdStyle}>
-                  <div style={{ fontWeight: '600' }}>{b.guestFullName || b.customerName || b.user?.fullName || '—'}</div>
-                  <div style={{ fontSize: '11px', color: '#64748B' }}>{b.guestPhone || b.user?.phone || ''}</div>
+                  <div style={{ fontWeight: '600' }}>{b.customerName || '—'}</div>
+                  <div style={{ fontSize: '11px', color: '#64748B' }}>{b.customerPhone || ''}</div>
                 </td>
                 <td style={tdStyle}>
                   <div style={{ fontWeight: '600' }}>P.{b.roomNumber || '—'}</div>
@@ -106,9 +114,29 @@ const AdminBookings = ({ bookings, onUpdateStatus }) => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
                 <div style={infoBoxStyle}>
                   <h4 style={sectionTitleStyle}><User size={16} /> Khách hàng</h4>
-                  <div style={{ fontWeight: '700' }}>{selectedBooking.guestFullName || selectedBooking.user?.fullName}</div>
-                  <div style={{ fontSize: '13px', color: '#64748B' }}>{selectedBooking.guestEmail || selectedBooking.user?.email}</div>
-                  <div style={{ fontSize: '13px', color: '#64748B' }}>{selectedBooking.guestPhone || selectedBooking.user?.phone}</div>
+                  <div style={{ fontWeight: '700', fontSize: '15px', color: '#0F2E5A' }}>{selectedBooking.customerName || 'N/A'}</div>
+                  <div style={{ fontSize: '13px', color: '#64748B', marginTop: '4px' }}>{selectedBooking.customerEmail || 'N/A'}</div>
+                  
+                  <div style={{ 
+                    marginTop: '12px', padding: '8px 12px', background: '#fff', borderRadius: '10px', 
+                    border: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' 
+                  }}>
+                    <span style={{ fontSize: '14px', fontWeight: '600', color: '#1E293B' }}>
+                      {selectedBooking.customerPhone || 'N/A'}
+                    </span>
+                    <button 
+                      onClick={() => handleCopyPhone(selectedBooking.customerPhone)}
+                      style={{ 
+                        border: 'none', background: copied ? '#DCFCE7' : '#EFF6FF', 
+                        color: copied ? '#15803D' : '#2563EB', padding: '6px', 
+                        borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
+                        fontSize: '11px', fontWeight: '700', transition: '0.2s'
+                      }}
+                    >
+                      {copied ? <Check size={14} /> : <Copy size={14} />}
+                      {copied ? 'Đã chép' : 'Sao chép'}
+                    </button>
+                  </div>
                 </div>
                 <div style={infoBoxStyle}>
                   <h4 style={sectionTitleStyle}><Calendar size={16} /> Thời gian</h4>
@@ -120,21 +148,58 @@ const AdminBookings = ({ bookings, onUpdateStatus }) => {
 
               <div style={infoBoxStyle}>
                 <h4 style={sectionTitleStyle}><Package size={16} /> Dịch vụ & Thanh toán</h4>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', borderBottom: '1px solid #E2E8F0', paddingBottom: '10px' }}>
-                  <span>Phòng {selectedBooking.roomNumber} ({selectedBooking.roomType})</span>
-                  <strong>{selectedBooking.totalRoomPrice?.toLocaleString()}đ</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px dashed #E2E8F0' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: '700', color: '#1E293B' }}>Tiền phòng {selectedBooking.roomNumber}</div>
+                    <div style={{ fontSize: '12px', color: '#64748B' }}>{selectedBooking.roomType}</div>
+                  </div>
+                  <div style={{ fontWeight: '700' }}>{selectedBooking.totalRoomPrice?.toLocaleString()}đ</div>
                 </div>
                 
-                {selectedBooking.services?.map((s, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#475569', marginBottom: '4px' }}>
-                    <span>{s.serviceName} (x{s.quantity})</span>
-                    <span>{(s.price * s.quantity).toLocaleString()}đ</span>
+                {/* Detailed Services */}
+                {selectedBooking.services && selectedBooking.services.length > 0 && (
+                  <div style={{ marginBottom: '15px' }}>
+                    <div style={{ fontSize: '11px', fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase', marginBottom: '8px' }}>Dịch vụ bổ sung</div>
+                    {selectedBooking.services.map((s, i) => {
+                      const total = s.price * s.quantity * (s.numberOfPeople || 1) * (s.numberOfDays || 1);
+                      return (
+                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px' }}>
+                          <div style={{ color: '#475569' }}>
+                            <div>{s.serviceName}</div>
+                            <div style={{ fontSize: '11px', color: '#94A3B8' }}>
+                              {s.price.toLocaleString()}đ x {s.quantity}
+                              {s.numberOfPeople ? ` x ${s.numberOfPeople} người` : ''}
+                              {s.numberOfDays ? ` x ${s.numberOfDays} ngày` : ''}
+                            </div>
+                          </div>
+                          <div style={{ fontWeight: '600', color: '#1E293B' }}>{total.toLocaleString()}đ</div>
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
+                )}
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', fontWeight: '800', fontSize: '18px', color: '#2563EB' }}>
-                  <span>Tổng tiền</span>
-                  <span>{selectedBooking.totalPrice?.toLocaleString()}đ</span>
+                {/* Voucher & Total */}
+                <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '2px solid #E2E8F0' }}>
+                  {selectedBooking.totalServicePrice > 0 && (
+                    <div style={priceRowStyle}>
+                      <span>Tổng tiền dịch vụ</span>
+                      <span>{selectedBooking.totalServicePrice?.toLocaleString()}đ</span>
+                    </div>
+                  )}
+                  {selectedBooking.voucherCode && (
+                    <div style={{ ...priceRowStyle, color: '#059669', background: '#ECFDF5', padding: '8px 12px', borderRadius: '8px', marginBottom: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Gift size={14} />
+                        <span>Voucher: <strong>{selectedBooking.voucherCode}</strong></span>
+                      </div>
+                      <span>-{selectedBooking.discountAmount?.toLocaleString()}đ</span>
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
+                    <span style={{ fontSize: '16px', fontWeight: '800', color: '#0F2E5A' }}>Tổng thanh toán</span>
+                    <span style={{ fontSize: '20px', fontWeight: '800', color: '#2563EB' }}>{selectedBooking.totalPrice?.toLocaleString()}đ</span>
+                  </div>
                 </div>
               </div>
 
@@ -177,5 +242,6 @@ const modalHeaderStyle = { padding: '20px 24px', borderBottom: '1px solid #E2E8F
 const closeButtonStyle = { border: 'none', background: '#F1F5F9', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' };
 const infoBoxStyle = { padding: '16px', background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0' };
 const sectionTitleStyle = { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', marginBottom: '10px', margin: 0 };
+const priceRowStyle = { display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '14px', color: '#475569' };
 
 export default AdminBookings;

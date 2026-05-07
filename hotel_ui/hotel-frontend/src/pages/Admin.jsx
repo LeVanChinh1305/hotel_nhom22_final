@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import {
@@ -34,7 +34,7 @@ const getStoredToken = () => {
   try {
     const data = JSON.parse(stored);
     // Dựa trên JSON bạn gửi: token nằm trực tiếp trong data
-    return data.token || null; 
+    return data.token || null;
   } catch (e) {
     console.error("Lỗi parse JSON từ localStorage:", e);
     return null;
@@ -67,6 +67,16 @@ const addBtnStyle = {
   cursor: 'pointer',
 };
 
+const inputStyle = {
+  width: '100%',
+  padding: '10px 12px',
+  border: '1px solid #E2E8F0',
+  borderRadius: '8px',
+  fontSize: '14px',
+  outline: 'none',
+  fontFamily: "'DM Sans', sans-serif"
+};
+
 /* ─────────────────────────────────────────────
    MAIN ADMIN PAGE
 ───────────────────────────────────────────── */
@@ -88,13 +98,13 @@ const Admin = () => {
 
   /* Data states */
   const [bookings, setBookings] = useState([]);
-  const [users,    setUsers]    = useState([]);
+  const [users, setUsers] = useState([]);
   const [vouchers, setVouchers] = useState([]);
-  const [news,     setNews]     = useState([]);
-  const [rooms,    setRooms]    = useState([]);
+  const [news, setNews] = useState([]);
+  const [rooms, setRooms] = useState([]);
   const [services, setServices] = useState([]);
-  const [loading,  setLoading]  = useState(false);
-  const [error,    setError]    = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('dashboard');
   const [lastFetch, setLastFetch] = useState(null);
 
@@ -120,6 +130,150 @@ const Admin = () => {
   });
   const [creatingRoom, setCreatingRoom] = useState(false);
   const [updatingRoom, setUpdatingRoom] = useState(false);
+
+  /* News states */
+  const [showAddNewsModal, setShowAddNewsModal] = useState(false);
+  const [showEditNewsModal, setShowEditNewsModal] = useState(false);
+  const [editingNews, setEditingNews] = useState(null);
+  const [newsForm, setNewsForm] = useState({
+    title: '',
+    thumbnail: '',
+    expiryDate: ''
+  });
+  const [newsLoading, setNewsLoading] = useState(false);
+
+  /* Service states */
+  const [showAddServiceModal, setShowAddServiceModal] = useState(false);
+  const [showEditServiceModal, setShowEditServiceModal] = useState(false);
+  const [editingService, setEditingService] = useState(null);
+  const [serviceForm, setServiceForm] = useState({
+    serviceName: '',
+    description: '',
+    price: '',
+    unit: '',
+    isAvailable: true
+  });
+  const [serviceLoading, setServiceLoading] = useState(false);
+
+  const openEditService = (s) => {
+    setEditingService(s);
+    setServiceForm({
+      serviceName: s.serviceName || '',
+      description: s.description || '',
+      price: s.price || '',
+      unit: s.unit || '',
+      isAvailable: s.isAvailable !== false
+    });
+    setShowEditServiceModal(true);
+  };
+
+  const handleCreateService = async () => {
+    if (!serviceForm.serviceName.trim() || !serviceForm.price) { alert('Vui lòng điền tên và giá dịch vụ'); return; }
+    setServiceLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/services`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getStoredToken()}` },
+        body: JSON.stringify({ ...serviceForm, price: parseFloat(serviceForm.price) })
+      });
+      if (!res.ok) throw new Error('Lỗi khi tạo dịch vụ');
+      const data = await res.json();
+      setServices(prev => [...prev, data]);
+      setShowAddServiceModal(false);
+      setServiceForm({ serviceName: '', description: '', price: '', unit: '', isAvailable: true });
+      alert('Thêm dịch vụ thành công!');
+    } catch (e) { alert(e.message); } finally { setServiceLoading(false); }
+  };
+
+  const handleUpdateService = async () => {
+    if (!serviceForm.serviceName.trim() || !serviceForm.price) { alert('Vui lòng điền tên và giá dịch vụ'); return; }
+    setServiceLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/services/${editingService.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getStoredToken()}` },
+        body: JSON.stringify({ ...serviceForm, price: parseFloat(serviceForm.price) })
+      });
+      if (!res.ok) throw new Error('Lỗi khi cập nhật dịch vụ');
+      const data = await res.json();
+      setServices(prev => prev.map(s => s.id === editingService.id ? data : s));
+      setShowEditServiceModal(false);
+      setEditingService(null);
+      alert('Cập nhật thành công!');
+    } catch (e) { alert(e.message); } finally { setServiceLoading(false); }
+  };
+
+  const handleDeleteService = async (id) => {
+    if (!window.confirm('Bạn có chắc muốn xóa dịch vụ này?')) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/services/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${getStoredToken()}` }
+      });
+      if (!res.ok) throw new Error('Lỗi khi xóa dịch vụ');
+      setServices(prev => prev.filter(s => s.id !== id));
+      alert('Xóa thành công!');
+    } catch (e) { alert(e.message); }
+  };
+
+  const openEditNews = (n) => {
+    setEditingNews(n);
+    setNewsForm({
+      title: n.title || '',
+      thumbnail: n.thumbnail || '',
+      expiryDate: n.expiryDate ? n.expiryDate.split('.')[0] : ''
+    });
+    setShowEditNewsModal(true);
+  };
+
+  const handleCreateNews = async () => {
+    if (!newsForm.title.trim()) { alert('Tiêu đề không được để trống'); return; }
+    setNewsLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/news`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getStoredToken()}` },
+        body: JSON.stringify(newsForm)
+      });
+      if (!res.ok) throw new Error('Lỗi khi tạo tin tức');
+      const data = await res.json();
+      setNews(prev => [...prev, data]);
+      setShowAddNewsModal(false);
+      setNewsForm({ title: '', thumbnail: '', expiryDate: '' });
+      alert('Thêm tin tức thành công!');
+    } catch (e) { alert(e.message); } finally { setNewsLoading(false); }
+  };
+
+  const handleUpdateNews = async () => {
+    if (!newsForm.title.trim()) { alert('Tiêu đề không được để trống'); return; }
+    setNewsLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/news/${editingNews.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getStoredToken()}` },
+        body: JSON.stringify(newsForm)
+      });
+      if (!res.ok) throw new Error('Lỗi khi cập nhật tin tức');
+      const data = await res.json();
+      setNews(prev => prev.map(n => n.id === editingNews.id ? data : n));
+      setShowEditNewsModal(false);
+      setEditingNews(null);
+      alert('Cập nhật tin tức thành công!');
+    } catch (e) { alert(e.message); } finally { setNewsLoading(false); }
+  };
+
+  const handleDeleteNews = async (id) => {
+    if (!window.confirm('Bạn có chắc muốn xóa tin tức này?')) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/news/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${getStoredToken()}` }
+      });
+      if (!res.ok) throw new Error('Lỗi khi xóa tin tức');
+      setNews(prev => prev.filter(n => n.id !== id));
+      alert('Xóa thành công!');
+    } catch (e) { alert(e.message); }
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -345,6 +499,24 @@ const Admin = () => {
     if (authOk === true) loadData();
   }, [authOk]);
 
+  const serviceUnits = [
+    { value: 'LUOT', label: 'Lượt' },
+    { value: 'NGAY', label: 'Ngày' },
+    { value: 'NGUOI', label: 'Người' },
+    { value: 'NGUOI_NGAY', label: 'Người/Ngày' }
+  ];
+
+  const uniqueUnits = useMemo(() => {
+    const dbUnits = services.map(s => s.unit).filter(u => u);
+    const all = [...serviceUnits];
+    dbUnits.forEach(dbU => {
+      if (!all.find(a => a.value === dbU || a.label === dbU)) {
+        all.push({ value: dbU, label: dbU });
+      }
+    });
+    return all;
+  }, [services]);
+
   /* ── Render: loading auth ── */
   if (authOk === null) {
     return (
@@ -388,7 +560,7 @@ const Admin = () => {
     .reduce((s, b) => s + (b.totalPrice || 0), 0);
 
   const pendingBookings = bookings.filter(b => b.status === 'PENDING').length;
-  const activeVouchers  = vouchers.filter(v => v.active).length;
+  const activeVouchers = vouchers.filter(v => v.active).length;
 
   /* ── TABLE STYLES ── */
   const th = {
@@ -569,7 +741,7 @@ const Admin = () => {
                   <thead>
                     <tr>
                       {['Số phòng', 'Loại phòng', 'Giá cơ bản', 'Trạng thái', 'Thao tác'].map(h => (
-                        <th key={h} style={{...th, textAlign: h === 'Thao tác' ? 'center' : 'left'}}>{h}</th>
+                        <th key={h} style={{ ...th, textAlign: h === 'Thao tác' ? 'center' : 'left' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -578,15 +750,15 @@ const Admin = () => {
                       <tr><td colSpan={5} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
                     ) : rooms.map(r => (
                       <tr key={r.id} onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                        <td style={{...td, fontWeight: '700'}}>P.{r.roomNumber}</td>
+                        <td style={{ ...td, fontWeight: '700' }}>P.{r.roomNumber}</td>
                         <td style={td}>{r.type || r.roomType}</td>
-                        <td style={{...td, fontWeight: '600'}}>{r.basePrice?.toLocaleString()}₫</td>
+                        <td style={{ ...td, fontWeight: '600' }}>{r.basePrice?.toLocaleString()}₫</td>
                         <td style={td}><StatusBadge value={r.status || 'AVAILABLE'} /></td>
-                        <td style={{...td, textAlign: 'center'}}>
-                          <div style={{display: 'flex', gap: '4px', justifyContent: 'center'}}>
-                            <button title="Xem chi tiết" style={{...actionBtnStyle, color: '#059669'}} onMouseEnter={e => e.currentTarget.style.background='#D1FAE5'} onMouseLeave={e => e.currentTarget.style.background='none'} onClick={() => openRoomDetail(r)}><Eye size={16}/></button>
-                            <button title="Chỉnh sửa" style={{...actionBtnStyle, color: '#2563EB'}} onMouseEnter={e => e.currentTarget.style.background='#DBEAFE'} onMouseLeave={e => e.currentTarget.style.background='none'} onClick={() => openEditRoom(r)}><Edit size={16}/></button>
-                            <button title="Xóa" style={{...actionBtnStyle, color: '#EF4444'}} onMouseEnter={e => e.currentTarget.style.background='#FEE2E2'} onMouseLeave={e => e.currentTarget.style.background='none'} onClick={() => openDeleteRoom(r)}><Trash2 size={16}/></button>
+                        <td style={{ ...td, textAlign: 'center' }}>
+                          <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                            <button title="Xem chi tiết" style={{ ...actionBtnStyle, color: '#059669' }} onMouseEnter={e => e.currentTarget.style.background = '#D1FAE5'} onMouseLeave={e => e.currentTarget.style.background = 'none'} onClick={() => openRoomDetail(r)}><Eye size={16} /></button>
+                            <button title="Chỉnh sửa" style={{ ...actionBtnStyle, color: '#2563EB' }} onMouseEnter={e => e.currentTarget.style.background = '#DBEAFE'} onMouseLeave={e => e.currentTarget.style.background = 'none'} onClick={() => openEditRoom(r)}><Edit size={16} /></button>
+                            <button title="Xóa" style={{ ...actionBtnStyle, color: '#EF4444' }} onMouseEnter={e => e.currentTarget.style.background = '#FEE2E2'} onMouseLeave={e => e.currentTarget.style.background = 'none'} onClick={() => openDeleteRoom(r)}><Trash2 size={16} /></button>
                           </div>
                         </td>
                       </tr>
@@ -601,7 +773,10 @@ const Admin = () => {
             <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
               <div style={{ padding: '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ margin: 0, fontSize: '18px', color: '#0F2E5A' }}>Dịch vụ khách sạn ({services.length})</h2>
-                <button style={{ ...addBtnStyle, background: '#2563EB' }} onClick={() => alert('Chức năng thêm dịch vụ chưa được triển khai')}>
+                <button style={{ ...addBtnStyle, background: '#2563EB' }} onClick={() => {
+                  setServiceForm({ serviceName: '', description: '', price: '', unit: '', isAvailable: true });
+                  setShowAddServiceModal(true);
+                }}>
                   <Plus size={14} /> Thêm mới
                 </button>
               </div>
@@ -610,7 +785,7 @@ const Admin = () => {
                   <thead>
                     <tr>
                       {['Tên dịch vụ', 'Giá', 'Đơn vị', 'Trạng thái', 'Thao tác'].map(h => (
-                        <th key={h} style={{...th, textAlign: h === 'Thao tác' ? 'center' : 'left'}}>{h}</th>
+                        <th key={h} style={{ ...th, textAlign: h === 'Thao tác' ? 'center' : 'left' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -619,19 +794,19 @@ const Admin = () => {
                       <tr><td colSpan={5} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
                     ) : services.map(s => (
                       <tr key={s.id} onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                        <td style={{...td, fontWeight: '600'}}>{s.serviceName}</td>
+                        <td style={{ ...td, fontWeight: '600' }}>{s.serviceName}</td>
                         <td style={td}>{s.price?.toLocaleString()}₫</td>
-                        <td style={{...td, fontSize: '12px', color: '#64748B'}}>{s.unit}</td>
+                        <td style={{ ...td, fontSize: '12px', color: '#64748B' }}>{s.unit}</td>
                         <td style={td}>
-                          {s.available !== false 
-                            ? <span style={{color: '#059669', fontSize: '12px', fontWeight: '600'}}>Đang bán</span>
-                            : <span style={{color: '#94A3B8', fontSize: '12px', fontWeight: '600'}}>Ngừng</span>
+                          {s.isAvailable !== false
+                            ? <span style={{ color: '#059669', fontSize: '12px', fontWeight: '600' }}>Đang bán</span>
+                            : <span style={{ color: '#94A3B8', fontSize: '12px', fontWeight: '600' }}>Ngừng</span>
                           }
                         </td>
-                        <td style={{...td, textAlign: 'center'}}>
-                          <div style={{display: 'flex', gap: '4px', justifyContent: 'center'}}>
-                            <button style={{...actionBtnStyle, color: '#2563EB'}} onMouseEnter={e => e.currentTarget.style.background='#DBEAFE'} onMouseLeave={e => e.currentTarget.style.background='none'}><Edit size={16}/></button>
-                            <button style={{...actionBtnStyle, color: '#EF4444'}} onMouseEnter={e => e.currentTarget.style.background='#FEE2E2'} onMouseLeave={e => e.currentTarget.style.background='none'}><Trash2 size={16}/></button>
+                        <td style={{ ...td, textAlign: 'center' }}>
+                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                            <button onClick={() => openEditService(s)} style={{ ...actionBtnStyle, color: '#2563EB' }}><Edit size={16} /></button>
+                            <button onClick={() => handleDeleteService(s.id)} style={{ ...actionBtnStyle, color: '#EF4444' }}><Trash2 size={16} /></button>
                           </div>
                         </td>
                       </tr>
@@ -740,7 +915,10 @@ const Admin = () => {
             <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
               <div style={{ padding: '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ margin: 0, fontSize: '18px', color: '#0F2E5A' }}>Tin tức ({news.length})</h2>
-                <button style={{ ...addBtnStyle, background: '#2563EB' }} onClick={() => alert('Chức năng thêm tin tức chưa được triển khai')}>
+                <button style={{ ...addBtnStyle, background: '#2563EB' }} onClick={() => {
+                  setNewsForm({ title: '', thumbnail: '', expiryDate: '' });
+                  setShowAddNewsModal(true);
+                }}>
                   <Plus size={14} /> Thêm mới
                 </button>
               </div>
@@ -748,23 +926,33 @@ const Admin = () => {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr>
-                      {['ID', 'Tiêu đề', 'Tác giả', 'Ngày tạo'].map(h => (
+                      {['ID', 'Ảnh', 'Tiêu đề', 'Ngày tạo', 'Hết hạn', 'Thao tác'].map(h => (
                         <th key={h} style={th}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {news.length === 0 ? (
-                      <tr><td colSpan={4} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
+                      <tr><td colSpan={6} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
                     ) : news.map(n => (
-                      <tr key={n.id}
-                        onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                      >
+                      <tr key={n.id} onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                         <td style={td}>#{n.id}</td>
+                        <td style={td}>
+                          {n.thumbnail ? (
+                            <img src={n.thumbnail} alt="thumb" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} />
+                          ) : (
+                            <div style={{ width: '40px', height: '40px', background: '#F1F5F9', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#94A3B8' }}>No pic</div>
+                          )}
+                        </td>
                         <td style={{ ...td, fontWeight: '600', maxWidth: '300px' }}>{n.title || '—'}</td>
-                        <td style={td}>{n.author?.fullName || n.author?.username || '—'}</td>
                         <td style={td}>{n.createdAt ? new Date(n.createdAt).toLocaleDateString('vi-VN') : '—'}</td>
+                        <td style={td}>{n.expiryDate ? new Date(n.expiryDate).toLocaleDateString('vi-VN') : '∞'}</td>
+                        <td style={{ ...td, textAlign: 'center' }}>
+                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                            <button onClick={() => openEditNews(n)} style={{ ...actionBtnStyle, color: '#2563EB' }}><Edit size={16} /></button>
+                            <button onClick={() => handleDeleteNews(n.id)} style={{ ...actionBtnStyle, color: '#EF4444' }}><Trash2 size={16} /></button>
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -811,7 +999,7 @@ const Admin = () => {
                   <input
                     type="text"
                     value={roomForm.roomNumber}
-                    onChange={(e) => setRoomForm({...roomForm, roomNumber: e.target.value})}
+                    onChange={(e) => setRoomForm({ ...roomForm, roomNumber: e.target.value })}
                     placeholder="VD: 101"
                     style={{
                       width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
@@ -826,7 +1014,7 @@ const Admin = () => {
                   </label>
                   <select
                     value={roomForm.type}
-                    onChange={(e) => setRoomForm({...roomForm, type: e.target.value})}
+                    onChange={(e) => setRoomForm({ ...roomForm, type: e.target.value })}
                     style={{
                       width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
                       borderRadius: '8px', fontSize: '14px', outline: 'none'
@@ -847,7 +1035,7 @@ const Admin = () => {
                   <input
                     type="number"
                     value={roomForm.basePrice}
-                    onChange={(e) => setRoomForm({...roomForm, basePrice: e.target.value})}
+                    onChange={(e) => setRoomForm({ ...roomForm, basePrice: e.target.value })}
                     placeholder="VD: 500000"
                     style={{
                       width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
@@ -863,7 +1051,7 @@ const Admin = () => {
                   <input
                     type="number"
                     value={roomForm.maxOccupancy}
-                    onChange={(e) => setRoomForm({...roomForm, maxOccupancy: e.target.value})}
+                    onChange={(e) => setRoomForm({ ...roomForm, maxOccupancy: e.target.value })}
                     placeholder="VD: 2"
                     style={{
                       width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
@@ -880,7 +1068,7 @@ const Admin = () => {
                 <input
                   type="text"
                   value={roomForm.address}
-                  onChange={(e) => setRoomForm({...roomForm, address: e.target.value})}
+                  onChange={(e) => setRoomForm({ ...roomForm, address: e.target.value })}
                   placeholder="VD: Tầng 1, Khách sạn ABC"
                   style={{
                     width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
@@ -895,7 +1083,7 @@ const Admin = () => {
                 </label>
                 <textarea
                   value={roomForm.description}
-                  onChange={(e) => setRoomForm({...roomForm, description: e.target.value})}
+                  onChange={(e) => setRoomForm({ ...roomForm, description: e.target.value })}
                   placeholder="Mô tả chi tiết về phòng..."
                   rows={3}
                   style={{
@@ -911,7 +1099,7 @@ const Admin = () => {
                 </label>
                 <textarea
                   value={roomForm.amenities.join('\n')}
-                  onChange={(e) => setRoomForm({...roomForm, amenities: e.target.value.split('\n').filter(a => a.trim())})}
+                  onChange={(e) => setRoomForm({ ...roomForm, amenities: e.target.value.split('\n').filter(a => a.trim()) })}
                   placeholder="WiFi miễn phí&#10;Điều hòa&#10;Tivi&#10;Minibar"
                   rows={4}
                   style={{
@@ -927,7 +1115,7 @@ const Admin = () => {
                 </label>
                 <textarea
                   value={roomForm.images.join('\n')}
-                  onChange={(e) => setRoomForm({...roomForm, images: e.target.value.split('\n').filter(i => i.trim())})}
+                  onChange={(e) => setRoomForm({ ...roomForm, images: e.target.value.split('\n').filter(i => i.trim()) })}
                   placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
                   rows={3}
                   style={{
@@ -1088,7 +1276,7 @@ const Admin = () => {
                   <input
                     type="text"
                     value={roomForm.roomNumber}
-                    onChange={(e) => setRoomForm({...roomForm, roomNumber: e.target.value})}
+                    onChange={(e) => setRoomForm({ ...roomForm, roomNumber: e.target.value })}
                     placeholder="VD: 101"
                     style={{
                       width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
@@ -1103,7 +1291,7 @@ const Admin = () => {
                   </label>
                   <select
                     value={roomForm.type}
-                    onChange={(e) => setRoomForm({...roomForm, type: e.target.value})}
+                    onChange={(e) => setRoomForm({ ...roomForm, type: e.target.value })}
                     style={{
                       width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
                       borderRadius: '8px', fontSize: '14px', outline: 'none'
@@ -1124,7 +1312,7 @@ const Admin = () => {
                   <input
                     type="number"
                     value={roomForm.basePrice}
-                    onChange={(e) => setRoomForm({...roomForm, basePrice: e.target.value})}
+                    onChange={(e) => setRoomForm({ ...roomForm, basePrice: e.target.value })}
                     placeholder="VD: 500000"
                     style={{
                       width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
@@ -1140,7 +1328,7 @@ const Admin = () => {
                   <input
                     type="number"
                     value={roomForm.maxOccupancy}
-                    onChange={(e) => setRoomForm({...roomForm, maxOccupancy: e.target.value})}
+                    onChange={(e) => setRoomForm({ ...roomForm, maxOccupancy: e.target.value })}
                     placeholder="VD: 2"
                     style={{
                       width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
@@ -1157,7 +1345,7 @@ const Admin = () => {
                 <input
                   type="text"
                   value={roomForm.address}
-                  onChange={(e) => setRoomForm({...roomForm, address: e.target.value})}
+                  onChange={(e) => setRoomForm({ ...roomForm, address: e.target.value })}
                   placeholder="VD: Tầng 1, Khách sạn ABC"
                   style={{
                     width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
@@ -1172,7 +1360,7 @@ const Admin = () => {
                 </label>
                 <textarea
                   value={roomForm.description}
-                  onChange={(e) => setRoomForm({...roomForm, description: e.target.value})}
+                  onChange={(e) => setRoomForm({ ...roomForm, description: e.target.value })}
                   placeholder="Mô tả chi tiết về phòng..."
                   rows={3}
                   style={{
@@ -1188,7 +1376,7 @@ const Admin = () => {
                 </label>
                 <textarea
                   value={roomForm.amenities.join('\n')}
-                  onChange={(e) => setRoomForm({...roomForm, amenities: e.target.value.split('\n').filter(a => a.trim())})}
+                  onChange={(e) => setRoomForm({ ...roomForm, amenities: e.target.value.split('\n').filter(a => a.trim()) })}
                   placeholder="WiFi miễn phí&#10;Điều hòa&#10;Tivi&#10;Minibar"
                   rows={4}
                   style={{
@@ -1204,7 +1392,7 @@ const Admin = () => {
                 </label>
                 <textarea
                   value={roomForm.images.join('\n')}
-                  onChange={(e) => setRoomForm({...roomForm, images: e.target.value.split('\n').filter(i => i.trim())})}
+                  onChange={(e) => setRoomForm({ ...roomForm, images: e.target.value.split('\n').filter(i => i.trim()) })}
                   placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
                   rows={3}
                   style={{
@@ -1340,6 +1528,93 @@ const Admin = () => {
                   Chuyển sang Bảo trì
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Modal Tin tức */}
+      {(showAddNewsModal || showEditNewsModal) && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+        }}>
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '90%', maxWidth: '500px' }}>
+            <h2 style={{ margin: '0 0 20px', color: '#0F2E5A' }}>{showEditNewsModal ? 'Sửa tin tức' : 'Thêm tin tức mới'}</h2>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '6px' }}>Tiêu đề</label>
+              <input type="text" value={newsForm.title} onChange={e => setNewsForm({ ...newsForm, title: e.target.value })} style={inputStyle} />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '6px' }}>URL Ảnh thu nhỏ</label>
+              <input type="text" value={newsForm.thumbnail} onChange={e => setNewsForm({ ...newsForm, thumbnail: e.target.value })} style={inputStyle} />
+            </div>
+
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '6px' }}>Ngày hết hạn (Để trống nếu không hết hạn)</label>
+              <input type="datetime-local" value={newsForm.expiryDate} onChange={e => setNewsForm({ ...newsForm, expiryDate: e.target.value })} style={inputStyle} />
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button onClick={() => { setShowAddNewsModal(false); setShowEditNewsModal(false); }} style={{ padding: '10px 20px', border: '1px solid #E2E8F0', borderRadius: '8px', background: '#fff' }}>Hủy</button>
+              <button onClick={showEditNewsModal ? handleUpdateNews : handleCreateNews} disabled={newsLoading} style={{ padding: '10px 20px', background: '#2563EB', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
+                {newsLoading ? 'Đang lưu...' : 'Lưu lại'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Dịch vụ */}
+      {(showAddServiceModal || showEditServiceModal) && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+        }}>
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '90%', maxWidth: '500px' }}>
+            <h2 style={{ margin: '0 0 20px', color: '#0F2E5A' }}>{showEditServiceModal ? 'Sửa dịch vụ' : 'Thêm dịch vụ mới'}</h2>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '6px' }}>Tên dịch vụ</label>
+              <input type="text" value={serviceForm.serviceName} onChange={e => setServiceForm({ ...serviceForm, serviceName: e.target.value })} style={{ ...inputStyle, width: '100%', boxSizing: 'border-box' }} />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '6px' }}>Mô tả</label>
+              <textarea value={serviceForm.description} onChange={e => setServiceForm({ ...serviceForm, description: e.target.value })} style={{ ...inputStyle, width: '100%', boxSizing: 'border-box', minHeight: '80px' }} />
+            </div>
+
+            <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '6px' }}>Giá (₫)</label>
+                <input type="number" value={serviceForm.price} onChange={e => setServiceForm({ ...serviceForm, price: e.target.value })} style={{ ...inputStyle, width: '100%', boxSizing: 'border-box' }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '6px' }}>Đơn vị</label>
+                <select 
+                  value={serviceForm.unit} 
+                  onChange={e => setServiceForm({...serviceForm, unit: e.target.value})} 
+                  style={{...inputStyle, width: '100%', boxSizing: 'border-box'}}
+                >
+                  <option value="">-- Chọn đơn vị --</option>
+                  {uniqueUnits.map(u => (
+                    <option key={u.value} value={u.value}>{u.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input type="checkbox" id="isAvailable" checked={serviceForm.isAvailable} onChange={e => setServiceForm({ ...serviceForm, isAvailable: e.target.checked })} />
+              <label htmlFor="isAvailable" style={{ fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>Đang kinh doanh</label>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button onClick={() => { setShowAddServiceModal(false); setShowEditServiceModal(false); }} style={{ padding: '10px 20px', border: '1px solid #E2E8F0', borderRadius: '8px', background: '#fff' }}>Hủy</button>
+              <button onClick={showEditServiceModal ? handleUpdateService : handleCreateService} disabled={serviceLoading} style={{ padding: '10px 20px', background: '#2563EB', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
+                {serviceLoading ? 'Đang lưu...' : 'Lưu lại'}
+              </button>
             </div>
           </div>
         </div>

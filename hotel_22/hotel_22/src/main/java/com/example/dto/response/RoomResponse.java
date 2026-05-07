@@ -16,10 +16,14 @@ public class RoomResponse {
 
     public static RoomResponse from(Room r) {
         RoomResponse res = new RoomResponse();
-        res.id = r.id.toHexString(); res.roomNumber = r.roomNumber;
-        res.type = r.type; res.basePrice = r.basePrice;
-        res.address = r.address; res.description = r.description;
-        res.amenities = r.amenities; res.images = r.images;
+        res.id = (r.id != null) ? r.id.toHexString() : null;
+        res.roomNumber = r.roomNumber;
+        res.type = (r.type != null) ? r.type.name() : null; 
+        res.basePrice = r.basePrice;
+        res.address = r.address;
+        res.description = r.description;
+        res.amenities = r.amenities;
+        res.images = r.images;
         res.maxOccupancy = r.maxOccupancy;
         return res;
     }

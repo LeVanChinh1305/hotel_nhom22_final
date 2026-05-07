@@ -19,39 +19,43 @@ public class User extends PanacheEntityBase {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long id;
+    public Long id; // Khóa chính, tự động tăng
+    
+    public Long getId() { return id; }
+    public String getEmail() { return email; }
 
     @Column(nullable = false)
-    public String username;
+    public String username; // Tên đăng nhập
 
     @Column(nullable = false)
     public String password; // Bcrypt
 
     @Column(name = "full_name", nullable = false)
-    public String fullName;
+    public String fullName; // Họ và tên
 
     @Column(nullable = false, unique = true)
-    public String email;
+    public String email; // Email
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    public Role role;
+    public Role role; // Vai trò
 
     @Column(length = 10, unique = true, nullable = false)
-    public String phone;
+    public String phone; // Số điện thoại
 
     @Column(name = "created_at")
-    public LocalDateTime createdAt;
+    public LocalDateTime createdAt; // Ngày tạo
 
     @Column(nullable = false)
-    public Boolean status = true;
+    public Boolean status = true; // Trạng thái
 
     @PrePersist
     public void prePersist() {
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now(); // Ngày tạo
     }
 
     public enum Role {
-        ADMIN, CUSTOMER
+        ADMIN, // Quản trị viên
+        CUSTOMER // Khách hàng
     }
 }

@@ -12,37 +12,26 @@ public class NewsMapper {
     public NewsResponse toResponse(News n) {
         if (n == null) return null;
         NewsResponse res = new NewsResponse();
-        res.id          = n.id.toHexString();
+        res.id          = (n.id != null) ? n.id.toHexString() : null;
         res.title       = n.title;
-        res.slug        = n.slug;
-        res.contentHtml = n.contentHtml;
         res.thumbnail   = n.thumbnail;
-        res.category    = n.category;
-        res.authorId    = n.authorId;
         res.createdAt   = n.createdAt;
-        res.isPublished = n.isPublished;
+        res.expiryDate  = n.expiryDate;
         return res;
     }
 
-    public News toEntity(CreateNewsRequest req, Long authorId) {
+    public News toEntity(CreateNewsRequest req) {
         News n = new News();
         n.title       = req.title;
-        n.slug        = req.slug;
-        n.contentHtml = req.contentHtml;
         n.thumbnail   = req.thumbnail;
-        n.category    = req.category;
-        n.authorId    = authorId;
         n.createdAt   = LocalDateTime.now();
-        n.isPublished = req.isPublished;
+        n.expiryDate  = req.expiryDate;
         return n;
     }
 
     public void updateEntity(News n, CreateNewsRequest req) {
         n.title       = req.title;
-        n.slug        = req.slug;
-        n.contentHtml = req.contentHtml;
         n.thumbnail   = req.thumbnail;
-        n.category    = req.category;
-        n.isPublished = req.isPublished;
+        n.expiryDate  = req.expiryDate;
     }
 }

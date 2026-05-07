@@ -10,21 +10,13 @@ import io.quarkus.mongodb.panache.common.MongoEntity;
 @MongoEntity(collection = "news")
 public class News extends PanacheMongoEntityBase {
 
-    public ObjectId id; 
+    public ObjectId id; // ObjectId
 
-    public String title;
+    public String title; // Tiêu đề
 
-    public String slug;         // URL thân thiện
+    public String thumbnail; // URL ảnh đại diện
 
-    public String contentHtml;  // Nội dung HTML từ Editor
+    public LocalDateTime createdAt; // Thời gian tạo
 
-    public String thumbnail;    // URL ảnh đại diện
-
-    public String category;     // "Khuyến mãi", "Sự kiện", "Cẩm nang du lịch"
-
-    public Long authorId;       // FK sang MySQL users.id (Admin)
-
-    public LocalDateTime createdAt;
-
-    public Boolean isPublished = false;
+    public LocalDateTime expiryDate; // Thời gian tự biến mất (Hết hạn)
 }

@@ -13,7 +13,7 @@ public class RoomMapper {
         RoomResponse res = new RoomResponse();
         res.id           = room.id.toHexString();
         res.roomNumber   = room.roomNumber;
-        res.type         = room.type;
+        res.type         = room.type.name();
         res.basePrice    = room.basePrice;
         res.address      = room.address;
         res.description  = room.description;
@@ -24,9 +24,12 @@ public class RoomMapper {
     }
 
     public Room toEntity(CreateRoomRequest req) {
+        if (req == null) return null;
         Room room = new Room();
         room.roomNumber   = req.roomNumber;
-        room.type         = req.type;
+        if (req.type != null) {
+            room.type = Room.RoomType.valueOf(req.type.toUpperCase());
+        }
         room.basePrice    = req.basePrice;
         room.address      = req.address;
         room.description  = req.description;
@@ -37,8 +40,11 @@ public class RoomMapper {
     }
 
     public void updateEntity(Room room, CreateRoomRequest req) {
+        if (room == null || req == null) return;
         room.roomNumber   = req.roomNumber;
-        room.type         = req.type;
+        if (req.type != null) {
+            room.type = Room.RoomType.valueOf(req.type.toUpperCase());
+        }
         room.basePrice    = req.basePrice;
         room.address      = req.address;
         room.description  = req.description;

@@ -13,7 +13,9 @@ public class JwtService {
         return Jwt.upn(user.email)
                 .subject(String.valueOf(user.id))
                 .groups(Set.of(user.role.name()))
+                .issuer("https://example.com/hotel22")
                 .expiresIn(Duration.ofHours(24))
                 .sign();
     }
 }
+

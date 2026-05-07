@@ -12,11 +12,11 @@ public class RoomAvailability extends PanacheMongoEntityBase {
 
     public ObjectId id;
 
-    public String roomId;       // FK sang rooms._id (MongoDB Room)
+    public String roomId; // FK sang rooms._id (MongoDB Room)
 
-    public LocalDate date;      // Ngày cụ thể
- 
-    public String status;       // AVAILABLE, BOOKED, OCCUPIED, MAINTENANCE
+    public LocalDate date; // Ngày cụ thể
 
-    public Long bookingId;      // ID đơn đặt phòng (nếu có)
+    public String status; // AVAILABLE, BOOKED, OCCUPIED, MAINTENANCE
+    // trong RoomAvailabilityReposity.java đang mặc định ngầm nếu không thấy bản ghi là available
+    public Long bookingId; // ID đơn đặt phòng (nếu có)
 }

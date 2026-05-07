@@ -136,7 +136,7 @@ public class BookingService {
         double totalPrice = PriceUtils.calcTotal(roomPrice, servicePrice, discount);
 
         // 7. Validate currentUser
-        if (currentUser == null || currentUser.id == null) {
+        if (currentUser == null || currentUser.getId() == null) {
             throw new AppException("Người dùng chưa đăng nhập", 401);
         }
 
@@ -154,10 +154,7 @@ public class BookingService {
         booking.status            = Booking.BookingStatus.PENDING;
         booking.paymentStatus     = false;
 
-        // Lưu thông tin liên lạc (Ưu tiên thông tin nhập tại trang xác nhận)
-        booking.guestFullName     = (req.guestFullName != null && !req.guestFullName.isBlank()) ? req.guestFullName : currentUser.fullName;
-        booking.guestEmail        = (req.guestEmail != null && !req.guestEmail.isBlank()) ? req.guestEmail : currentUser.email;
-        booking.guestPhone        = (req.guestPhone != null && !req.guestPhone.isBlank()) ? req.guestPhone : currentUser.phone;
+
 
         bookingRepository.persist(booking);
 

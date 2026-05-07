@@ -8,6 +8,7 @@ const API_BASE = 'http://localhost:8080';
 const Home = () => {
   const [rooms, setRooms] = useState([]);
   const [vouchers, setVouchers] = useState([]);
+  const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -16,9 +17,10 @@ const Home = () => {
       try {
         // Loại bỏ Authorization cho danh sách công khai để tránh lỗi 401 nếu token hết hạn/lỗi
         // Quarkus đã được cấu hình @PermitAll cho các endpoint này
-        const [roomsRes, vouchersRes] = await Promise.all([
+        const [roomsRes, vouchersRes, newsRes] = await Promise.all([
           fetch(`${API_BASE}/api/rooms`),
-          fetch(`${API_BASE}/api/vouchers`)
+          fetch(`${API_BASE}/api/vouchers`),
+          fetch(`${API_BASE}/api/news`)
         ]);
 
         if (!roomsRes.ok) throw new Error(`Lỗi tải phòng: ${roomsRes.status}`);
@@ -29,6 +31,11 @@ const Home = () => {
         if (vouchersRes.ok) {
           const vouchersData = await vouchersRes.json();
           setVouchers(vouchersData);
+        }
+
+        if (newsRes.ok) {
+          const newsData = await newsRes.json();
+          setNews(Array.isArray(newsData) ? newsData.slice(0, 3) : []);
         }
       } catch (err) {
         setError(err.message);
@@ -198,6 +205,43 @@ const Home = () => {
           </div>
         )}
       </section>
+
+      {/* LATEST NEWS */}
+      {news.length > 0 && (
+        <section style={{ padding: '40px 2rem 80px', background: '#fff' }}>
+          <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+              <div>
+                <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '32px', fontWeight: '700', color: '#0F2E5A', margin: 0 }}>Tin tức mới nhất</h2>
+                <p style={{ color: '#64748B', marginTop: '8px' }}>Cập nhật những hoạt động và sự kiện mới nhất tại Hotel 22</p>
+              </div>
+              <button style={{ color: '#2563EB', fontWeight: '600', border: 'none', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                Xem tất cả <ChevronRight size={16} />
+              </button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+              {news.map(n => (
+                <div key={n.id} style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', overflow: 'hidden', transition: '0.3s' }}
+                  onMouseEnter={e => e.currentTarget.style.boxShadow = '0 10px 25px rgba(0,0,0,0.05)'}
+                  onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
+                >
+                  <div style={{ height: '200px', overflow: 'hidden' }}>
+                    <img src={n.thumbnail || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=800'} alt={n.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                  <div style={{ padding: '24px' }}>
+                    <div style={{ fontSize: '12px', color: '#3B82F6', fontWeight: '600', marginBottom: '10px', textTransform: 'uppercase' }}>Tin tức</div>
+                    <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#0F2E5A', marginBottom: '12px', lineHeight: 1.4 }}>{n.title}</h3>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #F1F5F9' }}>
+                      <span style={{ fontSize: '13px', color: '#94A3B8' }}>{new Date(n.createdAt).toLocaleDateString('vi-VN')}</span>
+                      <button style={{ color: '#2563EB', background: 'none', border: 'none', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}>Đọc thêm</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* FOOTER */}
       <footer id="support" style={{ background: '#0F2E5A', color: '#94A3B8', padding: '64px 2rem 0' }}>

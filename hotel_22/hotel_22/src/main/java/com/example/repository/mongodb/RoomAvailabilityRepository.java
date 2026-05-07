@@ -11,17 +11,12 @@ public class RoomAvailabilityRepository implements PanacheMongoRepository<RoomAv
 
     /** Kiểm tra phòng có trống trong khoảng ngày không */
     public boolean isRoomAvailable(String roomId, LocalDate checkIn, LocalDate checkOut) {
-        // Lấy tất cả bản ghi trong khoảng ngày
-        List<RoomAvailability> availabilities = find("roomId = ?1 AND date >= ?2 AND date < ?3",
-                roomId, checkIn, checkOut).list();
-
-        // Nếu không có bản ghi nào, nghĩa là trống (AVAILABLE mặc định)
-        if (availabilities.isEmpty()) {
-            return true;
-        }
-
-        // Nếu có bản ghi, kiểm tra tất cả phải là AVAILABLE
-        return availabilities.stream().allMatch(ra -> "AVAILABLE".equals(ra.status));
+        // Đếm các bản ghi có trạng thái KHÁC 'AVAILABLE' trong khoảng ngày
+        long conflictCount = count("roomId = ?1 AND date >= ?2 AND date < ?3 AND status != 'AVAILABLE'",
+                roomId, checkIn, checkOut);
+        
+        // Nếu không có xung đột (count == 0), nghĩa là phòng trống
+        return conflictCount == 0;
     }
 
     /** Lấy trạng thái phòng theo ngày */

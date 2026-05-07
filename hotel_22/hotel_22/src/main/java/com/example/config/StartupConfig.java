@@ -30,11 +30,11 @@ public class StartupConfig {
             admin.fullName = "Super Admin";
             admin.email    = "admin@hotel22.com";
             admin.password = BcryptUtil.bcryptHash("Admin@123");
-            admin.phone    = "0900000000";
+            admin.phone    = "0365467482";
             admin.role     = User.Role.ADMIN;
             admin.status   = true;
             userRepository.persist(admin);
-            LOG.info("✅ Tạo tài khoản ADMIN mặc định: admin@hotel22.com / Admin@123");
+            LOG.info("Tạo tài khoản ADMIN mặc định: admin@hotel22.com / Admin@123");
         }
     }
 }

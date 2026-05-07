@@ -13,14 +13,14 @@ import jakarta.ws.rs.core.Response;
 
 @Path("/profile")
 @Produces(MediaType.APPLICATION_JSON)
-@RolesAllowed({"CUSTOMER", "ADMIN"})
+@RolesAllowed({ "CUSTOMER", "ADMIN" }) // Chỉ CUSTOMER và ADMIN được truy cập
 public class UserController {
 
-    @Inject UserService userService;
-    @Inject User currentUser;
+    @Inject UserService userService; // Inject UserService
+    @Inject User currentUser; // Inject User (tức là user đăng nhập)
 
     @GET
-    public Response getProfile() {
-        return Response.ok(userService.getProfile(currentUser)).build();
+    public Response getProfile() { // Lấy thông tin cá nhân
+        return Response.ok(userService.getProfile(currentUser)).build(); // Trả về thông tin cá nhân
     }
 }

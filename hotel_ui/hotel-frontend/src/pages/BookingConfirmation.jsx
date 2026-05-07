@@ -1,12 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
-import { 
-  User, Mail, Phone, Calendar, MapPin, 
+import {
+  User, Mail, Phone, Calendar, MapPin,
   ArrowLeft, CreditCard, ShieldCheck, CheckCircle2, MessageSquare
 } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8080';
+
+const getStoredToken = () => {
+  // Thử lấy trực tiếp nếu bạn lưu riêng lẻ
+  const token = localStorage.getItem('token');
+  if (token) return token;
+
+  // Lấy từ object 'user' mà bạn đã lưu khi đăng nhập
+  const stored = localStorage.getItem('user');
+  if (!stored) return null;
+
+  try {
+    const data = JSON.parse(stored);
+    // Dựa trên JSON bạn gửi: token nằm trực tiếp trong data
+    return data.token || null;
+  } catch (e) {
+    console.error("Lỗi parse JSON từ localStorage:", e);
+    return null;
+  }
+};
 
 const BookingConfirmation = () => {
   const { state } = useLocation();
@@ -23,7 +42,7 @@ const BookingConfirmation = () => {
   const [contactInfo, setContactInfo] = useState({
     fullName: authData.fullName || '',
     email: authData.email || '',
-    phone: authData.phone || '' 
+    phone: authData.phone || ''
   });
 
   if (!state || !state.room) {
@@ -52,7 +71,14 @@ const BookingConfirmation = () => {
     }
 
     setLoading(true);
-    const token = localStorage.getItem('token');
+    const token = getStoredToken();
+
+    if (!token) {
+      alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+      setLoading(false);
+      navigate('/login');
+      return;
+    }
 
     const payload = {
       roomId: room.id,
@@ -65,13 +91,12 @@ const BookingConfirmation = () => {
       guestEmail: contactInfo.email,
       guestPhone: contactInfo.phone
     };
-
     try {
       const res = await fetch(`${API_BASE}/api/bookings`, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json', 
-          'Authorization': `Bearer ${token}` 
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(payload)
       });
@@ -101,57 +126,39 @@ const BookingConfirmation = () => {
     <div style={{ minHeight: '100vh', background: '#F8FBFF' }}>
       <Navbar />
       <main style={{ maxWidth: '1000px', margin: '40px auto', padding: '0 20px' }}>
-        <button 
-          onClick={() => navigate(-1)} 
+        <button
+          onClick={() => navigate(-1)}
           style={{ display: 'flex', alignItems: 'center', gap: '8px', border: 'none', background: 'none', color: '#64748B', cursor: 'pointer', marginBottom: '20px', fontWeight: '600' }}
         >
           <ArrowLeft size={18} /> Quay lại chỉnh sửa
         </button>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '30px' }}>
-          
+
           {/* BÊN TRÁI: THÔNG TIN LIÊN LẠC */}
           <section>
             <div style={cardStyle}>
               <h3 style={sectionTitleStyle}><User size={20} /> Thông tin khách hàng</h3>
-              <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '20px' }}>
-                Vui lòng kiểm tra hoặc thay đổi thông tin liên lạc để chúng tôi phục vụ tốt nhất.
-              </p>
 
               {error && (
                 <div style={{ color: '#EF4444', background: '#FEF2F2', padding: '10px', borderRadius: '8px', marginBottom: '15px', fontSize: '14px' }}>
                   {error}
                 </div>
               )}
-              
-              <div style={formGroupStyle}>
-                <label style={labelStyle}>Họ và tên người nhận phòng</label>
-                <input 
-                  type="text" 
-                  style={inputStyle} 
-                  value={contactInfo.fullName} 
-                  onChange={e => setContactInfo({...contactInfo, fullName: e.target.value})}
-                />
+
+              <div style={infoGroupStyle}>
+                <label style={labelStyle}>Họ và tên</label>
+                <div style={readOnlyBoxStyle}>{contactInfo.fullName}</div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                <div style={formGroupStyle}>
-                  <label style={labelStyle}>Email xác nhận</label>
-                  <input 
-                    type="email" 
-                    style={inputStyle} 
-                    value={contactInfo.email} 
-                    onChange={e => setContactInfo({...contactInfo, email: e.target.value})}
-                  />
+                <div style={infoGroupStyle}>
+                  <label style={labelStyle}>Email</label>
+                  <div style={readOnlyBoxStyle}>{contactInfo.email}</div>
                 </div>
-                <div style={formGroupStyle}>
+                <div style={infoGroupStyle}>
                   <label style={labelStyle}>Số điện thoại</label>
-                  <input 
-                    type="text" 
-                    style={inputStyle} 
-                    value={contactInfo.phone} 
-                    onChange={e => setContactInfo({...contactInfo, phone: e.target.value})}
-                  />
+                  <div style={readOnlyBoxStyle}>{contactInfo.phone}</div>
                 </div>
               </div>
             </div>
@@ -173,7 +180,7 @@ const BookingConfirmation = () => {
           <aside>
             <div style={cardStyle}>
               <h3 style={sectionTitleStyle}><CheckCircle2 size={20} /> Tóm tắt đặt phòng</h3>
-              
+
               <div style={{ marginBottom: '20px' }}>
                 <div style={{ fontWeight: '700', fontSize: '18px', color: '#0F2E5A' }}>Phòng {room.roomNumber}</div>
                 <div style={{ color: '#64748B', fontSize: '14px' }}>{room.type}</div>
@@ -212,8 +219,8 @@ const BookingConfirmation = () => {
                 </div>
               </div>
 
-              <button 
-                onClick={handleFinalBooking} 
+              <button
+                onClick={handleFinalBooking}
                 disabled={loading}
                 style={paymentButtonStyle}
               >
@@ -234,15 +241,15 @@ const BookingConfirmation = () => {
               <h2 style={{ color: '#0F2E5A', margin: '0 0 12px 0' }}>Đặt phòng thành công!</h2>
               <div style={{ background: '#F0FDF4', padding: '16px', borderRadius: '12px', marginBottom: '20px' }}>
                 <p style={{ color: '#14532D', fontSize: '15px', lineHeight: 1.6, margin: 0 }}>
-                  Hệ thống đã ghi nhận yêu cầu của bạn. Nhân viên tư vấn sẽ liên lạc qua <strong>Zalo</strong> hoặc 
-                  <strong> số điện thoại</strong> ({contactInfo.phone}) trong vòng 15 phút để hướng dẫn thực hiện 
+                  Hệ thống đã ghi nhận yêu cầu của bạn. Nhân viên tư vấn sẽ liên lạc qua <strong>Zalo</strong> hoặc
+                  <strong> số điện thoại</strong> ({contactInfo.phone}) trong vòng 15 phút để hướng dẫn thực hiện
                   đặt cọc và hoàn tất thanh toán.
                 </p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748B', fontSize: '14px', marginBottom: '24px' }}>
                 <MessageSquare size={16} /> Chúng tôi hỗ trợ qua Zalo 24/7
               </div>
-              <button 
+              <button
                 onClick={() => navigate('/booking-history')}
                 style={{
                   width: '100%', padding: '14px', background: '#2563EB', color: '#fff',
@@ -267,13 +274,11 @@ const sectionTitleStyle = {
   display: 'flex', alignItems: 'center', gap: '10px', fontSize: '18px', fontWeight: '700', color: '#0F2E5A', margin: '0 0 20px 0'
 };
 const formGroupStyle = { marginBottom: '20px' };
-const labelStyle = { display: 'block', fontSize: '13px', fontWeight: '600', color: '#475569', marginBottom: '8px' };
-const inputStyle = {
-  width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #E2E8F0', outline: 'none', fontSize: '15px', boxSizing: 'border-box'
-};
-const summaryRowStyle = {
-  display: 'flex', alignItems: 'center', gap: '15px', background: '#F8FAFC', padding: '12px 16px', borderRadius: '12px'
-};
+const labelStyle = { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#475569', marginBottom: '8px' };
+const infoGroupStyle = { marginBottom: '15px' };
+const readOnlyBoxStyle = { padding: '12px 16px', background: '#F1F5F9', borderRadius: '12px', color: '#1E293B', fontSize: '15px', fontWeight: '500', border: '1px solid #E2E8F0' };
+const inputStyle = { width: '100%', padding: '12px 16px', borderRadius: '12px', border: '2px solid #E2E8F0', fontSize: '15px', outline: 'none', transition: '0.2s' };
+const summaryRowStyle = { display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '14px', color: '#64748B' };
 const summaryItemStyle = {
   display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#475569', fontWeight: '500'
 };

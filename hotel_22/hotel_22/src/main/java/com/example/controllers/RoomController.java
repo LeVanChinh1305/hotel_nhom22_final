@@ -51,4 +51,13 @@ public class RoomController {
     public RoomResponse getRoomById(@PathParam("id") String id) {
         return roomService.getById(id);
     }
+
+    /**
+     * Lấy lịch trình trạng thái phòng (Dùng cho hiển thị Lịch ở Frontend)
+     */
+    @GET
+    @Path("/{id}/availability")
+    public List<com.example.entity.mongodb.RoomAvailability> getRoomAvailability(@PathParam("id") String id) {
+        return roomService.getRoomAvailability(id);
+    }
 }

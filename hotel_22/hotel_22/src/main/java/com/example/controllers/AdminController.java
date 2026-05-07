@@ -7,7 +7,7 @@ import com.example.dto.request.CreateVoucherRequest;
 import com.example.dto.request.SetRoomMaintenanceRequest;
 import com.example.dto.request.UpdateBookingStatusRequest;
 import com.example.dto.request.UpdateRoomAvailabilityRequest;
-import com.example.dto.request.UpdateRoomStatusRequest;
+
 import com.example.dto.response.RoomDeletionCheckResponse;
 import com.example.entity.mysql.User;
 import com.example.repository.mongodb.RoomAvailabilityRepository;
@@ -15,7 +15,7 @@ import com.example.services.BookingService;
 import com.example.services.HotelServiceService;
 import com.example.services.NewsService;
 import com.example.services.RoomService;
-import com.example.services.RoomStatusLogService;
+
 import com.example.services.UserService;
 import com.example.services.VoucherService;
 
@@ -44,7 +44,7 @@ public class AdminController {
     @Inject VoucherService voucherService;
     @Inject NewsService newsService;
     @Inject UserService userService;
-    @Inject RoomStatusLogService roomStatusLogService;
+
     @Inject RoomAvailabilityRepository roomAvailabilityRepository;
     @Inject User currentUser;
 
@@ -162,7 +162,7 @@ public class AdminController {
     }
     @POST @Path("/news")
     public Response createNews(CreateNewsRequest req) {
-        return Response.status(201).entity(newsService.create(currentUser, req)).build();
+        return Response.status(201).entity(newsService.create(req)).build();
     }
     @PUT @Path("/news/{id}")
     public Response updateNews(@PathParam("id") String id, CreateNewsRequest req) {
@@ -184,13 +184,5 @@ public class AdminController {
         return Response.ok(userService.toggleUserStatus(id)).build();
     }
 
-    // ===== ROOM STATUS LOG =====
-    @POST @Path("/room-status")
-    public Response logRoomStatus(UpdateRoomStatusRequest req) {
-        return Response.status(201).entity(roomStatusLogService.logStatus(req, currentUser.id)).build();
-    }
-    @GET @Path("/room-status/{roomId}")
-    public Response getRoomStatusHistory(@PathParam("roomId") String roomId) {
-        return Response.ok(roomStatusLogService.getHistory(roomId)).build();
-    }
+
 }

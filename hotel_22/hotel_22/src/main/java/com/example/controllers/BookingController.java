@@ -25,18 +25,19 @@ public class BookingController {
     @Inject BookingService bookingService;
     @Inject User currentUser;   // CDI inject từ CurrentUserProducer
 
-    @POST
+    @POST // đặt phòng
     public Response createBooking(BookingRequest req) {
+        System.out.println(">>> [POST /bookings] RoomId: " + req.roomId + " by User: " + (currentUser != null ? currentUser.getEmail() : "anonymous"));
         return Response.status(201).entity(bookingService.createBooking(currentUser, req)).build();
     }
 
-    @GET
+    @GET // xem lịch sử đặt phòng
     public Response getMyBookings() {
-        return Response.ok(bookingService.getMyBookings(currentUser.id)).build();
+        return Response.ok(bookingService.getMyBookings(currentUser.getId())).build();
     }
 
-    @PUT @Path("/{id}/cancel")
+    @PUT @Path("/{id}/cancel") // huỷ đặt phòng
     public Response cancelBooking(@PathParam("id") Long id) {
-        return Response.ok(bookingService.cancelBooking(id, currentUser.id)).build();
+        return Response.ok(bookingService.cancelBooking(id, currentUser.getId())).build();
     }
 }

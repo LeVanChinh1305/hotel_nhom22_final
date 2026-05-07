@@ -13,12 +13,12 @@ public class NewsController {
     @Inject NewsService newsService;
 
     @GET
-    public Response getPublished(@QueryParam("category") String category) {
-        return Response.ok(newsService.getPublished(category)).build();
+    public Response getPublished() {
+        return Response.ok(newsService.getPublished()).build();
     }
 
-    @GET @Path("/{slug}")
-    public Response getBySlug(@PathParam("slug") String slug) {
-        return Response.ok(newsService.getBySlug(slug)).build();
+    @GET @Path("/{id}")
+    public Response getById(@PathParam("id") String id) {
+        return Response.ok(newsService.getAdminById(id)).build();
     }
 }

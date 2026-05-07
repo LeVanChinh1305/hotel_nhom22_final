@@ -11,9 +11,7 @@ public class BookingRequest {
     public List<BookingServiceItemRequest> services;
 
     // Thông tin liên lạc khách hàng (có thể khác với thông tin Profile)
-    public String guestFullName;
-    public String guestEmail;
-    public String guestPhone;
+
 
     public static class BookingServiceItemRequest {
         public String serviceId;

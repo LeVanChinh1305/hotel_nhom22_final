@@ -20,21 +20,24 @@ const RoomDetail = () => {
   // Booking State
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
-  const [selectedServices, setSelectedServices] = useState([]); // Array of {serviceId, quantity, numberOfPeople, numberOfDays}
+  const [availability, setAvailability] = useState([]); // Dữ liệu lịch trình từ backend
+  const [selectedServices, setSelectedServices] = useState([]); 
   const [selectedVoucher, setSelectedVoucher] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [roomRes, svcRes, vchRes] = await Promise.all([
+        const [roomRes, svcRes, vchRes, availRes] = await Promise.all([
           fetch(`${API_BASE}/api/rooms/${id}`),
           fetch(`${API_BASE}/api/services`),
-          fetch(`${API_BASE}/api/vouchers`)
+          fetch(`${API_BASE}/api/vouchers`),
+          fetch(`${API_BASE}/api/rooms/${id}/availability`)
         ]);
         
         if (roomRes.ok) setRoom(await roomRes.json());
         if (svcRes.ok) setServices(await svcRes.json());
         if (vchRes.ok) setVouchers(await vchRes.json());
+        if (availRes.ok) setAvailability(await availRes.json());
       } catch (err) {
         console.error("Lỗi tải dữ liệu chi tiết:", err);
       } finally {
@@ -43,6 +46,87 @@ const RoomDetail = () => {
     };
     fetchData();
   }, [id]);
+
+  // --- LOGIC LỊCH THÔNG MINH ---
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+
+  const handleDateClick = (dateStr) => {
+    const dateStatus = getDayStatus(dateStr);
+    if (dateStatus === 'BOOKED' || dateStatus === 'MAINTENANCE') return;
+
+    if (!checkIn || (checkIn && checkOut)) {
+      setCheckIn(dateStr);
+      setCheckOut('');
+    } else {
+      if (new Date(dateStr) < new Date(checkIn)) {
+        setCheckIn(dateStr);
+        setCheckOut('');
+      } else {
+        setCheckOut(dateStr);
+      }
+    }
+  };
+
+  const getDayStatus = (dateStr) => {
+    const found = availability.find(a => a.date === dateStr);
+    return found ? found.status : 'AVAILABLE';
+  };
+
+  const isSelected = (dateStr) => {
+    if (!checkIn) return false;
+    if (dateStr === checkIn || dateStr === checkOut) return true;
+    if (checkIn && checkOut) {
+      const date = new Date(dateStr);
+      const start = new Date(checkIn);
+      const end = new Date(checkOut);
+      return date > start && date < end;
+    }
+    return false;
+  };
+
+  const renderCalendar = () => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    const days = [];
+    for (let i = 0; i < firstDay; i++) days.push(<div key={`empty-${i}`} />);
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateObj = new Date(year, month, d);
+      // Format YYYY-MM-DD local
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const status = getDayStatus(dateStr);
+      const selected = isSelected(dateStr);
+
+      let bgColor = '#fff';
+      let textColor = '#1E293B';
+      let cursor = 'pointer';
+
+      if (status === 'BOOKED') { bgColor = '#FEE2E2'; textColor = '#EF4444'; cursor = 'not-allowed'; }
+      else if (status === 'MAINTENANCE') { bgColor = '#FEF3C7'; textColor = '#D97706'; cursor = 'not-allowed'; }
+      
+      if (selected) { bgColor = '#10B981'; textColor = '#fff'; }
+
+      days.push(
+        <div 
+          key={dateStr}
+          onClick={() => handleDateClick(dateStr)}
+          style={{
+            padding: '10px 0', textAlign: 'center', borderRadius: '8px',
+            background: bgColor, color: textColor, cursor: cursor,
+            fontSize: '14px', fontWeight: '600', border: '1px solid #F1F5F9',
+            transition: '0.2s'
+          }}
+        >
+          {d}
+        </div>
+      );
+    }
+    return days;
+  };
+  // --- KẾT THÚC LOGIC LỊCH ---
 
   // Phân loại dịch vụ
   const includedServices = useMemo(() => services.filter(s => s.price === 0), [services]);
@@ -112,7 +196,7 @@ const RoomDetail = () => {
   };
 
   const updateServiceField = (svcId, field, value) => {
-    const val = parseInt(value) || 0;
+    const val = Math.max(1, parseInt(value) || 1);
     setSelectedServices(prev => prev.map(s => 
       s.serviceId === svcId ? { ...s, [field]: val } : s
     ));
@@ -141,6 +225,24 @@ const RoomDetail = () => {
         invoice 
       } 
     });
+  };
+
+  const navBtnStyle = {
+    padding: '4px 10px',
+    border: '1px solid #E2E8F0',
+    background: '#fff',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: 'bold'
+  };
+
+  const priceRowStyle = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginBottom: '8px',
+    fontSize: '14px',
+    color: '#475569'
   };
 
   if (loading) return <div style={{ padding: '100px', textAlign: 'center' }}>Đang tải thông tin phòng...</div>;
@@ -265,6 +367,19 @@ const RoomDetail = () => {
                             />
                           </div>
                         )}
+                        
+                        {/* Trường hợp: Lượt -> Nhập số lượng/lượt */}
+                        {s.unit === 'Lượt' && (
+                          <div style={{ flex: 1 }}>
+                            <label style={{ fontSize: '12px', color: '#64748B', fontWeight: '600' }}>Số lượng / Lượt</label>
+                            <input 
+                              type="number" min="1" 
+                              value={selectedItem.quantity || 1} 
+                              onChange={(e) => updateServiceField(s.id, 'quantity', e.target.value)}
+                              style={{ ...inputStyle, padding: '8px' }} 
+                            />
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -295,20 +410,51 @@ const RoomDetail = () => {
         {/* CỘT PHẢI: ĐẶT PHÒNG & HÓA ĐƠN */}
         <aside>
           <div style={{ position: 'sticky', top: '100px', background: '#fff', borderRadius: '24px', padding: '24px', border: '1px solid #E2E8F0', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)' }}>
-            <h4 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: '700' }}>Thời gian lưu trú</h4>
+            <h4 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <CalendarIcon size={20} /> Chọn ngày lưu trú
+            </h4>
             
-            <div style={{ marginBottom: '16px' }}>
-              <label style={labelStyle}><CalendarIcon size={14} /> Ngày nhận phòng</label>
-              <input type="date" value={checkIn} onChange={e => setCheckIn(e.target.value)} style={inputStyle} />
-            </div>
-            
-            <div style={{ marginBottom: '25px' }}>
-              <label style={labelStyle}><CalendarIcon size={14} /> Ngày trả phòng</label>
-              <input type="date" value={checkOut} onChange={e => setCheckOut(e.target.value)} style={inputStyle} />
+            {/* Calendar Component */}
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                <span style={{ fontWeight: '700', color: '#0F2E5A' }}>Tháng {currentMonth.getMonth() + 1}, {currentMonth.getFullYear()}</span>
+                <div style={{ display: 'flex', gap: '5px' }}>
+                  <button onClick={() => setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() - 1)))} style={navBtnStyle}>&lt;</button>
+                  <button onClick={() => setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() + 1)))} style={navBtnStyle}>&gt;</button>
+                </div>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px', marginBottom: '10px' }}>
+                {['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'].map(d => (
+                  <div key={d} style={{ textAlign: 'center', fontSize: '12px', color: '#94A3B8', fontWeight: '700' }}>{d}</div>
+                ))}
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px' }}>
+                {renderCalendar()}
+              </div>
+              
+              {/* Chú thích màu sắc */}
+              <div style={{ display: 'flex', gap: '15px', marginTop: '20px', fontSize: '11px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ width: '10px', height: '10px', background: '#FEE2E2', borderRadius: '2px' }}></div> Hết phòng
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ width: '10px', height: '10px', background: '#FEF3C7', borderRadius: '2px' }}></div> Bảo trì
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ width: '10px', height: '10px', background: '#10B981', borderRadius: '2px' }}></div> Đang chọn
+                </div>
+              </div>
             </div>
 
             {invoice ? (
               <div style={{ borderTop: '1px dashed #E2E8F0', paddingTop: '20px' }}>
+                <div style={{ ...priceRowStyle, marginBottom: '15px', padding: '10px', background: '#F0F9FF', borderRadius: '10px' }}>
+                  <div style={{ fontSize: '12px', color: '#0369A1' }}>
+                    <strong>{checkIn}</strong> <ChevronRight size={12} style={{ verticalAlign: 'middle' }} /> <strong>{checkOut}</strong>
+                  </div>
+                </div>
                 <div style={priceRowStyle}>
                   <span>Tiền phòng ({invoice.nights} đêm)</span>
                   <span>{invoice.roomTotal.toLocaleString()}đ</span>

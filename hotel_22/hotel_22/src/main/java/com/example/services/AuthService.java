@@ -18,9 +18,9 @@ import jakarta.transaction.Transactional;
 @ApplicationScoped
 public class AuthService {
 
-    @Inject UserRepository userRepository;
-    @Inject JwtService     jwtService;
-    @Inject UserMapper     userMapper;
+    @Inject UserRepository userRepository; // dùng để truy vấn CSDL MYSQL (User)
+    @Inject JwtService     jwtService; // dùng để tạo JWT
+    @Inject UserMapper     userMapper; // dùng để convert User sang DTO (response)
 
     @Transactional
     public AuthResponse register(RegisterRequest req) {
@@ -48,17 +48,17 @@ public class AuthService {
                 ? User.Role.ADMIN
                 : User.Role.CUSTOMER;
 
-        userRepository.persist(user);
+        userRepository.persist(user);// Lưu vào CSDL MYSQL
 
-        String token = jwtService.generateToken(user);
-        return new AuthResponse(token, user.email, user.role.name(), user.fullName);
+        String token = jwtService.generateToken(user);// trả về token 
+        return new AuthResponse(token, user.email, user.role.name(), user.fullName, user.phone);// trả về token, email, role, tên đầy đủ và sdt
     }
 
     public AuthResponse login(LoginRequest req) {
         // 1. Validate input
-        ValidationUtils.validateEmail(req.email);
+        ValidationUtils.validateEmail(req.email); // Validate email
         if (req.password == null || req.password.isBlank())
-            throw new AppException("Mật khẩu không được để trống", 400);
+            throw new AppException("Mật khẩu không được để trống", 400);// Validate mật khẩu
 
         // 2. Tìm user
         User user = userRepository.findByEmail(req.email)
@@ -73,6 +73,6 @@ public class AuthService {
             throw new AppException("Email hoặc mật khẩu không đúng", 401);
 
         String token = jwtService.generateToken(user);
-        return new AuthResponse(token, user.email, user.role.name(), user.fullName);
+        return new AuthResponse(token, user.email, user.role.name(), user.fullName, user.phone);// trả về token, email, role, tên đầy đủ và sdt
     }
 }

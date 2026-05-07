@@ -11,62 +11,52 @@ public class Booking extends PanacheEntityBase {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long id;
+    public Long id; // Khóa chính
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    public User user;
+    public User user; // Khách hàng
 
     @Column(name = "room_id", nullable = false)
     public String roomId; // MongoDB ObjectId
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "voucher_id")
-    public Voucher voucher; // Nullable
+    @JoinColumn(name = "voucher_id") // Nullable
+    public Voucher voucher; // Voucher giảm giá
 
     @Column(name = "check_in_date", nullable = false)
-    public LocalDate checkInDate;
+    public LocalDate checkInDate; // Ngày nhận phòng
 
     @Column(name = "check_out_date", nullable = false)
-    public LocalDate checkOutDate;
+    public LocalDate checkOutDate;// Ngày trả phòng
 
     @Column(name = "total_room_price", nullable = false)
-    public Double totalRoomPrice;
+    public Double totalRoomPrice; // Tổng tiền phòng
 
-    @Column(name = "total_service_price", nullable = false)
+    @Column(name = "total_service_price", nullable = false) // Tổng tiền dịch vụ
     public Double totalServicePrice;
 
-    @Column(name = "discount_amount")
+    @Column(name = "discount_amount") // Số tiền được giảm giá
     public Double discountAmount = 0.0;
 
-    @Column(name = "total_price", nullable = false)
+    @Column(name = "total_price", nullable = false) // Tổng tiền sau khi giảm giá
     public Double totalPrice;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    public BookingStatus status = BookingStatus.PENDING;
+    public BookingStatus status = BookingStatus.PENDING; // Trạng thái: PENDING, CONFIRMED, CANCELLED, COMPLETED
 
     @Column(name = "created_at")
-    public LocalDateTime createdAt;
+    public LocalDateTime createdAt; // Ngày tạo
 
-    @Column(name = "payment_status", nullable = false)
+    @Column(name = "payment_status", nullable = false) // Trạng thái thanh toán
     public Boolean paymentStatus = false;
-
-    @Column(name = "guest_full_name")
-    public String guestFullName;
-
-    @Column(name = "guest_email")
-    public String guestEmail;
-
-    @Column(name = "guest_phone")
-    public String guestPhone;
 
     @Column(name = "is_confirmed_mail_sent", nullable = false)
     public Boolean isConfirmedMailSent = false;
 
     @Column(name = "is_reminder_mail_sent", nullable = false)
     public Boolean isReminderMailSent = false;
-
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();

@@ -12,23 +12,29 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 public class CurrentUserProducer {
 
     @Inject
-    JsonWebToken jwt;
+    JsonWebToken jwt; // dùng để lấy thông tin từ JWT token
 
     @Inject
-    UserRepository userRepository;
+    UserRepository userRepository; // dùng để lấy user từ DB
 
-    @Produces
-    @RequestScoped
-    public User getCurrentUser() {
-        String email = jwt.getClaim("upn");
-        if (email == null || email.isBlank()) {
+    @Produces // sản xuất ra User
+    // Không dùng @RequestScoped ở đây để tránh tạo Proxy (giúp Hibernate nhận diện đúng Entity)
+    public User getCurrentUser() { // phương thức này sẽ được gọi khi cần lấy user
+        System.out.println(">>> [CurrentUserProducer] JWT raw: " + jwt.getRawToken());
+        System.out.println(">>> [CurrentUserProducer] JWT claims: " + jwt.getClaimNames());
+        
+        String email = jwt.getClaim("upn"); // Lấy email từ JWT token
+        if (email == null || email.isBlank()) { // Nếu email không có
             email = jwt.getName(); // fallback
         }
-        if (email == null || email.isBlank()) {
-            throw new AppException("JWT token không chứa thông tin email", 401);
+        
+        System.out.println(">>> [CurrentUserProducer] Extracted Email: " + email);
+
+        if (email == null || email.isBlank()) { // Nếu email không có
+            throw new AppException("JWT token không chứa thông tin email", 401); // ném ra lỗi
         }
 
-        final String finalEmail = email; // Make effectively final for lambda
+        final String finalEmail = email; // vì 
         User user = userRepository.find("email", finalEmail)
                 .firstResultOptional()
                 .orElseThrow(() -> new AppException("Người dùng không tồn tại với email: " + finalEmail, 404));
@@ -40,3 +46,5 @@ public class CurrentUserProducer {
         return user;
     }
 }
+// Đây là "trạm kiểm soát" tự động, biến một chuỗi ký tự Token vô hồn thành 
+// một đối tượng User đầy đủ thông tin để bạn sử dụng trong toàn bộ dự án.

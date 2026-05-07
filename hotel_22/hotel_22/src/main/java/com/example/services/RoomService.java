@@ -87,6 +87,16 @@ public class RoomService {
     }
 
     /**
+     * Lấy danh sách trạng thái phòng từ hôm nay đến 60 ngày tới
+     */
+    public List<com.example.entity.mongodb.RoomAvailability> getRoomAvailability(String roomId) {
+        LocalDate start = LocalDate.now();
+        LocalDate end = start.plusDays(60);
+        return roomAvailabilityRepository.find("roomId = ?1 AND date >= ?2 AND date <= ?3", 
+                                                roomId, start, end).list();
+    }
+
+    /**
      * Kiểm tra xem phòng có thể xoá hay không
      * Trả về thông tin về các booking active liên quan
      */
@@ -168,5 +178,14 @@ public class RoomService {
             throw new AppException("Giá phòng phải lớn hơn 0", 400);
         if (req.maxOccupancy == null || req.maxOccupancy <= 0)
             throw new AppException("Sức chứa phải lớn hơn 0", 400);
+        
+        if (req.type == null || req.type.isBlank()) {
+            throw new AppException("Loại phòng không được để trống", 400);
+        }
+        try {
+            Room.RoomType.valueOf(req.type.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new AppException("Loại phòng '" + req.type + "' không hợp lệ. Hợp lệ: STANDARD, DELUXE, SUITE, PRESIDENTIAL", 400);
+        }
     }
 }

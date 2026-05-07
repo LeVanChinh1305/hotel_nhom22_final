@@ -59,8 +59,11 @@ const RoomCalendar = ({ roomId, bookings }) => {
     return date && maintenanceDates.has(date.toDateString());
   };
 
-  // Lọc bookings của phòng này
-  const roomBookings = bookings.filter(b => b.room?.id === roomId || b.roomId === roomId);
+  // Lọc bookings của phòng này và chỉ lấy những đơn đang hoạt động (không bị hủy)
+  const roomBookings = bookings.filter(b => 
+    (b.room?.id === roomId || b.roomId === roomId) && 
+    b.status !== 'CANCELLED'
+  );
 
   // Tạo set các ngày đã đặt
   const bookedDates = new Set();
@@ -74,7 +77,7 @@ const RoomCalendar = ({ roomId, bookings }) => {
       const end = new Date(endParts[0], endParts[1] - 1, endParts[2]);
       const current = new Date(start);
 
-      while (current <= end) {
+      while (current < end) {
         bookedDates.add(current.toDateString());
         current.setDate(current.getDate() + 1);
       }

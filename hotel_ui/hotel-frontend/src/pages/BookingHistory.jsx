@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../components/layout/Navbar';
-import { Calendar, CreditCard } from 'lucide-react';
+import { 
+  Calendar, CreditCard, Info, ChevronRight, 
+  MapPin, Clock, Package, Gift, X 
+} from 'lucide-react';
 
 const API_BASE = 'http://localhost:8080';
 
@@ -8,6 +11,7 @@ const BookingHistory = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedBooking, setSelectedBooking] = useState(null);
 
   useEffect(() => {
     loadBookings();
@@ -18,9 +22,7 @@ const BookingHistory = () => {
       setLoading(true);
       setError('');
 
-      // Lấy user object từ localStorage
       const userStr = localStorage.getItem('user');
-
       if (!userStr) {
         setError('Bạn chưa đăng nhập');
         return;
@@ -28,13 +30,10 @@ const BookingHistory = () => {
 
       const user = JSON.parse(userStr);
       const token = user.token;
-
       if (!token) {
         setError('Không tìm thấy token đăng nhập');
         return;
       }
-
-      console.log("TOKEN gửi lên backend:", token);
 
       const res = await fetch(`${API_BASE}/api/bookings`, {
         method: 'GET',
@@ -44,12 +43,12 @@ const BookingHistory = () => {
         }
       });
 
-      const data = await res.json();
-
       if (!res.ok) {
+        const data = await res.json();
         throw new Error(data.message || `Lỗi ${res.status}`);
       }
 
+      const data = await res.json();
       setBookings(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Lỗi tải lịch sử:', err);
@@ -62,15 +61,15 @@ const BookingHistory = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'PENDING':
-        return { bg: '#FEF3C7', text: '#D97706' };
+        return { bg: '#FFF7ED', text: '#C2410C', label: 'Chờ xác nhận' };
       case 'CONFIRMED':
-        return { bg: '#DBEAFE', text: '#2563EB' };
+        return { bg: '#EFF6FF', text: '#1D4ED8', label: 'Đã xác nhận' };
       case 'COMPLETED':
-        return { bg: '#D1FAE5', text: '#059669' };
+        return { bg: '#F0FDF4', text: '#15803D', label: 'Hoàn tất' };
       case 'CANCELLED':
-        return { bg: '#FEE2E2', text: '#DC2626' };
+        return { bg: '#FEF2F2', text: '#B91C1C', label: 'Đã hủy' };
       default:
-        return { bg: '#F1F5F9', text: '#475569' };
+        return { bg: '#F8FAFC', text: '#475569', label: status };
     }
   };
 
@@ -78,68 +77,216 @@ const BookingHistory = () => {
     <div style={{ minHeight: '100vh', background: '#F8FBFF' }}>
       <Navbar />
 
-      <div style={{ maxWidth: '1000px', margin: '40px auto', padding: '0 20px' }}>
-        <h2>Lịch sử giao dịch</h2>
+      <div style={containerStyle}>
+        <div style={headerSectionStyle}>
+          <h2 style={titleStyle}>Lịch sử đặt phòng</h2>
+          <p style={subtitleStyle}>Quản lý và xem lại tất cả các giao dịch của bạn</p>
+        </div>
 
-        {loading && <p>Đang tải dữ liệu...</p>}
+        {loading && (
+          <div style={statusBoxStyle}>
+            <div className="spinner"></div>
+            <p>Đang tải dữ liệu...</p>
+          </div>
+        )}
 
         {error && (
-          <div style={{
-            background: '#FEE2E2',
-            color: '#DC2626',
-            padding: '16px',
-            borderRadius: '12px'
-          }}>
-            {error}
+          <div style={{ ...statusBoxStyle, background: '#FEF2F2', color: '#B91C1C', border: '1px solid #FCA5A5' }}>
+            <Info size={20} />
+            <p>{error}</p>
           </div>
         )}
 
         {!loading && !error && bookings.length === 0 && (
-          <p>Bạn chưa có đơn đặt phòng nào.</p>
+          <div style={emptyStateStyle}>
+            <Calendar size={48} color="#94A3B8" />
+            <p>Bạn chưa có đơn đặt phòng nào.</p>
+            <button onClick={() => window.location.href = '/rooms'} style={bookNowButtonStyle}>Đặt phòng ngay</button>
+          </div>
         )}
 
         {!loading && !error && bookings.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={gridStyle}>
             {bookings.map((b) => {
               const status = getStatusColor(b.status);
-
               return (
-                <div key={b.id} style={{
-                  background: '#fff',
-                  padding: '24px',
-                  borderRadius: '16px',
-                  border: '1px solid #E2E8F0'
-                }}>
-                  <div style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
-                    <strong>Đơn #{b.id}</strong>
-
-                    <span style={{
-                      padding: '4px 10px',
-                      borderRadius: 20,
-                      background: status.bg,
-                      color: status.text
-                    }}>
-                      {b.status}
+                <div key={b.id} style={bookingCardStyle}>
+                  <div style={cardHeaderStyle}>
+                    <div>
+                      <span style={orderIdStyle}>Đơn #{b.id}</span>
+                      <span style={dateBadgeStyle}>{new Date(b.createdAt).toLocaleDateString('vi-VN')}</span>
+                    </div>
+                    <span style={{ ...statusBadgeStyle, background: status.bg, color: status.text }}>
+                      {status.label}
                     </span>
                   </div>
 
-                  <div style={{ display: 'flex', gap: 20 }}>
-                    <span>
-                      <Calendar size={14} /> {b.checkInDate} - {b.checkOutDate}
-                    </span>
+                  <div style={cardBodyStyle}>
+                    <div style={roomInfoStyle}>
+                      <div style={roomIconStyle}>
+                        <MapPin size={18} color="#2563EB" />
+                      </div>
+                      <div>
+                        <div style={roomNameStyle}>Phòng {b.roomNumber || 'N/A'}</div>
+                        <div style={roomTypeStyle}>{b.roomType || 'Phòng nghỉ'}</div>
+                      </div>
+                    </div>
 
-                    <span>
-                      <CreditCard size={14} /> {b.totalPrice?.toLocaleString()} VNĐ
-                    </span>
+                    <div style={detailsGridStyle}>
+                      <div style={detailItemStyle}>
+                        <Clock size={14} color="#64748B" />
+                        <span>{b.checkInDate} - {b.checkOutDate}</span>
+                      </div>
+                      <div style={detailItemStyle}>
+                        <CreditCard size={14} color="#64748B" />
+                        <span style={priceTextStyle}>{b.totalPrice?.toLocaleString()} VNĐ</span>
+                      </div>
+                    </div>
                   </div>
+
+                  <button 
+                    onClick={() => setSelectedBooking(b)} 
+                    style={viewDetailButtonStyle}
+                  >
+                    Xem chi tiết đơn <ChevronRight size={16} />
+                  </button>
                 </div>
               );
             })}
           </div>
         )}
       </div>
+
+      {/* DETAIL MODAL */}
+      {selectedBooking && (
+        <div style={modalOverlayStyle} onClick={() => setSelectedBooking(null)}>
+          <div style={modalContentStyle} onClick={e => e.stopPropagation()}>
+            <div style={modalHeaderStyle}>
+              <h3>Chi tiết đơn đặt #{selectedBooking.id}</h3>
+              <button onClick={() => setSelectedBooking(null)} style={closeButtonStyle}><X size={20} /></button>
+            </div>
+
+            <div style={modalBodyStyle}>
+              {/* Room Section */}
+              <div style={modalSectionStyle}>
+                <h4 style={sectionTitleStyle}><MapPin size={16} /> Thông tin phòng</h4>
+                <div style={modalInfoBoxStyle}>
+                  <div style={{ fontWeight: '700', fontSize: '18px', color: '#0F2E5A' }}>Phòng {selectedBooking.roomNumber}</div>
+                  <div style={{ color: '#64748B', fontSize: '14px' }}>{selectedBooking.roomType}</div>
+                  <div style={{ marginTop: '10px', fontSize: '14px', color: '#475569', display: 'flex', gap: '15px' }}>
+                    <span><strong>Nhận:</strong> {selectedBooking.checkInDate}</span>
+                    <span><strong>Trả:</strong> {selectedBooking.checkOutDate}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Services Section */}
+              {selectedBooking.services && selectedBooking.services.length > 0 && (
+                <div style={modalSectionStyle}>
+                  <h4 style={sectionTitleStyle}><Package size={16} /> Dịch vụ bổ sung</h4>
+                  <div style={servicesListStyle}>
+                    {selectedBooking.services.map((s, idx) => (
+                      <div key={idx} style={serviceItemStyle}>
+                        <div>
+                          <div style={{ fontWeight: '600', color: '#1E293B' }}>{s.serviceName}</div>
+                          <div style={{ fontSize: '12px', color: '#64748B' }}>
+                            {s.quantity} {s.numberOfPeople ? `x ${s.numberOfPeople} người` : ''} {s.numberOfDays ? `x ${s.numberOfDays} ngày` : ''}
+                          </div>
+                        </div>
+                        <div style={{ fontWeight: '600' }}>{(s.price * s.quantity * (s.numberOfPeople || 1) * (s.numberOfDays || 1)).toLocaleString()}đ</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Payment Section */}
+              <div style={modalSectionStyle}>
+                <h4 style={sectionTitleStyle}><CreditCard size={16} /> Thanh toán</h4>
+                <div style={pricingBoxStyle}>
+                  <div style={priceRowStyle}>
+                    <span>Tiền phòng</span>
+                    <span>{selectedBooking.totalRoomPrice?.toLocaleString()}đ</span>
+                  </div>
+                  {selectedBooking.totalServicePrice > 0 && (
+                    <div style={priceRowStyle}>
+                      <span>Tổng dịch vụ</span>
+                      <span>{selectedBooking.totalServicePrice?.toLocaleString()}đ</span>
+                    </div>
+                  )}
+                  {selectedBooking.discountAmount > 0 && (
+                    <div style={{ ...priceRowStyle, color: '#059669' }}>
+                      <span>Giảm giá {selectedBooking.voucherCode ? `(${selectedBooking.voucherCode})` : ''}</span>
+                      <span>-{selectedBooking.discountAmount?.toLocaleString()}đ</span>
+                    </div>
+                  )}
+                  <div style={totalPriceRowStyle}>
+                    <span>Tổng cộng</span>
+                    <span>{selectedBooking.totalPrice?.toLocaleString()}đ</span>
+                  </div>
+                  <div style={{ ...statusBadgeStyle, marginTop: '15px', width: 'fit-content', fontSize: '12px' }}>
+                    Thanh toán: {selectedBooking.paymentStatus ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
+// Styles
+const containerStyle = { maxWidth: '1100px', margin: '40px auto', padding: '0 20px' };
+const headerSectionStyle = { marginBottom: '32px' };
+const titleStyle = { fontSize: '28px', fontWeight: '800', color: '#0F2E5A', margin: '0 0 8px 0' };
+const subtitleStyle = { fontSize: '15px', color: '#64748B' };
+
+const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(450px, 1fr))', gap: '24px' };
+const bookingCardStyle = { background: '#fff', borderRadius: '24px', padding: '24px', border: '1px solid #E2E8F0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', gap: '20px' };
+
+const cardHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
+const orderIdStyle = { fontWeight: '700', fontSize: '16px', color: '#0F2E5A', marginRight: '10px' };
+const dateBadgeStyle = { fontSize: '12px', color: '#94A3B8', fontWeight: '500' };
+const statusBadgeStyle = { padding: '6px 12px', borderRadius: '20px', fontSize: '13px', fontWeight: '700' };
+
+const cardBodyStyle = { display: 'flex', flexDirection: 'column', gap: '16px' };
+const roomInfoStyle = { display: 'flex', gap: '12px', alignItems: 'center' };
+const roomIconStyle = { width: '40px', height: '40px', background: '#EFF6FF', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' };
+const roomNameStyle = { fontWeight: '700', color: '#1E293B', fontSize: '16px' };
+const roomTypeStyle = { fontSize: '13px', color: '#64748B' };
+
+const detailsGridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', padding: '15px', background: '#F8FAFC', borderRadius: '16px' };
+const detailItemStyle = { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#475569', fontWeight: '500' };
+const priceTextStyle = { color: '#2563EB', fontWeight: '700' };
+
+const viewDetailButtonStyle = { 
+  marginTop: 'auto', padding: '12px', background: 'none', border: '1px solid #E2E8F0', 
+  borderRadius: '12px', color: '#475569', fontWeight: '600', fontSize: '14px', 
+  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: '0.2s' 
+};
+
+// Modal Styles
+const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 46, 90, 0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' };
+const modalContentStyle = { background: '#fff', borderRadius: '28px', maxWidth: '600px', width: '100%', maxHeight: '90vh', overflowY: 'auto', position: 'relative', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' };
+const modalHeaderStyle = { padding: '24px 30px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: '#fff', zIndex: 1 };
+const modalBodyStyle = { padding: '30px' };
+const closeButtonStyle = { border: 'none', background: '#F1F5F9', color: '#64748B', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' };
+
+const modalSectionStyle = { marginBottom: '25px' };
+const sectionTitleStyle = { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: '700', color: '#64748B', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' };
+const modalInfoBoxStyle = { padding: '20px', background: '#F8FAFC', borderRadius: '20px', border: '1px solid #E2E8F0' };
+
+const servicesListStyle = { display: 'flex', flexDirection: 'column', gap: '10px' };
+const serviceItemStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: '#fff', border: '1px solid #F1F5F9', borderRadius: '14px' };
+
+const pricingBoxStyle = { padding: '20px', background: '#F0F9FF', borderRadius: '20px', border: '1px solid #BAE6FD' };
+const priceRowStyle = { display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '14px', color: '#0369A1' };
+const totalPriceRowStyle = { display: 'flex', justifyContent: 'space-between', marginTop: '15px', paddingTop: '15px', borderTop: '2px solid #BAE6FD', fontWeight: '800', fontSize: '20px', color: '#0284C7' };
+
+const statusBoxStyle = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '40px', background: '#fff', borderRadius: '24px', color: '#64748B' };
+const emptyStateStyle = { textAlign: 'center', padding: '60px', background: '#fff', borderRadius: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' };
+const bookNowButtonStyle = { padding: '12px 24px', background: '#2563EB', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '700', cursor: 'pointer' };
 
 export default BookingHistory;

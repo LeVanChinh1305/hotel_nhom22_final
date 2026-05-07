@@ -11,11 +11,26 @@ public class RoomAvailabilityRepository implements PanacheMongoRepository<RoomAv
 
     /** Kiểm tra phòng có trống trong khoảng ngày không */
     public boolean isRoomAvailable(String roomId, LocalDate checkIn, LocalDate checkOut) {
-        // Đếm các bản ghi có trạng thái KHÁC 'AVAILABLE' trong khoảng ngày
-        long conflictCount = count("roomId = ?1 AND date >= ?2 AND date < ?3 AND status != 'AVAILABLE'",
-                roomId, checkIn, checkOut);
+        System.err.println(">>> [FIX_AVAILABILITY] Checking Room: " + roomId + " | " + checkIn + " -> " + checkOut);
+
+        // Sử dụng MongoDB Filters API
+        org.bson.conversions.Bson filter = com.mongodb.client.model.Filters.and(
+            com.mongodb.client.model.Filters.eq("roomId", roomId),
+            com.mongodb.client.model.Filters.gte("date", checkIn),
+            com.mongodb.client.model.Filters.lt("date", checkOut),
+            com.mongodb.client.model.Filters.ne("status", "AVAILABLE")
+        );
+
+        long conflictCount = mongoCollection().countDocuments(filter);
         
-        // Nếu không có xung đột (count == 0), nghĩa là phòng trống
+        System.err.println(">>> [FIX_AVAILABILITY] Conflict count: " + conflictCount);
+
+        if (conflictCount > 0) {
+            mongoCollection().find(filter).forEach(c -> {
+                System.err.println(">>> [FIX_CONFLICT_DETAIL] Found occupied day: " + c.date + " (Status: " + c.status + ")");
+            });
+        }
+
         return conflictCount == 0;
     }
 
@@ -38,10 +53,10 @@ public class RoomAvailabilityRepository implements PanacheMongoRepository<RoomAv
         persistOrUpdate(ra);
     }
 
-    /** Cập nhật trạng thái cho khoảng ngày */
+    /** Cập nhật trạng thái cho khoảng ngày (chỉ tính các đêm ở, không tính ngày checkout) */
     public void updateRoomStatusRange(String roomId, LocalDate checkIn, LocalDate checkOut, String status, Long bookingId) {
         LocalDate current = checkIn;
-        while (!current.isAfter(checkOut.minusDays(1))) {
+        while (current.isBefore(checkOut)) {
             updateRoomStatus(roomId, current, status, bookingId);
             current = current.plusDays(1);
         }

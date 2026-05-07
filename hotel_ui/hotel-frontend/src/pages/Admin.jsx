@@ -142,6 +142,26 @@ const Admin = () => {
   });
   const [newsLoading, setNewsLoading] = useState(false);
 
+  const handleUpdateBookingStatus = async (id, status) => {
+    if (!window.confirm(`Bạn có chắc muốn chuyển trạng thái đơn hàng #${id} sang ${status}?`)) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/bookings/${id}`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${getStoredToken()}` 
+        },
+        body: JSON.stringify({ status })
+      });
+      if (!res.ok) throw new Error('Lỗi khi cập nhật trạng thái');
+      const data = await res.json();
+      setBookings(prev => prev.map(b => b.id === id ? data : b));
+      alert('Cập nhật trạng thái thành công!');
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
   /* Service states */
   const [showAddServiceModal, setShowAddServiceModal] = useState(false);
   const [showEditServiceModal, setShowEditServiceModal] = useState(false);
@@ -726,7 +746,7 @@ const Admin = () => {
             />
           )}
 
-          {activeTab === 'bookings' && <AdminBookings bookings={bookings} />}
+          {activeTab === 'bookings' && <AdminBookings bookings={bookings} onUpdateStatus={handleUpdateBookingStatus} />}
 
           {activeTab === 'rooms' && (
             <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>

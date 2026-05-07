@@ -52,8 +52,11 @@ public class BookingService {
         }
 
         // 2. Kiểm tra phòng trống
-        if (!roomAvailabilityRepository.isRoomAvailable(req.roomId, req.checkInDate, req.checkOutDate))
+        System.err.println(">>> [createBooking] Checking availability for Room: " + req.roomId + " from " + req.checkInDate + " to " + req.checkOutDate);
+        if (!roomAvailabilityRepository.isRoomAvailable(req.roomId, req.checkInDate, req.checkOutDate)) {
+            System.err.println(">>> [createBooking] Conflict detected for Room: " + req.roomId);
             throw new AppException("Phòng đã được đặt hoặc không khả dụng trong khoảng thời gian này", 409);
+        }
 
         // 3. Lấy thông tin phòng & tính tiền phòng
         Room room = findRoomOrThrow(req.roomId);
@@ -167,6 +170,7 @@ public class BookingService {
             bookingServiceItemRepository.persist(item);
         }
 
+        System.err.println(">>> [createBooking] Booking created SUCCESSFULLY: ID=" + booking.id);
         return bookingMapper.toResponse(booking);
     }
 

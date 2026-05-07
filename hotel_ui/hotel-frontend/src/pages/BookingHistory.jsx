@@ -167,15 +167,44 @@ const BookingHistory = () => {
             </div>
 
             <div style={modalBodyStyle}>
+              {/* Customer Info Section */}
+              <div style={modalSectionStyle}>
+                <h4 style={sectionTitleStyle}><Info size={16} /> Thông tin khách đặt</h4>
+                <div style={modalInfoBoxStyle}>
+                  <div style={customerInfoRowStyle}>
+                    <span style={infoLabelStyle}>Họ và tên:</span>
+                    <span style={infoValueStyle}>{selectedBooking.customerName || 'N/A'}</span>
+                  </div>
+                  <div style={customerInfoRowStyle}>
+                    <span style={infoLabelStyle}>Số điện thoại:</span>
+                    <span style={infoValueStyle}>{selectedBooking.customerPhone || 'N/A'}</span>
+                  </div>
+                  <div style={customerInfoRowStyle}>
+                    <span style={infoLabelStyle}>Email:</span>
+                    <span style={infoValueStyle}>{selectedBooking.customerEmail || 'N/A'}</span>
+                  </div>
+                </div>
+              </div>
+
               {/* Room Section */}
               <div style={modalSectionStyle}>
-                <h4 style={sectionTitleStyle}><MapPin size={16} /> Thông tin phòng</h4>
+                <h4 style={sectionTitleStyle}><MapPin size={16} /> Chi tiết lưu trú</h4>
                 <div style={modalInfoBoxStyle}>
                   <div style={{ fontWeight: '700', fontSize: '18px', color: '#0F2E5A' }}>Phòng {selectedBooking.roomNumber}</div>
-                  <div style={{ color: '#64748B', fontSize: '14px' }}>{selectedBooking.roomType}</div>
-                  <div style={{ marginTop: '10px', fontSize: '14px', color: '#475569', display: 'flex', gap: '15px' }}>
-                    <span><strong>Nhận:</strong> {selectedBooking.checkInDate}</span>
-                    <span><strong>Trả:</strong> {selectedBooking.checkOutDate}</span>
+                  <div style={{ color: '#64748B', fontSize: '14px', marginBottom: '10px' }}>{selectedBooking.roomType}</div>
+                  <div style={stayDetailStyle}>
+                    <div style={detailBoxStyle}>
+                      <span style={detailLabelStyle}>Ngày nhận</span>
+                      <span style={detailValueStyle}>{selectedBooking.checkInDate}</span>
+                    </div>
+                    <div style={detailBoxStyle}>
+                      <span style={detailLabelStyle}>Ngày trả</span>
+                      <span style={detailValueStyle}>{selectedBooking.checkOutDate}</span>
+                    </div>
+                  </div>
+                  <div style={{ marginTop: '15px', padding: '10px', background: '#fff', borderRadius: '12px', border: '1px dashed #E2E8F0', display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '13px', color: '#64748B' }}>Số lượng khách:</span>
+                    <span style={{ fontSize: '13px', fontWeight: '700', color: '#0F2E5A' }}>{selectedBooking.occupancy || 2} người</span>
                   </div>
                 </div>
               </div>
@@ -183,26 +212,31 @@ const BookingHistory = () => {
               {/* Services Section */}
               {selectedBooking.services && selectedBooking.services.length > 0 && (
                 <div style={modalSectionStyle}>
-                  <h4 style={sectionTitleStyle}><Package size={16} /> Dịch vụ bổ sung</h4>
+                  <h4 style={sectionTitleStyle}><Package size={16} /> Dịch vụ đã đặt</h4>
                   <div style={servicesListStyle}>
-                    {selectedBooking.services.map((s, idx) => (
-                      <div key={idx} style={serviceItemStyle}>
-                        <div>
-                          <div style={{ fontWeight: '600', color: '#1E293B' }}>{s.serviceName}</div>
-                          <div style={{ fontSize: '12px', color: '#64748B' }}>
-                            {s.quantity} {s.numberOfPeople ? `x ${s.numberOfPeople} người` : ''} {s.numberOfDays ? `x ${s.numberOfDays} ngày` : ''}
+                    {selectedBooking.services.map((s, idx) => {
+                      const total = s.price * s.quantity * (s.numberOfPeople || 1) * (s.numberOfDays || 1);
+                      return (
+                        <div key={idx} style={serviceItemStyle}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: '600', color: '#1E293B' }}>{s.serviceName}</div>
+                            <div style={{ fontSize: '12px', color: '#64748B' }}>
+                              {s.price.toLocaleString()}đ x {s.quantity} 
+                              {s.numberOfPeople ? ` x ${s.numberOfPeople} người` : ''} 
+                              {s.numberOfDays ? ` x ${s.numberOfDays} ngày` : ''}
+                            </div>
                           </div>
+                          <div style={{ fontWeight: '700', color: '#2563EB' }}>{total.toLocaleString()}đ</div>
                         </div>
-                        <div style={{ fontWeight: '600' }}>{(s.price * s.quantity * (s.numberOfPeople || 1) * (s.numberOfDays || 1)).toLocaleString()}đ</div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
 
               {/* Payment Section */}
               <div style={modalSectionStyle}>
-                <h4 style={sectionTitleStyle}><CreditCard size={16} /> Thanh toán</h4>
+                <h4 style={sectionTitleStyle}><CreditCard size={16} /> Chi tiết thanh toán</h4>
                 <div style={pricingBoxStyle}>
                   <div style={priceRowStyle}>
                     <span>Tiền phòng</span>
@@ -210,13 +244,16 @@ const BookingHistory = () => {
                   </div>
                   {selectedBooking.totalServicePrice > 0 && (
                     <div style={priceRowStyle}>
-                      <span>Tổng dịch vụ</span>
+                      <span>Tổng tiền dịch vụ</span>
                       <span>{selectedBooking.totalServicePrice?.toLocaleString()}đ</span>
                     </div>
                   )}
-                  {selectedBooking.discountAmount > 0 && (
-                    <div style={{ ...priceRowStyle, color: '#059669' }}>
-                      <span>Giảm giá {selectedBooking.voucherCode ? `(${selectedBooking.voucherCode})` : ''}</span>
+                  {selectedBooking.voucherCode && (
+                    <div style={{ ...priceRowStyle, color: '#059669', background: '#ECFDF5', padding: '8px 12px', borderRadius: '10px', marginTop: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Gift size={14} />
+                        <span>Mã giảm giá: <strong>{selectedBooking.voucherCode}</strong></span>
+                      </div>
                       <span>-{selectedBooking.discountAmount?.toLocaleString()}đ</span>
                     </div>
                   )}
@@ -224,8 +261,12 @@ const BookingHistory = () => {
                     <span>Tổng cộng</span>
                     <span>{selectedBooking.totalPrice?.toLocaleString()}đ</span>
                   </div>
-                  <div style={{ ...statusBadgeStyle, marginTop: '15px', width: 'fit-content', fontSize: '12px' }}>
-                    Thanh toán: {selectedBooking.paymentStatus ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px' }}>
+                    <div style={{ ...statusBadgeStyle, background: selectedBooking.paymentStatus ? '#F0FDF4' : '#FFF7ED', color: selectedBooking.paymentStatus ? '#15803D' : '#C2410C', fontSize: '12px' }}>
+                      {selectedBooking.paymentStatus ? 'Đã thanh toán' : 'Chờ thanh toán'}
+                    </div>
+                    <span style={{ fontSize: '12px', color: '#94A3B8' }}>Hình thức: Chuyển khoản/Tiền mặt</span>
                   </div>
                 </div>
               </div>
@@ -284,6 +325,13 @@ const serviceItemStyle = { display: 'flex', justifyContent: 'space-between', ali
 const pricingBoxStyle = { padding: '20px', background: '#F0F9FF', borderRadius: '20px', border: '1px solid #BAE6FD' };
 const priceRowStyle = { display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '14px', color: '#0369A1' };
 const totalPriceRowStyle = { display: 'flex', justifyContent: 'space-between', marginTop: '15px', paddingTop: '15px', borderTop: '2px solid #BAE6FD', fontWeight: '800', fontSize: '20px', color: '#0284C7' };
+const customerInfoRowStyle = { display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '14px' };
+const infoLabelStyle = { color: '#64748B', fontWeight: '500' };
+const infoValueStyle = { color: '#0F2E5A', fontWeight: '600' };
+const stayDetailStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '10px' };
+const detailBoxStyle = { background: '#fff', padding: '10px', borderRadius: '12px', border: '1px solid #F1F5F9' };
+const detailLabelStyle = { display: 'block', fontSize: '11px', color: '#94A3B8', textTransform: 'uppercase', marginBottom: '4px' };
+const detailValueStyle = { display: 'block', fontSize: '14px', fontWeight: '700', color: '#1E293B' };
 
 const statusBoxStyle = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '40px', background: '#fff', borderRadius: '24px', color: '#64748B' };
 const emptyStateStyle = { textAlign: 'center', padding: '60px', background: '#fff', borderRadius: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' };

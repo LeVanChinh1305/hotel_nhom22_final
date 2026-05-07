@@ -21,6 +21,12 @@ public class BookingResponse {
     public String roomNumber;
     public String roomType;
     public String voucherCode;
+    
+    public String customerName;
+    public String customerEmail;
+    public String customerPhone;
+    public Integer occupancy;
+    
     public List<ServiceItemResponse> services;
 
     public static class ServiceItemResponse {

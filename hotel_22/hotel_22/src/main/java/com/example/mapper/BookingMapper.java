@@ -37,12 +37,20 @@ public class BookingMapper {
         res.paymentStatus    = booking.paymentStatus;
         res.createdAt        = booking.createdAt;
 
+        // Thông tin khách hàng
+        if (booking.user != null) {
+            res.customerName = booking.user.fullName;
+            res.customerEmail = booking.user.email;
+            res.customerPhone = booking.user.phone;
+        }
+
         // Map Room details
         try {
             Room room = roomRepository.findById(new ObjectId(booking.roomId));
             if (room != null) {
                 res.roomNumber = room.roomNumber;
                 res.roomType = room.type.name();
+                res.occupancy = room.maxOccupancy;
             }
         } catch (Exception e) {
             System.err.println("Lỗi khi map Room info: " + e.getMessage());

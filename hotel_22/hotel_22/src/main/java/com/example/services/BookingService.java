@@ -175,7 +175,10 @@ public class BookingService {
     }
 
     public List<BookingResponse> getMyBookings(Long userId) {
+        System.err.println(">>> [getMyBookings] Fetching bookings for UserID: " + userId);
         List<Booking> bookings = bookingRepository.findByUserId(userId);
+        System.err.println(">>> [getMyBookings] Found " + (bookings != null ? bookings.size() : 0) + " bookings");
+        
         if (bookings == null) return new ArrayList<>();
         return bookings
                 .stream()

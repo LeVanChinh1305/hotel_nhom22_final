@@ -12,6 +12,15 @@ const actionBtnStyle = {
 const AdminBookings = ({ bookings, onUpdateStatus }) => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+
+  const filteredBookings = bookings.filter(b => {
+    const matchPhone = (b.customerPhone || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchStatus = statusFilter === 'ALL' || b.status === statusFilter;
+    return matchPhone && matchStatus;
+  });
+
 
   const handleApprove = (id) => {
     onUpdateStatus(id, 'CONFIRMED');
@@ -30,8 +39,51 @@ const AdminBookings = ({ bookings, onUpdateStatus }) => {
 
   return (
     <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
-      <div style={{ padding: '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ margin: 0, fontSize: '18px', color: '#0F2E5A' }}>Quản lý Đặt phòng ({bookings.length})</h2>
+      <div style={{ padding: '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+        <h2 style={{ margin: 0, fontSize: '18px', color: '#0F2E5A' }}>Quản lý Đặt phòng ({filteredBookings.length})</h2>
+        
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          <select 
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            style={{ 
+              padding: '10px 16px', 
+              borderRadius: '12px', 
+              border: '1px solid #E2E8F0', 
+              fontSize: '14px', 
+              outline: 'none',
+              background: '#fff',
+              color: '#475569',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="ALL">Tất cả trạng thái</option>
+            <option value="PENDING">Chờ xác nhận</option>
+            <option value="CONFIRMED">Đã xác nhận</option>
+            <option value="CHECKED_IN">Đã nhận phòng</option>
+            <option value="CHECKED_OUT">Đã trả phòng</option>
+            <option value="CANCELLED">Đã hủy</option>
+          </select>
+
+          <div style={{ position: 'relative', width: '250px' }}>
+            <input 
+              type="text" 
+              placeholder="Tìm theo số điện thoại..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ 
+                width: '100%', 
+                padding: '10px 16px', 
+                borderRadius: '12px', 
+                border: '1px solid #E2E8F0', 
+                fontSize: '14px', 
+                outline: 'none',
+                background: '#F8FAFC',
+                boxSizing: 'border-box'
+              }} 
+            />
+          </div>
+        </div>
       </div>
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -43,9 +95,9 @@ const AdminBookings = ({ bookings, onUpdateStatus }) => {
             </tr>
           </thead>
           <tbody>
-            {bookings.length === 0 ? (
-              <tr><td colSpan={8} style={emptyTdStyle}>Không có dữ liệu đơn đặt phòng</td></tr>
-            ) : bookings.map(b => (
+            {filteredBookings.length === 0 ? (
+              <tr><td colSpan={8} style={emptyTdStyle}>Không tìm thấy đơn đặt phòng nào phù hợp</td></tr>
+            ) : filteredBookings.map(b => (
               <tr key={b.id} style={trStyle} onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                 <td style={tdStyle}><strong>#{b.id}</strong></td>
                 <td style={tdStyle}>
@@ -64,7 +116,25 @@ const AdminBookings = ({ bookings, onUpdateStatus }) => {
                   {b.totalPrice?.toLocaleString()}₫
                 </td>
                 <td style={tdStyle}><StatusBadge value={b.status} /></td>
-                <td style={tdStyle}><StatusBadge value={b.paymentStatus ? 'PAID' : 'UNPAID'} /></td>
+                <td style={tdStyle}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <StatusBadge value={b.paymentStatus ? 'PAID' : 'UNPAID'} />
+                    <button 
+                      onClick={() => onUpdateStatus(b.id, b.status, !b.paymentStatus)}
+                      style={{ 
+                        border: 'none', background: '#F1F5F9', color: '#059669', 
+                        borderRadius: '4px', width: '24px', height: '24px', 
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                        cursor: 'pointer', transition: '0.2s' 
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#DCFCE7'}
+                      onMouseLeave={e => e.currentTarget.style.background = '#F1F5F9'}
+                      title={b.paymentStatus ? 'Đánh dấu chưa thanh toán' : 'Đánh dấu đã thanh toán'}
+                    >
+                      <Check size={14} />
+                    </button>
+                  </div>
+                </td>
                 <td style={{ ...tdStyle, textAlign: 'center' }}>
                   <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
                     <button 

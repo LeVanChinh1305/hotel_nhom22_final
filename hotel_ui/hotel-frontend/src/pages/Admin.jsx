@@ -158,8 +158,12 @@ const Admin = () => {
   const [voucherLoading, setVoucherLoading] = useState(false);
 
 
-  const handleUpdateBookingStatus = async (id, status) => {
-    if (!window.confirm(`Bạn có chắc muốn chuyển trạng thái đơn hàng #${id} sang ${status}?`)) return;
+  const handleUpdateBookingStatus = async (id, status, paymentStatus) => {
+    const confirmMsg = status 
+      ? `Bạn có chắc muốn chuyển trạng thái đơn hàng #${id} sang ${status}?`
+      : `Bạn có chắc muốn cập nhật trạng thái thanh toán cho đơn hàng #${id}?`;
+      
+    if (!window.confirm(confirmMsg)) return;
     try {
       const res = await fetch(`${API_BASE}/api/admin/bookings/${id}`, {
         method: 'PUT',
@@ -167,16 +171,17 @@ const Admin = () => {
           'Content-Type': 'application/json', 
           'Authorization': `Bearer ${getStoredToken()}` 
         },
-        body: JSON.stringify({ status })
+        body: JSON.stringify({ status, paymentStatus })
       });
       if (!res.ok) throw new Error('Lỗi khi cập nhật trạng thái');
       const data = await res.json();
       setBookings(prev => prev.map(b => b.id === id ? data : b));
-      alert('Cập nhật trạng thái thành công!');
+      alert('Cập nhật thành công!');
     } catch (e) {
       alert(e.message);
     }
   };
+
 
   /* Service states */
   const [showAddServiceModal, setShowAddServiceModal] = useState(false);
@@ -295,21 +300,21 @@ const Admin = () => {
       setNews(prev => prev.map(n => n.id === editingNews.id ? data : n));
       setShowEditNewsModal(false);
       setEditingNews(null);
-      alert('Cập nhật tin tức thành công!');
+      alert('Cập nhật thành công!');
     } catch (e) { alert(e.message); } finally { setNewsLoading(false); }
   };
 
   const handleDeleteNews = async (id) => {
     if (!window.confirm('Bạn có chắc muốn xóa tin tức này?')) return;
     try {
-      const res = await fetch(`${API_BASE}/api/admin/news/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${getStoredToken()}` }
-      });
-      if (!res.ok) throw new Error('Lỗi khi xóa tin tức');
-      setNews(prev => prev.filter(n => n.id !== id));
-      alert('Xóa thành công!');
-    } catch (e) { alert(e.message); }
+        const res = await fetch(`${API_BASE}/api/admin/news/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${getStoredToken()}` }
+        });
+        if (!res.ok) throw new Error('Lỗi khi xóa tin tức');
+        setNews(prev => prev.filter(n => n.id !== id));
+        alert('Xóa thành công!');
+      } catch (e) { alert(e.message); }
   };
 
   /* Voucher functions */
@@ -386,6 +391,7 @@ const Admin = () => {
       });
       const data = await resList.json();
       setVouchers(data);
+      alert('Đã thay đổi trạng thái voucher!');
     } catch (e) { alert(e.message); }
   };
 

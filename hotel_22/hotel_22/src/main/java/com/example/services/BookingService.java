@@ -351,6 +351,7 @@ public class BookingService {
      */
     private void validateStatusTransition(Booking.BookingStatus current,
                                           Booking.BookingStatus next) {
+        if (current == next) return; // Không đổi trạng thái thì luôn hợp lệ
         boolean valid = switch (current) {
             case PENDING   -> next == Booking.BookingStatus.CONFIRMED
                            || next == Booking.BookingStatus.CANCELLED;

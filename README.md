@@ -1,53 +1,67 @@
-# Hotel 22 - Frontend UI
+# Hệ Thống Quản Lý Khách Sạn - Hotel 22
 
-Thư mục này chứa mã nguồn giao diện người dùng (Frontend) cho hệ thống quản lý khách sạn Hotel 22. Dự án được xây dựng bằng **React** và công cụ build **Vite**.
+Dự án này bao gồm hai phần chính: **Backend** (xây dựng bằng Quarkus Java) và **Frontend** (xây dựng bằng React Vite).
 
-## 🚀 Công nghệ sử dụng
+---
 
-- **React 19**: Thư viện UI chính.
-- **Vite**: Công cụ build cực nhanh.
-- **Lucide React**: Bộ icon hiện đại.
-- **React Router Dom**: Quản lý điều hướng trang.
-- **Vanilla CSS**: Thiết kế giao diện cao cấp (Premium Design).
+## 🛠 1. Hướng dẫn chạy Backend (Quarkus)
 
-## 🛠 Hướng dẫn cài đặt và chạy ứng dụng
+Backend chịu trách nhiệm xử lý logic nghiệp vụ, quản lý cơ sở dữ liệu và cung cấp API cho Frontend.
 
-Để khởi động dự án này trên máy cục bộ, bạn cần cài đặt **Node.js**.
+### Yêu cầu hệ thống:
+- Java JDK 17 hoặc mới hơn.
+- MySQL Server (để lưu trữ dữ liệu chính).
+- MongoDB (để quản lý tình trạng phòng trống).
 
-### 1. Di chuyển vào thư mục dự án
-Mở terminal và di chuyển đến thư mục frontend:
-```bash
-cd hotel_ui/hotel-frontend
-```
+### Các bước thực hiện:
+1. **Di chuyển vào thư mục backend**:
+   ```bash
+   cd hotel_22/hotel_22
+   ```
+2. **Cấu hình Database**:
+   - Mở tệp `src/main/resources/application.properties`.
+   - Cấu hình thông tin kết nối MySQL (`username`, `password`, `url`).
+   - Cấu hình kết nối MongoDB.
+3. **Khởi động Backend**:
+   Chạy lệnh sau để khởi động ở chế độ phát triển:
+   ```bash
+   ./mvnw quarkus:dev
+   ```
+   Backend sẽ chạy tại địa chỉ: `http://localhost:8080`
 
-### 2. Cài đặt các thư viện phụ thuộc (Dependencies)
-Chạy lệnh sau để cài đặt tất cả các package cần thiết:
-```bash
-npm install
-```
+---
 
-### 3. Chạy ứng dụng ở chế độ phát triển (Development Mode)
-Khởi động dev server:
-```bash
-npm run dev
-```
-Sau khi chạy xong, terminal sẽ hiển thị địa chỉ local (thường là `http://localhost:5173`). Bạn hãy mở trình duyệt và truy cập địa chỉ này.
+## 🚀 2. Hướng dẫn chạy Frontend (React Vite)
 
-### 4. Xây dựng bản sản xuất (Production Build)
-Để build ứng dụng cho việc triển khai thực tế:
-```bash
-npm run build
-```
+Frontend cung cấp giao diện người dùng hiện đại và cao cấp.
 
-## 📂 Cấu trúc thư mục chính
+### Yêu cầu hệ thống:
+- Node.js (phiên bản mới nhất).
 
-- `src/pages/`: Chứa các trang chính của ứng dụng (Home, Rooms, Services, Admin, BookingHistory,...).
-- `src/components/`: Chứa các thành phần giao diện dùng chung (Navbar, Footer, Modals,...).
-- `src/assets/`: Chứa hình ảnh, icon và các tệp tĩnh.
+### Các bước thực hiện:
+1. **Di chuyển vào thư mục frontend**:
+   ```bash
+   cd hotel_ui/hotel-frontend
+   ```
+2. **Cài đặt thư viện**:
+   ```bash
+   npm install
+   ```
+3. **Khởi động Frontend**:
+   ```bash
+   npm run dev
+   ```
+   Frontend sẽ chạy tại địa chỉ: `http://localhost:5173` (hoặc cổng khác hiển thị trên terminal).
 
-## 📝 Lưu ý quan trọng
-- Đảm bảo Backend (Quarkus) đang chạy tại `http://localhost:8080` để Frontend có thể gọi API.
-- Nếu gặp lỗi về cổng (Port), bạn có thể cấu hình lại trong tệp `vite.config.js`.
+---
+
+## 📂 Cấu trúc dự án
+- `/hotel_22/hotel_22`: Mã nguồn Java Quarkus (Backend).
+- `/hotel_ui/hotel-frontend`: Mã nguồn React (Frontend).
+
+## 📝 Lưu ý chung
+- Cần khởi động Backend trước khi sử dụng Frontend để đảm bảo dữ liệu được tải chính xác.
+- Đảm bảo các dịch vụ MySQL và MongoDB đã được bật.
 
 ---
 *Phát triển bởi Hotel 22 Team*

@@ -31,6 +31,14 @@ const Services = () => {
     fetchServices();
   }, []);
 
+  const serviceVisuals = [
+    { bg: '#F0F9FF', border: '#BAE6FD', iconColor: '#0284C7', titleColor: '#0369A1', hoverBg: '#E0F2FE' },
+    { bg: '#F0FDF4', border: '#BBF7D0', iconColor: '#16A34A', titleColor: '#15803D', hoverBg: '#DCFCE7' },
+    { bg: '#FDF4FF', border: '#F5D0FE', iconColor: '#A21CAF', titleColor: '#86198F', hoverBg: '#FAE8FF' },
+    { bg: '#FFF7ED', border: '#FFEDD5', iconColor: '#EA580C', titleColor: '#C2410C', hoverBg: '#FFEDD5' },
+    { bg: '#F5F3FF', border: '#DDD6FE', iconColor: '#7C3AED', titleColor: '#5B21B6', hoverBg: '#EDE9FE' },
+  ];
+
   return (
     <div style={{ minHeight: '100vh', background: '#F8FBFF', fontFamily: "'Outfit', sans-serif" }}>
       <Navbar />
@@ -108,71 +116,77 @@ const Services = () => {
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px' }}>
-            {services.map(svc => (
-              <div key={svc.id} className="service-card" style={{
-                background: '#fff',
-                padding: '40px 32px',
-                borderRadius: '24px',
-                border: '1px solid #F1F5F9',
-                boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)',
-                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                cursor: 'default',
-                position: 'relative',
-                overflow: 'hidden'
-              }}>
-                <div style={{ 
-                  width: '64px', height: '64px', background: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)', 
-                  borderRadius: '20px', display: 'flex', alignItems: 'center', 
-                  justifyContent: 'center', marginBottom: '28px' 
+            {services.map((svc, idx) => {
+              const visual = serviceVisuals[idx % serviceVisuals.length];
+              return (
+                <div key={svc.id} className="service-card" style={{
+                  background: visual.bg,
+                  padding: '40px 32px',
+                  borderRadius: '24px',
+                  border: `1px solid ${visual.border}`,
+                  boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)',
+                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  cursor: 'default',
+                  position: 'relative',
+                  overflow: 'hidden'
                 }}>
-                  <ConciergeBell size={30} color="#2563EB" />
-                </div>
-                
-                <h3 style={{ fontSize: '22px', fontWeight: '800', color: '#0F172A', marginBottom: '12px' }}>
-                  {svc.serviceName}
-                </h3>
-                
-                <p style={{ color: '#64748B', fontSize: '15px', lineHeight: '1.6', marginBottom: '32px', minHeight: '4.8em' }}>
-                  {svc.description}
-                </p>
-                
-                <div style={{ 
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  paddingTop: '24px', borderTop: '1px solid #F1F5F9'
-                }}>
-                  <div>
-                    <span style={{ fontSize: '12px', color: '#94A3B8', display: 'block', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Giá dịch vụ</span>
-                    <span style={{ fontSize: '20px', fontWeight: '800', color: '#1E40AF' }}>
-                      {svc.price?.toLocaleString()} <small style={{ fontSize: '13px', fontWeight: '600' }}>VNĐ</small>
-                    </span>
+                  <div style={{ 
+                    width: '64px', height: '64px', background: '#FFFFFF', 
+                    borderRadius: '20px', display: 'flex', alignItems: 'center', 
+                    justifyContent: 'center', marginBottom: '28px',
+                    boxShadow: '0 8px 16px -4px rgba(0,0,0,0.05)'
+                  }}>
+                    <ConciergeBell size={30} color={visual.iconColor} />
                   </div>
                   
-                  {svc.isAvailable && (
-                    <div style={{ 
-                      background: '#F0FDF4', color: '#16A34A', padding: '6px 12px', 
-                      borderRadius: '10px', fontSize: '12px', fontWeight: '700',
-                      display: 'flex', alignItems: 'center', gap: '6px',
-                      border: '1px solid #DCFCE7'
-                    }}>
-                      <div style={{ width: '6px', height: '6px', background: '#16A34A', borderRadius: '50%' }} />
-                      SẴN SÀNG
+                  <h3 style={{ fontSize: '22px', fontWeight: '800', color: visual.titleColor, marginBottom: '12px' }}>
+                    {svc.serviceName}
+                  </h3>
+                  
+                  <p style={{ color: '#475569', fontSize: '15px', lineHeight: '1.6', marginBottom: '32px', minHeight: '4.8em' }}>
+                    {svc.description}
+                  </p>
+                  
+                  <div style={{ 
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    paddingTop: '24px', borderTop: `1px solid ${visual.border}`
+                  }}>
+                    <div>
+                      <span style={{ fontSize: '12px', color: '#64748B', display: 'block', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Giá: {svc.price?.toLocaleString()} VNĐ / {svc.unit || 'Lượt'}
+                      </span>
+                      <span style={{ fontSize: '20px', fontWeight: '800', color: visual.titleColor }}>
+                        {svc.price?.toLocaleString()} <small style={{ fontSize: '13px', fontWeight: '600' }}>VNĐ</small>
+                      </span>
                     </div>
-                  )}
-                </div>
+                    
+                    {svc.isAvailable && (
+                      <div style={{ 
+                        background: '#FFFFFF', color: visual.iconColor, padding: '6px 12px', 
+                        borderRadius: '10px', fontSize: '12px', fontWeight: '700',
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                        border: `1px solid ${visual.border}`
+                      }}>
+                        <div style={{ width: '6px', height: '6px', background: visual.iconColor, borderRadius: '50%' }} />
+                        CÓ SẴN
+                      </div>
+                    )}
+                  </div>
 
-                <style>{`
-                  .service-card:hover {
-                    transform: translateY(-10px);
-                    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
-                    border-color: #DBEAFE;
-                  }
-                  @keyframes spin {
-                    from { transform: rotate(0deg); }
-                    to { transform: rotate(360deg); }
-                  }
-                `}</style>
-              </div>
-            ))}
+                  <style>{`
+                    .service-card:hover {
+                      transform: translateY(-10px);
+                      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+                      background: ${visual.hoverBg};
+                    }
+                    @keyframes spin {
+                      from { transform: rotate(0deg); }
+                      to { transform: rotate(360deg); }
+                    }
+                  `}</style>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -182,4 +196,4 @@ const Services = () => {
   );
 };
 
-export default Services;
+export default Services;

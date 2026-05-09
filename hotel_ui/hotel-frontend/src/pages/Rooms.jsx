@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import RoomCard from '../components/rooms/RoomCard';
+import { Sparkles, Calendar, Search, Filter, ArrowRight } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8080';
 
@@ -59,29 +60,67 @@ const Rooms = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F8FBFF' }}>
+    <div style={{ minHeight: '100vh', background: '#F8FBFF', fontFamily: "'Outfit', sans-serif" }}>
       <Navbar />
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 2rem' }}>
-        <header style={{ marginBottom: '24px' }}>
-          <h1 style={{ fontFamily: "'Playfair Display', serif", color: '#0F2E5A', fontSize: '36px' }}>
+
+      {/* Premium Hero Header */}
+      <div style={{ 
+        background: 'linear-gradient(135deg, #0F2E5A 0%, #1E40AF 100%)',
+        padding: '100px 2rem 160px',
+        textAlign: 'center',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        <div style={{
+          position: 'absolute', top: '-20%', right: '-10%', width: '40%', height: '80%',
+          background: 'rgba(59, 130, 246, 0.15)', filter: 'blur(120px)', borderRadius: '50%'
+        }} />
+        <div style={{
+          position: 'absolute', bottom: '-20%', left: '-10%', width: '40%', height: '80%',
+          background: 'rgba(30, 64, 175, 0.2)', filter: 'blur(120px)', borderRadius: '50%'
+        }} />
+        
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
+          <div style={{ 
+            display: 'inline-flex', alignItems: 'center', gap: '8px', 
+            background: 'rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(10px)',
+            padding: '6px 16px', borderRadius: '20px', color: '#BFDBFE',
+            fontSize: '13px', fontWeight: '600', marginBottom: '24px',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+          }}>
+            <Sparkles size={14} /> KHÔNG GIAN NGHỈ DƯỠNG ĐẲNG CẤP
+          </div>
+          <h1 style={{ 
+            fontFamily: "'Playfair Display', serif", fontSize: '48px', color: '#FFFFFF', 
+            marginBottom: '20px', lineHeight: '1.2', fontWeight: '700'
+          }}>
             Danh sách phòng nghỉ
           </h1>
-          <p style={{ color: '#64748B' }}>Khám phá không gian nghỉ dưỡng phù hợp với nhu cầu của bạn</p>
-        </header>
+          <p style={{ color: '#94A3B8', fontSize: '18px', maxWidth: '600px', margin: '0 auto', lineHeight: '1.6' }}>
+            Khám phá không gian nghỉ dưỡng tinh tế, mang lại sự thư giãn tuyệt đối cho kỳ nghỉ của bạn.
+          </p>
+        </div>
+      </div>
 
+      <div style={{ maxWidth: '1200px', margin: '-80px auto 80px', padding: '0 2rem', position: 'relative', zIndex: 2 }}>
+        
+        {/* Main Search Bar */}
         <div style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '12px',
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr auto',
+          gap: '24px',
           alignItems: 'flex-end',
-          marginBottom: '24px',
-          padding: '20px',
-          borderRadius: '18px',
+          marginBottom: '32px',
+          padding: '32px',
+          borderRadius: '24px',
           background: '#fff',
-          boxShadow: '0 8px 24px rgba(15, 46, 90, 0.04)',
+          boxShadow: '0 20px 25px -5px rgba(15, 23, 42, 0.08)',
+          border: '1px solid #F1F5F9'
         }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label style={{ fontSize: '14px', color: '#475569' }}>Ngày nhận</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <label style={{ fontSize: '14px', fontWeight: '700', color: '#334155', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Calendar size={16} color="#3B82F6" /> NGÀY NHẬN PHÒNG
+            </label>
             <input
               type="date"
               value={checkInDate}
@@ -95,21 +134,25 @@ const Rooms = () => {
                 }
               }}
               style={{
-                padding: '12px 14px', borderRadius: '14px', border: '1px solid #E2E8F0',
-                minWidth: '210px', background: '#F8FAFC', color: '#0F172A'
+                padding: '14px 18px', borderRadius: '14px', border: '1px solid #E2E8F0',
+                background: '#F8FAFC', color: '#0F172A', outline: 'none', transition: 'all 0.2s',
+                fontSize: '15px'
               }}
             />
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label style={{ fontSize: '14px', color: '#475569' }}>Ngày trả</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <label style={{ fontSize: '14px', fontWeight: '700', color: '#334155', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Calendar size={16} color="#3B82F6" /> NGÀY TRẢ PHÒNG
+            </label>
             <input
               type="date"
               value={checkOutDate}
               onChange={e => setCheckOutDate(e.target.value)}
               style={{
-                padding: '12px 14px', borderRadius: '14px', border: '1px solid #E2E8F0',
-                minWidth: '210px', background: '#F8FAFC', color: '#0F172A'
+                padding: '14px 18px', borderRadius: '14px', border: '1px solid #E2E8F0',
+                background: '#F8FAFC', color: '#0F172A', outline: 'none', transition: 'all 0.2s',
+                fontSize: '15px'
               }}
             />
           </div>
@@ -117,13 +160,13 @@ const Rooms = () => {
           <button
             onClick={handleSearch}
             style={{
-              padding: '14px 22px', borderRadius: '14px', border: 'none',
+              padding: '16px 40px', borderRadius: '14px', border: 'none',
               background: '#2563EB', color: '#fff', cursor: 'pointer',
-              fontWeight: '700', boxShadow: '0 12px 24px rgba(37, 99, 235, 0.18)',
-              minWidth: '160px'
+              fontWeight: '700', boxShadow: '0 10px 15px -3px rgba(37, 99, 235, 0.3)',
+              display: 'flex', alignItems: 'center', gap: '10px', transition: 'all 0.2s'
             }}
           >
-            Tìm phòng
+            <Search size={18} /> TÌM PHÒNG NGAY
           </button>
         </div>
 
@@ -131,52 +174,64 @@ const Rooms = () => {
         <div style={{
           display: 'flex',
           flexWrap: 'wrap',
-          gap: '16px',
-          marginBottom: '32px',
-          padding: '20px',
-          borderRadius: '18px',
+          gap: '24px',
+          marginBottom: '48px',
+          padding: '24px 32px',
+          borderRadius: '20px',
           background: 'rgba(37, 99, 235, 0.03)',
           border: '1px solid rgba(37, 99, 235, 0.1)',
-          alignItems: 'center'
+          alignItems: 'center',
+          justifyContent: 'space-between'
         }}>
-          <div style={{ fontSize: '14px', fontWeight: '700', color: '#0F2E5A', marginRight: '8px' }}>Bộ lọc:</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1E40AF', fontWeight: '700', fontSize: '14px' }}>
+              <Filter size={16} /> LỌC THEO:
+            </div>
 
-          <select
-            value={selectedType}
-            onChange={e => setSelectedType(e.target.value)}
-            style={{ padding: '10px 16px', borderRadius: '12px', border: '1px solid #E2E8F0', background: '#fff', fontSize: '14px', color: '#475569', outline: 'none' }}
-          >
-            <option value="">Tất cả loại phòng</option>
-            <option value="STANDARD">Standard</option>
-            <option value="DELUXE">Deluxe</option>
-            <option value="SUITE">Suite</option>
-            <option value="PRESIDENTIAL">Presidential</option>
-          </select>
+            <select
+              value={selectedType}
+              onChange={e => setSelectedType(e.target.value)}
+              style={{ 
+                padding: '10px 16px', borderRadius: '12px', border: '1px solid #E2E8F0', 
+                background: '#fff', fontSize: '14px', color: '#475569', outline: 'none',
+                minWidth: '180px'
+              }}
+            >
+              <option value="">Tất cả loại phòng</option>
+              <option value="STANDARD">Standard</option>
+              <option value="DELUXE">Deluxe</option>
+              <option value="SUITE">Suite</option>
+              <option value="PRESIDENTIAL">Presidential</option>
+            </select>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ color: '#0a0b0cff' }}> Giá từ : </span>
-            <input
-              type="number"
-              placeholder="Giá từ"
-              value={minPrice}
-              onChange={e => setMinPrice(e.target.value)}
-              style={{ width: '130px', padding: '10px 16px', borderRadius: '12px', border: '1px solid #E2E8F0', background: '#fff', fontSize: '14px', outline: 'none' }}
-            />
-            <span style={{ color: '#181a1dff' }}>  đến : </span>
-            <input
-              type="number"
-              placeholder="Giá đến"
-              value={maxPrice}
-              onChange={e => setMaxPrice(e.target.value)}
-              style={{ width: '130px', padding: '10px 16px', borderRadius: '12px', border: '1px solid #E2E8F0', background: '#fff', fontSize: '14px', outline: 'none' }}
-            />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <input
+                type="number"
+                placeholder="Giá từ (₫)"
+                value={minPrice}
+                onChange={e => setMinPrice(e.target.value)}
+                style={{ width: '140px', padding: '10px 16px', borderRadius: '12px', border: '1px solid #E2E8F0', background: '#fff', fontSize: '14px', outline: 'none' }}
+              />
+              <ArrowRight size={14} color="#94A3B8" />
+              <input
+                type="number"
+                placeholder="Giá đến (₫)"
+                value={maxPrice}
+                onChange={e => setMaxPrice(e.target.value)}
+                style={{ width: '140px', padding: '10px 16px', borderRadius: '12px', border: '1px solid #E2E8F0', background: '#fff', fontSize: '14px', outline: 'none' }}
+              />
+            </div>
           </div>
 
           <button
             onClick={loadRooms}
-            style={{ background: '#fff', border: '1px solid #2563EB', color: '#2563EB', padding: '10px 20px', borderRadius: '12px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}
+            style={{ 
+              background: '#2563EB', color: '#fff', padding: '10px 24px', 
+              borderRadius: '12px', fontSize: '14px', fontWeight: '700', 
+              border: 'none', cursor: 'pointer', transition: 'all 0.2s'
+            }}
           >
-            Áp dụng lọc
+            ÁP DỤNG LỌC
           </button>
         </div>
 

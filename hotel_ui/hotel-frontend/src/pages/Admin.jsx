@@ -144,6 +144,7 @@ const Admin = () => {
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [userForm, setUserForm] = useState({ username: '', fullName: '', email: '', password: '', phone: '', role: 'CUSTOMER' });
   const [userLoading, setUserLoading] = useState(false);
+  const [userSearchTerm, setUserSearchTerm] = useState('');
   const [newsLoading, setNewsLoading] = useState(false);
   
   /* Voucher states */
@@ -1003,25 +1004,54 @@ const Admin = () => {
 
           {activeTab === 'users' && (
             <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
-              <div style={{ padding: '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ margin: 0, fontSize: '18px', color: '#0F2E5A' }}>Người dùng ({users.length})</h2>
-                <button style={{ ...addBtnStyle, background: '#1E40AF' }} onClick={() => setShowAddUserModal(true)}>
-                  <Plus size={14} /> Thêm mới
-                </button>
-              </div>
+              <div style={{ padding: '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                   <h2 style={{ margin: 0, fontSize: '18px', color: '#0F2E5A' }}>Người dùng ({users.length})</h2>
+                   <div style={{ position: 'relative' }}>
+                     <input 
+                       type="text" 
+                       placeholder="Tìm theo SĐT, Tên, Email..." 
+                       value={userSearchTerm}
+                       onChange={(e) => setUserSearchTerm(e.target.value)}
+                       style={{
+                         padding: '8px 12px 8px 36px',
+                         borderRadius: '8px',
+                         border: '1px solid #E2E8F0',
+                         fontSize: '14px',
+                         width: '240px',
+                         outline: 'none'
+                       }}
+                     />
+                     <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }}>
+                       <Users size={16} />
+                     </span>
+                   </div>
+                 </div>
+                 <button style={{ ...addBtnStyle, background: '#1E40AF' }} onClick={() => setShowAddUserModal(true)}>
+                   <Plus size={14} /> Thêm mới
+                 </button>
+               </div>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr>
-                      {['ID', 'Họ tên', 'Email', 'Vai trò', 'Trạng thái', 'Thao tác'].map(h => (
+                      {['ID', 'Họ tên', 'Email', 'SĐT', 'Vai trò', 'Trạng thái', 'Thao tác'].map(h => (
                         <th key={h} style={th}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {users.length === 0 ? (
-                      <tr><td colSpan={6} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
-                    ) : users.map(u => (
+                    {users.filter(u => 
+                      (u.fullName || '').toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+                      (u.email || '').toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+                      (u.phone || '').includes(userSearchTerm)
+                    ).length === 0 ? (
+                      <tr><td colSpan={7} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không tìm thấy người dùng phù hợp</td></tr>
+                    ) : users.filter(u => 
+                       (u.fullName || '').toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+                       (u.email || '').toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+                       (u.phone || '').includes(userSearchTerm)
+                    ).map(u => (
                       <tr key={u.id}
                         onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
@@ -1029,6 +1059,7 @@ const Admin = () => {
                         <td style={td}>#{u.id}</td>
                         <td style={td}>{u.fullName || '—'}</td>
                         <td style={td}>{u.email || '—'}</td>
+                        <td style={td}>{u.phone || '—'}</td>
                         <td style={td}>
                           <span style={{
                             background: u.role === 'ADMIN' ? '#DBEAFE' : '#EFF6FF',

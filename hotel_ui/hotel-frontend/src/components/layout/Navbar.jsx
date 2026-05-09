@@ -63,6 +63,7 @@ const Navbar = () => {
     { label: 'Phòng nghỉ', href: '/rooms'           },
     { label: 'Dịch vụ',   href: '/services'         },
     { label: 'Khuyến mãi', href: '/promotions'      },
+    { label: 'Tin tức',   href: '/news'            },
     { label: 'Lịch sử',   href: '/booking-history'  },
   ];
 

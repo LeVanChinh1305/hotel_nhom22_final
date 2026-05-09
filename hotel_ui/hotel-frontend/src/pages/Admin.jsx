@@ -138,6 +138,7 @@ const Admin = () => {
   const [newsForm, setNewsForm] = useState({
     title: '',
     thumbnail: '',
+    content: '',
     expiryDate: ''
   });
   const [newsLoading, setNewsLoading] = useState(false);
@@ -241,6 +242,7 @@ const Admin = () => {
     setNewsForm({
       title: n.title || '',
       thumbnail: n.thumbnail || '',
+      content: n.content || '',
       expiryDate: n.expiryDate ? n.expiryDate.split('.')[0] : ''
     });
     setShowEditNewsModal(true);
@@ -259,7 +261,7 @@ const Admin = () => {
       const data = await res.json();
       setNews(prev => [...prev, data]);
       setShowAddNewsModal(false);
-      setNewsForm({ title: '', thumbnail: '', expiryDate: '' });
+      setNewsForm({ title: '', thumbnail: '', content: '', expiryDate: '' });
       alert('Thêm tin tức thành công!');
     } catch (e) { alert(e.message); } finally { setNewsLoading(false); }
   };
@@ -936,7 +938,7 @@ const Admin = () => {
               <div style={{ padding: '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ margin: 0, fontSize: '18px', color: '#0F2E5A' }}>Tin tức ({news.length})</h2>
                 <button style={{ ...addBtnStyle, background: '#2563EB' }} onClick={() => {
-                  setNewsForm({ title: '', thumbnail: '', expiryDate: '' });
+                  setNewsForm({ title: '', thumbnail: '', content: '', expiryDate: '' });
                   setShowAddNewsModal(true);
                 }}>
                   <Plus size={14} /> Thêm mới
@@ -946,17 +948,16 @@ const Admin = () => {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr>
-                      {['ID', 'Ảnh', 'Tiêu đề', 'Ngày tạo', 'Hết hạn', 'Thao tác'].map(h => (
+                      {['Ảnh', 'Tiêu đề', 'Ngày tạo', 'Hết hạn', 'Thao tác'].map(h => (
                         <th key={h} style={th}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {news.length === 0 ? (
-                      <tr><td colSpan={6} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
+                      <tr><td colSpan={5} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
                     ) : news.map(n => (
                       <tr key={n.id} onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                        <td style={td}>#{n.id}</td>
                         <td style={td}>
                           {n.thumbnail ? (
                             <img src={n.thumbnail} alt="thumb" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} />
@@ -1569,6 +1570,16 @@ const Admin = () => {
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '6px' }}>URL Ảnh thu nhỏ</label>
               <input type="text" value={newsForm.thumbnail} onChange={e => setNewsForm({ ...newsForm, thumbnail: e.target.value })} style={inputStyle} />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '6px' }}>Nội dung chi tiết</label>
+              <textarea 
+                value={newsForm.content} 
+                onChange={e => setNewsForm({ ...newsForm, content: e.target.value })} 
+                style={{ ...inputStyle, minHeight: '150px', resize: 'vertical' }} 
+                placeholder="Nhập nội dung bài viết..."
+              />
             </div>
 
             <div style={{ marginBottom: '24px' }}>

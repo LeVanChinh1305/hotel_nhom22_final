@@ -15,6 +15,7 @@ public class NewsMapper {
         res.id          = (n.id != null) ? n.id.toHexString() : null;
         res.title       = n.title;
         res.thumbnail   = n.thumbnail;
+        res.content     = n.content;
         res.createdAt   = n.createdAt;
         res.expiryDate  = n.expiryDate;
         return res;
@@ -24,6 +25,7 @@ public class NewsMapper {
         News n = new News();
         n.title       = req.title;
         n.thumbnail   = req.thumbnail;
+        n.content     = req.content;
         n.createdAt   = LocalDateTime.now();
         n.expiryDate  = req.expiryDate;
         return n;
@@ -32,6 +34,7 @@ public class NewsMapper {
     public void updateEntity(News n, CreateNewsRequest req) {
         n.title       = req.title;
         n.thumbnail   = req.thumbnail;
+        n.content     = req.content;
         n.expiryDate  = req.expiryDate;
     }
 }

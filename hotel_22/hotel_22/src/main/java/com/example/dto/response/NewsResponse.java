@@ -6,6 +6,7 @@ public class NewsResponse {
     public String id;
     public String title;
     public String thumbnail;
+    public String content;
     public LocalDateTime createdAt;
     public LocalDateTime expiryDate;
 }

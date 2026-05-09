@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/layout/Navbar';
+import Footer from '../components/layout/Footer';
 import { ConciergeBell, CheckCircle } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8080';
@@ -83,6 +84,7 @@ const Services = () => {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 };

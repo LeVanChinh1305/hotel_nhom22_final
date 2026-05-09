@@ -15,6 +15,7 @@ public class News extends PanacheMongoEntityBase {
     public String title; // Tiêu đề
 
     public String thumbnail; // URL ảnh đại diện
+    public String content; // Nội dung chi tiết
 
     public LocalDateTime createdAt; // Thời gian tạo
 

@@ -49,7 +49,7 @@ const RoomCard = ({ room }) => {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: 'auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px', marginTop: 'auto' }}>
           <button
             onClick={() => navigate(`/rooms/${room.id}`)}
             style={{
@@ -62,18 +62,6 @@ const RoomCard = ({ room }) => {
             onMouseLeave={e => e.target.style.background = '#F8FBFF'}
           >
             Chi tiết <ArrowRight size={14} />
-          </button>
-          <button
-            onClick={() => navigate(`/rooms/${room.id}`)}
-            style={{
-              padding: '10px', borderRadius: '10px', border: 'none',
-              background: '#3B82F6', color: '#fff', fontWeight: '600',
-              fontSize: '14px', cursor: 'pointer', transition: 'background 0.2s'
-            }}
-            onMouseEnter={e => e.target.style.background = '#2563EB'}
-            onMouseLeave={e => e.target.style.background = '#3B82F6'}
-          >
-            Đặt ngay
           </button>
         </div>
       </div>

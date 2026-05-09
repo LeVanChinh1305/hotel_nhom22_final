@@ -11,6 +11,8 @@ import Booking from './pages/Booking';
 import BookingHistory from './pages/BookingHistory';
 import BookingConfirmation from './pages/BookingConfirmation';
 import Admin from './pages/Admin';
+import News from './pages/News';
+import NewsDetail from './pages/NewsDetail';
 
 function App() {
   return (
@@ -28,6 +30,8 @@ function App() {
           <Route path="/booking-history" element={<BookingHistory />} />
           <Route path="/booking-confirmation" element={<BookingConfirmation />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/news" element={<News />} />
+          <Route path="/news/:id" element={<NewsDetail />} />
         </Routes>
       </div>
     </Router>

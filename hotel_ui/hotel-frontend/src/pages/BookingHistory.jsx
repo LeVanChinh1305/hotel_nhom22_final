@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
-import { 
-  Calendar, CreditCard, Info, ChevronRight, 
+import {
+  Calendar, CreditCard, Info, ChevronRight,
   MapPin, Clock, Package, Gift, X, Sparkles, Receipt, CheckCircle2
 } from 'lucide-react';
 
@@ -31,7 +31,7 @@ const BookingHistory = () => {
 
       const user = JSON.parse(userStr);
       const token = user.token;
-      
+
       const res = await fetch(`${API_BASE}/api/bookings`, {
         method: 'GET',
         headers: {
@@ -74,7 +74,7 @@ const BookingHistory = () => {
       if (res.ok) {
         alert('Đã hủy đơn đặt phòng thành công');
         setSelectedBooking(null);
-        loadBookings(); 
+        loadBookings();
       } else {
         const data = await res.json();
         alert('Lỗi: ' + (data.message || 'Không thể hủy đơn'));
@@ -100,11 +100,11 @@ const BookingHistory = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F8FBFF', fontFamily: "'Outfit', sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: '#244f86ff', fontFamily: "'Outfit', sans-serif" }}>
       <Navbar />
 
       {/* Premium Hero Header */}
-      <div style={{ 
+      <div style={{
         background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
         padding: '100px 2rem 160px',
         textAlign: 'center',
@@ -119,10 +119,10 @@ const BookingHistory = () => {
           position: 'absolute', bottom: '-10%', right: '-5%', width: '30%', height: '50%',
           background: 'rgba(30, 64, 175, 0.15)', filter: 'blur(100px)', borderRadius: '50%'
         }} />
-        
+
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
-          <div style={{ 
-            display: 'inline-flex', alignItems: 'center', gap: '8px', 
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: '8px',
             background: 'rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(10px)',
             padding: '6px 16px', borderRadius: '20px', color: '#CBD5E1',
             fontSize: '13px', fontWeight: '600', marginBottom: '24px',
@@ -130,8 +130,8 @@ const BookingHistory = () => {
           }}>
             <Receipt size={14} /> QUẢN LÝ GIAO DỊCH
           </div>
-          <h1 style={{ 
-            fontFamily: "'Playfair Display', serif", fontSize: '48px', color: '#FFFFFF', 
+          <h1 style={{
+            fontFamily: "'Playfair Display', serif", fontSize: '48px', color: '#FFFFFF',
             marginBottom: '20px', lineHeight: '1.2', fontWeight: '700'
           }}>
             Lịch sử đặt phòng
@@ -143,11 +143,11 @@ const BookingHistory = () => {
       </div>
 
       <div style={{ maxWidth: '1200px', margin: '-80px auto 80px', padding: '0 2rem', position: 'relative', zIndex: 2 }}>
-        
+
         {loading ? (
           <div style={{ textAlign: 'center', padding: '100px', background: '#fff', borderRadius: '32px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.05)' }}>
-            <div className="spinner" style={{ 
-              width: '40px', height: '40px', border: '4px solid #F1F5F9', 
+            <div className="spinner" style={{
+              width: '40px', height: '40px', border: '4px solid #F1F5F9',
               borderTop: '4px solid #2563EB', borderRadius: '50%', margin: '0 auto 16px',
               animation: 'spin 1s linear infinite'
             }} />
@@ -165,11 +165,11 @@ const BookingHistory = () => {
             </div>
             <h3 style={{ fontSize: '22px', color: '#1E293B', marginBottom: '12px', fontWeight: '700' }}>Bạn chưa có đơn đặt phòng nào</h3>
             <p style={{ color: '#64748B', marginBottom: '32px' }}>Hãy bắt đầu kỳ nghỉ của bạn bằng cách khám phá những căn phòng tuyệt vời nhất.</p>
-            <button 
-              onClick={() => window.location.href = '/rooms'} 
+            <button
+              onClick={() => window.location.href = '/rooms'}
               style={{
-                padding: '16px 40px', background: '#2563EB', color: '#fff', 
-                border: 'none', borderRadius: '16px', fontWeight: '800', 
+                padding: '16px 40px', background: '#2563EB', color: '#fff',
+                border: 'none', borderRadius: '16px', fontWeight: '800',
                 cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(37, 99, 235, 0.3)',
                 display: 'flex', alignItems: 'center', gap: '10px'
               }}
@@ -182,14 +182,14 @@ const BookingHistory = () => {
             {bookings.map((b) => {
               const status = getStatusColor(b.status);
               return (
-                <div key={b.id} className="booking-card" style={{ 
-                  background: '#fff', 
-                  borderRadius: '28px', 
-                  padding: '32px', 
-                  border: '1px solid #F1F5F9', 
-                  boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)', 
-                  display: 'flex', 
-                  flexDirection: 'column', 
+                <div key={b.id} className="booking-card" style={{
+                  background: '#F0F7FF',
+                  borderRadius: '28px',
+                  padding: '32px',
+                  border: '1px solid #DBEAFE',
+                  boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)',
+                  display: 'flex',
+                  flexDirection: 'column',
                   gap: '24px',
                   transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                   position: 'relative',
@@ -198,15 +198,16 @@ const BookingHistory = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                        <Receipt size={14} color="#94A3B8" />
-                        <span style={{ fontWeight: '800', fontSize: '15px', color: '#0F172A' }}>ĐƠN #{b.id}</span>
+                        <Receipt size={14} color="#2563EB" />
+                        <span style={{ fontWeight: '800', fontSize: '15px', color: '#1E3A8A' }}>ĐƠN #{b.id}</span>
                       </div>
-                      <span style={{ fontSize: '13px', color: '#94A3B8', fontWeight: '500' }}>Ngày đặt: {new Date(b.createdAt).toLocaleDateString('vi-VN')}</span>
+                      <span style={{ fontSize: '13px', color: '#64748B', fontWeight: '500' }}>Ngày đặt: {new Date(b.createdAt).toLocaleDateString('vi-VN')}</span>
                     </div>
-                    <div style={{ 
-                      background: status.bg, color: status.text, padding: '8px 16px', 
+                    <div style={{
+                      background: status.bg, color: status.text, padding: '8px 16px',
                       borderRadius: '14px', fontSize: '12px', fontWeight: '800',
-                      display: 'flex', alignItems: 'center', gap: '8px'
+                      display: 'flex', alignItems: 'center', gap: '8px',
+                      border: '1px solid rgba(0,0,0,0.05)'
                     }}>
                       <div style={{ width: '6px', height: '6px', background: status.dot, borderRadius: '50%' }} />
                       {status.label.toUpperCase()}
@@ -214,47 +215,47 @@ const BookingHistory = () => {
                   </div>
 
                   <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-                    <div style={{ 
-                      width: '56px', height: '56px', background: '#F0F9FF', 
-                      borderRadius: '18px', display: 'flex', alignItems: 'center', 
+                    <div style={{
+                      width: '56px', height: '56px', background: '#FFFFFF',
+                      borderRadius: '18px', display: 'flex', alignItems: 'center',
                       justifyContent: 'center', boxShadow: '0 8px 16px -4px rgba(59, 130, 246, 0.1)'
                     }}>
                       <MapPin size={26} color="#2563EB" />
                     </div>
                     <div>
-                      <div style={{ fontWeight: '800', color: '#1E293B', fontSize: '18px', marginBottom: '2px' }}>Phòng {b.roomNumber || 'N/A'}</div>
+                      <div style={{ fontWeight: '800', color: '#1E3A8A', fontSize: '18px', marginBottom: '2px' }}>Phòng {b.roomNumber || 'N/A'}</div>
                       <div style={{ fontSize: '14px', color: '#64748B', fontWeight: '500' }}>{b.roomType || 'Phòng nghỉ cao cấp'}</div>
                     </div>
                   </div>
 
-                  <div style={{ 
-                    display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', 
-                    padding: '20px', background: '#F8FAFC', borderRadius: '20px',
-                    border: '1px solid #F1F5F9'
+                  <div style={{
+                    display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px',
+                    padding: '20px', background: 'rgba(255, 255, 255, 0.6)', borderRadius: '20px',
+                    border: '1px solid #fff'
                   }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '700', textTransform: 'uppercase' }}>Thời gian lưu trú</span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#475569', fontWeight: '600' }}>
+                      <span style={{ fontSize: '11px', color: '#64748B', fontWeight: '700', textTransform: 'uppercase' }}>Thời gian lưu trú</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#1E3A8A', fontWeight: '600' }}>
                         <Clock size={14} />
                         <span>{b.checkInDate} - {b.checkOutDate}</span>
                       </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'right' }}>
-                      <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '700', textTransform: 'uppercase' }}>Tổng thanh toán</span>
+                      <span style={{ fontSize: '11px', color: '#64748B', fontWeight: '700', textTransform: 'uppercase' }}>Tổng thanh toán</span>
                       <div style={{ fontSize: '16px', fontWeight: '800', color: '#2563EB' }}>
                         {b.totalPrice?.toLocaleString()} <small style={{ fontSize: '12px' }}>VNĐ</small>
                       </div>
                     </div>
                   </div>
 
-                  <button 
-                    onClick={() => setSelectedBooking(b)} 
+                  <button
+                    onClick={() => setSelectedBooking(b)}
                     className="detail-btn"
-                    style={{ 
-                      marginTop: '8px', padding: '14px', background: '#fff', border: '1.5px solid #F1F5F9', 
-                      borderRadius: '16px', color: '#475569', fontWeight: '700', fontSize: '14px', 
-                      cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                      gap: '8px', transition: 'all 0.3s' 
+                    style={{
+                      marginTop: '8px', padding: '14px', background: '#fff', border: '1.5px solid #DBEAFE',
+                      borderRadius: '16px', color: '#2563EB', fontWeight: '700', fontSize: '14px',
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      gap: '8px', transition: 'all 0.3s'
                     }}
                   >
                     XEM CHI TIẾT ĐƠN <ChevronRight size={18} />
@@ -321,7 +322,7 @@ const BookingHistory = () => {
                 <div style={{ padding: '24px', background: '#F0F9FF', borderRadius: '24px', border: '1px solid #E0F2FE' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
                     <div style={{ width: '48px', height: '48px', background: '#fff', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                       <MapPin size={24} color="#0369A1" />
+                      <MapPin size={24} color="#0369A1" />
                     </div>
                     <div>
                       <div style={{ fontWeight: '800', fontSize: '18px', color: '#0369A1' }}>Phòng {selectedBooking.roomNumber}</div>
@@ -357,8 +358,8 @@ const BookingHistory = () => {
                           <div style={{ flex: 1 }}>
                             <div style={{ fontWeight: '800', color: '#1E293B', fontSize: '15px' }}>{s.serviceName}</div>
                             <div style={{ fontSize: '12px', color: '#64748B', fontWeight: '500' }}>
-                              {s.price.toLocaleString()}đ × {s.quantity} 
-                              {s.numberOfPeople ? ` × ${s.numberOfPeople} người` : ''} 
+                              {s.price.toLocaleString()}đ × {s.quantity}
+                              {s.numberOfPeople ? ` × ${s.numberOfPeople} người` : ''}
                               {s.numberOfDays ? ` × ${s.numberOfDays} ngày` : ''}
                             </div>
                           </div>
@@ -397,15 +398,15 @@ const BookingHistory = () => {
                     <span>Tổng cộng</span>
                     <span style={{ color: '#2563EB' }}>{selectedBooking.totalPrice?.toLocaleString()}đ</span>
                   </div>
-                  
+
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px' }}>
                     <div style={{ padding: '8px 16px', borderRadius: '12px', background: selectedBooking.paymentStatus ? '#ECFDF5' : '#FFF7ED', color: selectedBooking.paymentStatus ? '#059669' : '#C2410C', fontSize: '12px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       {selectedBooking.paymentStatus ? <CheckCircle2 size={14} /> : <Clock size={14} />}
                       {selectedBooking.paymentStatus ? 'ĐÃ THANH TOÁN' : 'CHỜ THANH TOÁN'}
                     </div>
-                    
+
                     {selectedBooking.status === 'PENDING' && (
-                      <button 
+                      <button
                         onClick={() => handleCancelBooking(selectedBooking.id)}
                         style={{ padding: '10px 20px', background: '#FFF1F2', color: '#E11D48', border: '1.5px solid #FFE4E6', borderRadius: '14px', fontWeight: '800', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s' }}
                         onMouseEnter={e => { e.currentTarget.style.background = '#FFE4E6'; }}

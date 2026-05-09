@@ -95,7 +95,7 @@ const News = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '32px' }}>
             {news.map(n => (
               <div key={n.id} className="news-card" style={{ 
-                background: '#fff', 
+                background: '#ffffffff', 
                 borderRadius: '24px', 
                 border: '1px solid #F1F5F9', 
                 overflow: 'hidden', 

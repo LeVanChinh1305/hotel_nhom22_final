@@ -86,7 +86,7 @@ const Promotions = () => {
       {/* Main Content */}
       <section style={{ maxWidth: '1200px', margin: '-80px auto 80px', padding: '0 2rem', position: 'relative', zIndex: 2 }}>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '80px', background: '#fff', borderRadius: '24px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+          <div style={{ textAlign: 'center', padding: '80px', background: '#ffffffff', borderRadius: '24px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
              <div className="spinner" style={{ 
               width: '40px', height: '40px', border: '4px solid #F1F5F9', 
               borderTop: '4px solid #4F46E5', borderRadius: '50%', margin: '0 auto 16px',
@@ -143,7 +143,7 @@ const Promotions = () => {
                   </div>
 
                   <div style={{ 
-                    background: 'rgba(255, 255, 255, 0.5)', 
+                    background: 'rgba(227, 213, 213, 0.5)', 
                     padding: '20px', 
                     borderRadius: '16px', 
                     marginBottom: '24px',

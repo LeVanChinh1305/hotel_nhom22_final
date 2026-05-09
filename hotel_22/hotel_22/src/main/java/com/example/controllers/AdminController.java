@@ -3,6 +3,7 @@ package com.example.controllers;
 import com.example.dto.request.CreateNewsRequest;
 import com.example.dto.request.CreateRoomRequest;
 import com.example.dto.request.CreateServiceRequest;
+import com.example.dto.request.CreateUserRequest;
 import com.example.dto.request.CreateVoucherRequest;
 import com.example.dto.request.SetRoomMaintenanceRequest;
 import com.example.dto.request.UpdateBookingStatusRequest;
@@ -184,6 +185,17 @@ public class AdminController {
     @PUT @Path("/users/{id}/toggle")
     public Response toggleUserStatus(@PathParam("id") Long id) {
         return Response.ok(userService.toggleUserStatus(id)).build();
+    }
+
+    @POST @Path("/users")
+    public Response createUser(CreateUserRequest req) {
+        return Response.status(201).entity(userService.createUser(req)).build();
+    }
+
+    @DELETE @Path("/users/{id}")
+    public Response deleteUser(@PathParam("id") Long id) {
+        userService.deleteUser(id);
+        return Response.noContent().build();
     }
 
 

@@ -140,7 +140,10 @@ const Admin = () => {
     thumbnail: '',
     content: '',
     expiryDate: ''
-  });
+  });  /* User states */
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [userForm, setUserForm] = useState({ username: '', fullName: '', email: '', password: '', phone: '', role: 'CUSTOMER' });
+  const [userLoading, setUserLoading] = useState(false);
   const [newsLoading, setNewsLoading] = useState(false);
   
   /* Voucher states */
@@ -395,6 +398,66 @@ const Admin = () => {
     } catch (e) { alert(e.message); }
   };
 
+
+  const handleCreateUser = async () => {
+    if (!userForm.username || !userForm.email || !userForm.password || !userForm.fullName) {
+      alert('Vui lòng điền đầy đủ: Tên đăng nhập, Họ tên, Email và Mật khẩu');
+      return;
+    }
+    setUserLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/users`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${getStoredToken()}` 
+        },
+        body: JSON.stringify(userForm)
+      });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Lỗi khi tạo người dùng');
+      }
+      const data = await res.json();
+      setUsers(prev => [...prev, data]);
+      setShowAddUserModal(false);
+      setUserForm({ username: '', fullName: '', email: '', password: '', phone: '', role: 'CUSTOMER' });
+      alert('Thêm người dùng thành công!');
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setUserLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async (id) => {
+    if (!window.confirm('Bạn có chắc muốn xóa người dùng này?')) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/users/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${getStoredToken()}` }
+      });
+      if (!res.ok) throw new Error('Lỗi khi xóa người dùng');
+      setUsers(prev => prev.filter(u => u.id !== id));
+      alert('Xóa thành công!');
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
+  const handleToggleUserStatus = async (id) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/users/${id}/toggle`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${getStoredToken()}` }
+      });
+      if (!res.ok) throw new Error('Lỗi khi thay đổi trạng thái');
+      const data = await res.json();
+      setUsers(prev => prev.map(u => u.id === id ? data : u));
+    } catch (e) {
+      alert(e.message);
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -942,7 +1005,7 @@ const Admin = () => {
             <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
               <div style={{ padding: '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ margin: 0, fontSize: '18px', color: '#0F2E5A' }}>Người dùng ({users.length})</h2>
-                <button style={{ ...addBtnStyle, background: '#1E40AF' }} onClick={() => alert('Chức năng thêm người dùng chưa được triển khai')}>
+                <button style={{ ...addBtnStyle, background: '#1E40AF' }} onClick={() => setShowAddUserModal(true)}>
                   <Plus size={14} /> Thêm mới
                 </button>
               </div>
@@ -950,14 +1013,14 @@ const Admin = () => {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr>
-                      {['ID', 'Họ tên', 'Email', 'Vai trò', 'Trạng thái'].map(h => (
+                      {['ID', 'Họ tên', 'Email', 'Vai trò', 'Trạng thái', 'Thao tác'].map(h => (
                         <th key={h} style={th}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {users.length === 0 ? (
-                      <tr><td colSpan={5} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
+                      <tr><td colSpan={6} style={{ ...td, textAlign: 'center', color: '#94A3B8', padding: '24px' }}>Không có dữ liệu</td></tr>
                     ) : users.map(u => (
                       <tr key={u.id}
                         onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
@@ -974,13 +1037,31 @@ const Admin = () => {
                             fontSize: '12px', fontWeight: '600',
                           }}>{u.role || 'USER'}</span>
                         </td>
-                        <td style={td}>
-                          {u.active === false
-                            ? <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#EF4444', fontSize: '13px' }}><XCircle size={14} /> Bị khoá</span>
-                            : <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#059669', fontSize: '13px' }}><CheckCircle size={14} /> Hoạt động</span>
-                          }
-                        </td>
-                      </tr>
+                         <td style={td}>
+                           {u.status === false
+                             ? <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#EF4444', fontSize: '13px' }}><XCircle size={14} /> Bị khoá</span>
+                             : <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#059669', fontSize: '13px' }}><CheckCircle size={14} /> Hoạt động</span>
+                           }
+                         </td>
+                         <td style={td}>
+                           <div style={{ display: 'flex', gap: '8px' }}>
+                             <button 
+                               title={u.status ? "Khoá tài khoản" : "Mở khoá tài khoản"}
+                               onClick={() => handleToggleUserStatus(u.id)}
+                               style={{ ...actionBtnStyle, color: u.status ? '#EF4444' : '#059669' }}
+                             >
+                               {u.status ? <XCircle size={16} /> : <CheckCircle size={16} />}
+                             </button>
+                             <button 
+                               title="Xoá người dùng"
+                               onClick={() => handleDeleteUser(u.id)}
+                               style={{ ...actionBtnStyle, color: '#DC2626' }}
+                             >
+                               <Trash2 size={16} />
+                             </button>
+                           </div>
+                         </td>
+                       </tr>
                     ))}
                   </tbody>
                 </table>
@@ -1764,6 +1845,61 @@ const Admin = () => {
               <button onClick={() => { setShowAddVoucherModal(false); setShowEditVoucherModal(false); }} style={{ padding: '10px 20px', border: '1px solid #E2E8F0', borderRadius: '8px', background: '#fff' }}>Hủy</button>
               <button onClick={showEditVoucherModal ? handleUpdateVoucher : handleCreateVoucher} disabled={voucherLoading} style={{ padding: '10px 20px', background: '#2563EB', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
                 {voucherLoading ? 'Đang lưu...' : 'Lưu lại'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal User */}
+      {showAddUserModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+        }}>
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '90%', maxWidth: '500px' }}>
+            <h2 style={{ margin: '0 0 20px', color: '#0F2E5A' }}>Thêm người dùng mới</h2>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '6px' }}>Tên đăng nhập <span style={{ color: '#EF4444' }}>*</span></label>
+                <input type="text" value={userForm.username} onChange={e => setUserForm({ ...userForm, username: e.target.value })} style={inputStyle} placeholder="VD: user123" />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '6px' }}>Họ tên <span style={{ color: '#EF4444' }}>*</span></label>
+                <input type="text" value={userForm.fullName} onChange={e => setUserForm({ ...userForm, fullName: e.target.value })} style={inputStyle} placeholder="VD: Nguyễn Văn A" />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '6px' }}>Email <span style={{ color: '#EF4444' }}>*</span></label>
+                <input type="email" value={userForm.email} onChange={e => setUserForm({ ...userForm, email: e.target.value })} style={inputStyle} placeholder="email@example.com" />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '6px' }}>Mật khẩu <span style={{ color: '#EF4444' }}>*</span></label>
+                <input type="password" value={userForm.password} onChange={e => setUserForm({ ...userForm, password: e.target.value })} style={inputStyle} placeholder="••••••••" />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '6px' }}>Số điện thoại</label>
+                <input type="text" value={userForm.phone} onChange={e => setUserForm({ ...userForm, phone: e.target.value })} style={inputStyle} placeholder="0123456789" />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '6px' }}>Vai trò</label>
+                <select value={userForm.role} onChange={e => setUserForm({ ...userForm, role: e.target.value })} style={inputStyle}>
+                  <option value="CUSTOMER">Customer</option>
+                  <option value="ADMIN">Admin</option>
+                </select>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button onClick={() => setShowAddUserModal(false)} style={{ padding: '10px 20px', border: '1px solid #E2E8F0', borderRadius: '8px', background: '#fff' }}>Hủy</button>
+              <button onClick={handleCreateUser} disabled={userLoading} style={{ padding: '10px 20px', background: '#2563EB', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
+                {userLoading ? 'Đang lưu...' : 'Lưu lại'}
               </button>
             </div>
           </div>

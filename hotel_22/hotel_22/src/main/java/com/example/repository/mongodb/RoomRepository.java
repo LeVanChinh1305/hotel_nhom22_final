@@ -12,29 +12,34 @@ public class RoomRepository implements PanacheMongoRepository<Room> {
     public List<Room> search(String type, String address, Double minPrice,
                               Double maxPrice, Integer maxOccupancy) {
         StringBuilder query = new StringBuilder();
-        java.util.Map<String, Object> params = new java.util.LinkedHashMap<>();
+        io.quarkus.panache.common.Parameters params = new io.quarkus.panache.common.Parameters();
 
-        if (type != null && !type.isBlank()) { 
-            try {
-                RoomType rt = RoomType.valueOf(type.toUpperCase());
-                query.append("type = :type and "); 
-                params.put("type", rt); 
-            } catch (IllegalArgumentException e) {
-                // Nếu type không hợp lệ, có thể bỏ qua hoặc filter cho không ra gì
-                query.append("type = :type and "); 
-                params.put("type", null);
-            }
+        if (type != null && !type.isBlank()) {
+            query.append("type = :type and ");
+            params.and("type", type.toUpperCase());
         }
-        if (address != null) { query.append("address like :address and "); params.put("address", "%" + address + "%"); }
-        if (minPrice != null) { query.append("basePrice >= :minPrice and "); params.put("minPrice", minPrice); }
-        if (maxPrice != null) { query.append("basePrice <= :maxPrice and "); params.put("maxPrice", maxPrice); }
-        if (maxOccupancy != null) { query.append("maxOccupancy >= :occ and "); params.put("occ", maxOccupancy); }
+        if (address != null && !address.isBlank()) {
+            query.append("address like :address and ");
+            params.and("address", "%" + address + "%");
+        }
+        if (minPrice != null) {
+            query.append("basePrice >= :minPrice and ");
+            params.and("minPrice", minPrice);
+        }
+        if (maxPrice != null) {
+            query.append("basePrice <= :maxPrice and ");
+            params.and("maxPrice", maxPrice);
+        }
+        if (maxOccupancy != null) {
+            query.append("maxOccupancy >= :maxOccupancy and ");
+            params.and("maxOccupancy", maxOccupancy);
+        }
 
-        String q = query.length() > 0
-                ? query.substring(0, query.length() - 5)
-                : "{}";
-        return q.equals("{}")
-                ? listAll()
-                : find(q, params).list();
+        if (query.length() > 0) {
+            String q = query.substring(0, query.length() - 5);
+            return find(q, params).list();
+        }
+
+        return listAll();
     }
 }

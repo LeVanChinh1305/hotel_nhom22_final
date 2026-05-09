@@ -10,17 +10,27 @@ const Rooms = () => {
   const [loading, setLoading] = useState(true);
   const [checkInDate, setCheckInDate] = useState('');
   const [checkOutDate, setCheckOutDate] = useState('');
+  const [selectedType, setSelectedType] = useState('');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
   const [error, setError] = useState('');
 
-  const loadRooms = (checkIn, checkOut) => {
+  const loadRooms = () => {
     setLoading(true);
     setError('');
 
     const params = new URLSearchParams();
-    if (checkIn) params.set('checkInDate', checkIn);
-    if (checkOut) params.set('checkOutDate', checkOut);
+    if (checkInDate) params.set('checkInDate', checkInDate);
+    if (checkOutDate) {
+      const date = new Date(checkOutDate);
+      date.setDate(date.getDate() + 1);
+      params.set('checkOutDate', date.toISOString().split('T')[0]);
+    }
+    if (selectedType) params.set('type', selectedType);
+    if (minPrice) params.set('minPrice', minPrice);
+    if (maxPrice) params.set('maxPrice', maxPrice);
 
-    fetch(`${API_BASE}/api/rooms${params.toString() ? `?${params.toString()}` : ''}`)
+    fetch(`${API_BASE}/api/rooms?${params.toString()}`)
       .then(res => {
         if (!res.ok) throw new Error('Lấy phòng thất bại');
         return res.json();
@@ -45,7 +55,7 @@ const Rooms = () => {
       setError('Ngày trả phải sau ngày nhận.');
       return;
     }
-    loadRooms(checkInDate, checkOutDate);
+    loadRooms();
   };
 
   return (
@@ -75,7 +85,15 @@ const Rooms = () => {
             <input
               type="date"
               value={checkInDate}
-              onChange={e => setCheckInDate(e.target.value)}
+              onChange={e => {
+                const checkIn = e.target.value;
+                setCheckInDate(checkIn);
+                if (checkIn) {
+                  const date = new Date(checkIn);
+                  date.setDate(date.getDate() + 1);
+                  setCheckOutDate(date.toISOString().split('T')[0]);
+                }
+              }}
               style={{
                 padding: '12px 14px', borderRadius: '14px', border: '1px solid #E2E8F0',
                 minWidth: '210px', background: '#F8FAFC', color: '#0F172A'
@@ -101,10 +119,64 @@ const Rooms = () => {
             style={{
               padding: '14px 22px', borderRadius: '14px', border: 'none',
               background: '#2563EB', color: '#fff', cursor: 'pointer',
-              fontWeight: '700', boxShadow: '0 12px 24px rgba(37, 99, 235, 0.18)'
+              fontWeight: '700', boxShadow: '0 12px 24px rgba(37, 99, 235, 0.18)',
+              minWidth: '160px'
             }}
           >
-            Tìm phòng trống
+            Tìm phòng
+          </button>
+        </div>
+
+        {/* BỘ LỌC NÂNG CAO */}
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '16px',
+          marginBottom: '32px',
+          padding: '20px',
+          borderRadius: '18px',
+          background: 'rgba(37, 99, 235, 0.03)',
+          border: '1px solid rgba(37, 99, 235, 0.1)',
+          alignItems: 'center'
+        }}>
+          <div style={{ fontSize: '14px', fontWeight: '700', color: '#0F2E5A', marginRight: '8px' }}>Bộ lọc:</div>
+
+          <select
+            value={selectedType}
+            onChange={e => setSelectedType(e.target.value)}
+            style={{ padding: '10px 16px', borderRadius: '12px', border: '1px solid #E2E8F0', background: '#fff', fontSize: '14px', color: '#475569', outline: 'none' }}
+          >
+            <option value="">Tất cả loại phòng</option>
+            <option value="STANDARD">Standard</option>
+            <option value="DELUXE">Deluxe</option>
+            <option value="SUITE">Suite</option>
+            <option value="PRESIDENTIAL">Presidential</option>
+          </select>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ color: '#0a0b0cff' }}> Giá từ : </span>
+            <input
+              type="number"
+              placeholder="Giá từ"
+              value={minPrice}
+              onChange={e => setMinPrice(e.target.value)}
+              style={{ width: '130px', padding: '10px 16px', borderRadius: '12px', border: '1px solid #E2E8F0', background: '#fff', fontSize: '14px', outline: 'none' }}
+            />
+            <span style={{ color: '#181a1dff' }}>  đến : </span>
+            <input
+              type="number"
+              placeholder="Giá đến"
+              value={maxPrice}
+              onChange={e => setMaxPrice(e.target.value)}
+              style={{ width: '130px', padding: '10px 16px', borderRadius: '12px', border: '1px solid #E2E8F0', background: '#fff', fontSize: '14px', outline: 'none' }}
+            />
+          </div>
+
+          <button
+            onClick={loadRooms}
+            style={{ background: '#fff', border: '1px solid #2563EB', color: '#2563EB', padding: '10px 20px', borderRadius: '12px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}
+          >
+            Áp dụng lọc
           </button>
         </div>
 
@@ -120,17 +192,17 @@ const Rooms = () => {
         {loading ? (
           <div style={{ textAlign: 'center', padding: '100px' }}>Đang tải danh sách phòng...</div>
         ) : (
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', 
-            gap: '24px' 
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+            gap: '24px'
           }}>
             {rooms.map(room => (
               <RoomCard key={room.id} room={room} />
             ))}
           </div>
         )}
-        
+
         {!loading && rooms.length === 0 && (
           <div style={{ textAlign: 'center', color: '#94A3B8', marginTop: '60px' }}>
             Hiện tại không có phòng nào khả dụng.

@@ -130,6 +130,7 @@ const Admin = () => {
   });
   const [creatingRoom, setCreatingRoom] = useState(false);
   const [updatingRoom, setUpdatingRoom] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   /* News states */
   const [showAddNewsModal, setShowAddNewsModal] = useState(false);
@@ -677,6 +678,39 @@ const Admin = () => {
       alert('Lỗi khi xoá phòng: ' + e.message);
     } finally {
       setDeletingLoading(false);
+    }
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    setUploadingImage(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+      const response = await fetch(`${API_BASE}/api/files/room/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${getStoredToken()}`
+        },
+        body: formData
+      });
+      
+      if (!response.ok) throw new Error('Upload ảnh thất bại');
+      const data = await response.json();
+      if (data.url) {
+        setRoomForm(prev => ({
+          ...prev,
+          images: [...prev.images, data.url]
+        }));
+      }
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setUploadingImage(false);
+      e.target.value = null;
     }
   };
 
@@ -1310,13 +1344,33 @@ const Admin = () => {
               </div>
 
               <div style={{ marginBottom: '24px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>
-                  URL hình ảnh (mỗi URL một dòng)
-                </label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151' }}>
+                    Hình ảnh phòng
+                  </label>
+                  <div>
+                    <input 
+                      type="file" 
+                      id="upload-room-img" 
+                      style={{ display: 'none' }} 
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                    />
+                    <label 
+                      htmlFor="upload-room-img" 
+                      style={{ 
+                        fontSize: '13px', color: '#2563EB', cursor: 'pointer', fontWeight: '600',
+                        opacity: uploadingImage ? 0.5 : 1, pointerEvents: uploadingImage ? 'none' : 'auto' 
+                      }}
+                    >
+                      {uploadingImage ? 'Đang tải lên...' : '+ Tải ảnh từ thiết bị'}
+                    </label>
+                  </div>
+                </div>
                 <textarea
                   value={roomForm.images.join('\n')}
                   onChange={(e) => setRoomForm({ ...roomForm, images: e.target.value.split('\n').filter(i => i.trim()) })}
-                  placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
+                  placeholder="Hoặc nhập URL trực tiếp (mỗi URL một dòng)&#10;https://example.com/image1.jpg"
                   rows={3}
                   style={{
                     width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',
@@ -1587,13 +1641,33 @@ const Admin = () => {
               </div>
 
               <div style={{ marginBottom: '24px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>
-                  URL hình ảnh (mỗi URL một dòng)
-                </label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151' }}>
+                    Hình ảnh phòng
+                  </label>
+                  <div>
+                    <input 
+                      type="file" 
+                      id="upload-room-img" 
+                      style={{ display: 'none' }} 
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                    />
+                    <label 
+                      htmlFor="upload-room-img" 
+                      style={{ 
+                        fontSize: '13px', color: '#2563EB', cursor: 'pointer', fontWeight: '600',
+                        opacity: uploadingImage ? 0.5 : 1, pointerEvents: uploadingImage ? 'none' : 'auto' 
+                      }}
+                    >
+                      {uploadingImage ? 'Đang tải lên...' : '+ Tải ảnh từ thiết bị'}
+                    </label>
+                  </div>
+                </div>
                 <textarea
                   value={roomForm.images.join('\n')}
                   onChange={(e) => setRoomForm({ ...roomForm, images: e.target.value.split('\n').filter(i => i.trim()) })}
-                  placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
+                  placeholder="Hoặc nhập URL trực tiếp (mỗi URL một dòng)&#10;https://example.com/image1.jpg"
                   rows={3}
                   style={{
                     width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB',

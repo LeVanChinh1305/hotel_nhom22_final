@@ -257,10 +257,15 @@ const RoomDetail = () => {
         {/* CỘT TRÁI: THÔNG TIN PHÒNG & DỊCH VỤ */}
         <section>
           <div style={{ background: '#fff', borderRadius: '24px', overflow: 'hidden', border: '1px solid #E2E8F0', marginBottom: '30px' }}>
-            <div style={{ height: '400px', background: '#CBD5E1' }}>
-               {/* Chỗ này sau này để thẻ img */}
-               <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B' }}>Ảnh minh họa phòng {room.roomNumber}</div>
-            </div>
+            <div style={{ height: '400px', position: 'relative', background: '#CBD5E1' }}>
+  {room.images && room.images.length > 0 ? (
+    <img src={room.images[0]} alt={`Ảnh phòng ${room.roomNumber}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+  ) : (
+    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B' }}>
+      Ảnh minh họa phòng {room.roomNumber}
+    </div>
+  )}
+</div>
             <div style={{ padding: '30px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                 <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '32px', color: '#0F2E5A', margin: 0 }}>Phòng {room.roomNumber} - {room.type}</h1>

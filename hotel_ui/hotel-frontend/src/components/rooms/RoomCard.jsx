@@ -18,16 +18,22 @@ const RoomCard = ({ room }) => {
     }}>
       {/* Ảnh minh họa */}
       <div style={{ height: '200px', background: '#E2E8F0', position: 'relative' }}>
-        <div style={{
-          position: 'absolute', top: '12px', right: '12px',
-          padding: '4px 12px', background: 'rgba(255,255,255,0.9)',
-          borderRadius: '20px', fontSize: '12px', fontWeight: '700', color: '#1E40AF'
-        }}>
-          {room.type}
-        </div>
-        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8' }}>
-          Ảnh phòng {room.roomNumber}
-        </div>
+        {room.images && room.images.length > 0 ? (
+          <img src={room.images[0]} alt={`Ảnh phòng ${room.roomNumber}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        ) : (
+          <>
+            <div style={{
+              position: 'absolute', top: '12px', right: '12px',
+              padding: '4px 12px', background: 'rgba(255,255,255,0.9)',
+              borderRadius: '20px', fontSize: '12px', fontWeight: '700', color: '#1E40AF'
+            }}>
+              {room.type}
+            </div>
+            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8' }}>
+              Ảnh phòng {room.roomNumber}
+            </div>
+          </>
+        )}
       </div>
 
       <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column' }}>

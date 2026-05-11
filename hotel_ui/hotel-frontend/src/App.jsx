@@ -13,6 +13,7 @@ import BookingConfirmation from './pages/BookingConfirmation';
 import Admin from './pages/Admin';
 import News from './pages/News';
 import NewsDetail from './pages/NewsDetail';
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
           <Route path="/admin" element={<Admin />} />
           <Route path="/news" element={<News />} />
           <Route path="/news/:id" element={<NewsDetail />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </div>
     </Router>

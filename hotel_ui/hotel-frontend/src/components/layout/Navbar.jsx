@@ -134,7 +134,7 @@ const Navbar = () => {
               maxWidth: '130px', overflow: 'hidden',
               textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             }}>
-              Xin chào, {user?.fullName || user?.username || 'Khách'}
+              Xin chào, {user?.username || 'Khách'}
             </span>
           </div>
         )}
@@ -188,7 +188,7 @@ const Navbar = () => {
                   <div style={{ padding: '10px 12px 10px', borderBottom: '1px solid #EFF6FF', marginBottom: '6px' }}>
                     <p style={{ fontSize: '12px', color: '#94A3B8', margin: 0 }}>Đã đăng nhập</p>
                     <p style={{ fontSize: '14px', fontWeight: '600', color: '#0F2E5A', margin: '2px 0 0' }}>
-                      {user?.fullName || user?.username}
+                      {user?.username}
                     </p>
                     {isAdmin && (
                       <span style={{
@@ -201,6 +201,23 @@ const Navbar = () => {
                       </span>
                     )}
                   </div>
+
+                  {/* Trang cá nhân */}
+                  <a
+                    href="/profile"
+                    onClick={() => setIsMenuOpen(false)}
+                    style={{
+                      ...menuItemStyle,
+                      background: currentPath === '/profile' ? '#EFF6FF' : 'transparent',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#EFF6FF'}
+                    onMouseLeave={e => e.currentTarget.style.background = currentPath === '/profile' ? '#EFF6FF' : 'transparent'}
+                  >
+                    <div style={{ ...iconWrap, background: '#DBEAFE' }}>
+                      <User size={15} color="#3B82F6" />
+                    </div>
+                    Tài khoản
+                  </a>
 
                   {/* Trang quản trị — chỉ hiện với ADMIN */}
                   {isAdmin && (

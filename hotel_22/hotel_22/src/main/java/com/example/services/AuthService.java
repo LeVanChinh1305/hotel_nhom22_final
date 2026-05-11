@@ -51,7 +51,7 @@ public class AuthService {
         userRepository.persist(user);// Lưu vào CSDL MYSQL
 
         String token = jwtService.generateToken(user);// trả về token 
-        return new AuthResponse(token, user.email, user.role.name(), user.fullName, user.phone);// trả về token, email, role, tên đầy đủ và sdt
+        return new AuthResponse(token, user.email, user.role.name(), user.fullName, user.phone, user.username);
     }
 
     public AuthResponse login(LoginRequest req) {
@@ -73,6 +73,6 @@ public class AuthService {
             throw new AppException("Email hoặc mật khẩu không đúng", 401);
 
         String token = jwtService.generateToken(user);
-        return new AuthResponse(token, user.email, user.role.name(), user.fullName, user.phone);// trả về token, email, role, tên đầy đủ và sdt
+        return new AuthResponse(token, user.email, user.role.name(), user.fullName, user.phone, user.username);
     }
 }

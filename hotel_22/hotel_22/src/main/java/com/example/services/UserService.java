@@ -78,6 +78,35 @@ public class UserService {
     }
 
     @Transactional
+    public UserResponse updateProfile(User currentUser, com.example.dto.request.UpdateProfileRequest req) {
+        // Fetch fresh from DB to ensure it's attached
+        User user = userRepository.findById(currentUser.id);
+        if (user == null) {
+            throw new AppException("Người dùng không tồn tại", 404);
+        }
+
+        if (req.fullName != null && !req.fullName.isBlank()) {
+            user.fullName = req.fullName;
+        }
+
+        if (req.username != null && !req.username.isBlank()) {
+            user.username = req.username;
+        }
+        
+        if (req.phone != null && !req.phone.isBlank()) {
+            // Check if phone is taken by another user
+            User existing = userRepository.find("phone", req.phone).firstResult();
+            if (existing != null && !existing.id.equals(user.id)) {
+                throw new AppException("Số điện thoại này đã được sử dụng bởi người dùng khác", 409);
+            }
+            user.phone = req.phone;
+        }
+        
+        userRepository.persist(user);
+        return userMapper.toResponse(user);
+    }
+
+    @Transactional
     public void deleteUser(Long userId) {
         User user = userRepository.findByIdOptional(userId)
                 .orElseThrow(() -> new AppException("Người dùng không tồn tại", 404));

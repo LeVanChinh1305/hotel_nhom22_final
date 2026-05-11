@@ -2,11 +2,13 @@ package com.example.controllers;
 
 import com.example.entity.mysql.User;
 import com.example.services.UserService;
+import com.example.dto.request.UpdateProfileRequest;
 
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
@@ -24,5 +26,10 @@ public class UserController {
     @GET
     public Response getProfile() { // Lấy thông tin cá nhân
         return Response.ok(userService.getProfile(currentUser)).build(); // Trả về thông tin cá nhân
+    }
+
+    @PUT
+    public Response updateProfile(UpdateProfileRequest req) {
+        return Response.ok(userService.updateProfile(currentUser, req)).build();
     }
 }

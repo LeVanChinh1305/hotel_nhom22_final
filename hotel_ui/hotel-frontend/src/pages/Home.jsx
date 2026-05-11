@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import RoomCard from '../components/rooms/RoomCard';
-import { Gift, Newspaper, ChevronRight, Shield, Coffee, Wifi, Car } from 'lucide-react';
+import { Gift, Newspaper, ChevronRight, Shield, Coffee, Wifi, Car, ConciergeBell } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8080';
 
@@ -12,6 +12,7 @@ const Home = () => {
   const [rooms, setRooms] = useState([]);
   const [vouchers, setVouchers] = useState([]);
   const [news, setNews] = useState([]);
+  const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -20,25 +21,31 @@ const Home = () => {
       try {
         // Loại bỏ Authorization cho danh sách công khai để tránh lỗi 401 nếu token hết hạn/lỗi
         // Quarkus đã được cấu hình @PermitAll cho các endpoint này
-        const [roomsRes, vouchersRes, newsRes] = await Promise.all([
+        const [roomsRes, vouchersRes, newsRes, servicesRes] = await Promise.all([
           fetch(`${API_BASE}/api/rooms`),
           fetch(`${API_BASE}/api/vouchers`),
-          fetch(`${API_BASE}/api/news`)
+          fetch(`${API_BASE}/api/news`),
+          fetch(`${API_BASE}/api/services/available`)
         ]);
 
         if (!roomsRes.ok) throw new Error(`Lỗi tải phòng: ${roomsRes.status}`);
         
         const roomsData = await roomsRes.json();
-        setRooms(roomsData);
+        setRooms(Array.isArray(roomsData) ? roomsData.slice(0, 6) : []);
 
         if (vouchersRes.ok) {
           const vouchersData = await vouchersRes.json();
-          setVouchers(vouchersData);
+          setVouchers(Array.isArray(vouchersData) ? vouchersData.slice(0, 4) : []);
         }
 
         if (newsRes.ok) {
           const newsData = await newsRes.json();
           setNews(Array.isArray(newsData) ? newsData.slice(0, 3) : []);
+        }
+
+        if (servicesRes.ok) {
+          const servicesData = await servicesRes.json();
+          setServices(Array.isArray(servicesData) ? servicesData.slice(0, 3) : []);
         }
       } catch (err) {
         setError(err.message);
@@ -211,6 +218,43 @@ const Home = () => {
           </div>
         )}
       </section>
+
+      {/* SERVICES */}
+      {services.length > 0 && (
+        <section style={{ padding: '40px 2rem 80px', background: '#F8FBFF' }}>
+          <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+              <div>
+                <p style={{ fontSize: '13px', color: '#60A5FA', fontWeight: '600', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>Trải nghiệm</p>
+                <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '32px', fontWeight: '700', color: '#0F2E5A', margin: 0 }}>Dịch vụ nổi bật</h2>
+              </div>
+              <button 
+                onClick={() => navigate('/services')}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#2563EB', fontWeight: '600', fontSize: '14px', background: '#EFF6FF', border: '1px solid #BFDBFE', padding: '10px 18px', borderRadius: '9px', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}
+              >
+                Xem tất cả <ChevronRight size={16} />
+              </button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+              {services.map(s => (
+                <div key={s.id} style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '24px', transition: '0.3s' }}
+                  onMouseEnter={e => e.currentTarget.style.boxShadow = '0 10px 25px rgba(0,0,0,0.05)'}
+                  onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
+                >
+                  <div style={{ width: '48px', height: '48px', background: '#EFF6FF', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                    <ConciergeBell size={24} color="#3B82F6" />
+                  </div>
+                  <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#0F2E5A', marginBottom: '8px' }}>{s.serviceName}</h3>
+                  <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '16px', lineHeight: 1.5 }}>{s.description || 'Dịch vụ cao cấp mang đến trải nghiệm tuyệt vời cho bạn.'}</p>
+                  <div style={{ fontWeight: '600', color: '#2563EB', fontSize: '16px' }}>
+                    {s.price?.toLocaleString()}₫ <span style={{ fontSize: '13px', color: '#94A3B8', fontWeight: '400' }}>/ {s.unit}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* LATEST NEWS */}
       {news.length > 0 && (

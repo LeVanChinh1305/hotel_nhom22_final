@@ -19,8 +19,8 @@ import jakarta.ws.rs.PathParam;
 @Path("/files")
 public class FileController {
 
-    private static final String UPLOAD_DIR = "uploads";
-    private static final String ROOM_UPLOAD_DIR = "room_images";
+    private static final String UPLOAD_DIR = "resource/new_images";
+    private static final String ROOM_UPLOAD_DIR = "resource/room_images";
 
     public FileController() {
         java.nio.file.Path uploadPath = Paths.get(UPLOAD_DIR);

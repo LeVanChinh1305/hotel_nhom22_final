@@ -237,7 +237,7 @@ const Home = () => {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
               {services.map(s => (
-                <div key={s.id} style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '24px', transition: '0.3s' }}
+                <div key={s.id} style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '24px', transition: '0.3s', display: 'flex', flexDirection: 'column' }}
                   onMouseEnter={e => e.currentTarget.style.boxShadow = '0 10px 25px rgba(0,0,0,0.05)'}
                   onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
                 >
@@ -245,7 +245,7 @@ const Home = () => {
                     <ConciergeBell size={24} color="#3B82F6" />
                   </div>
                   <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#0F2E5A', marginBottom: '8px' }}>{s.serviceName}</h3>
-                  <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '16px', lineHeight: 1.5 }}>{s.description || 'Dịch vụ cao cấp mang đến trải nghiệm tuyệt vời cho bạn.'}</p>
+                  <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '16px', lineHeight: 1.5, flex: 1 }}>{s.description || 'Dịch vụ cao cấp mang đến trải nghiệm tuyệt vời cho bạn.'}</p>
                   <div style={{ fontWeight: '600', color: '#2563EB', fontSize: '16px' }}>
                     {s.price?.toLocaleString()}₫ <span style={{ fontSize: '13px', color: '#94A3B8', fontWeight: '400' }}>/ {s.unit}</span>
                   </div>

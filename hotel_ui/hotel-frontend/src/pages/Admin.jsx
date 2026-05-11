@@ -201,6 +201,8 @@ const Admin = () => {
   });
   const [serviceLoading, setServiceLoading] = useState(false);
 
+
+
   const openEditService = (s) => {
     setEditingService(s);
     setServiceForm({
@@ -260,6 +262,41 @@ const Admin = () => {
       setServices(prev => prev.filter(s => s.id !== id));
       alert('Xóa thành công!');
     } catch (e) { alert(e.message); }
+  };
+
+  const [uploadingNewsImage, setUploadingNewsImage] = useState(false);
+
+  const handleNewsImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    setUploadingNewsImage(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+      const response = await fetch(`${API_BASE}/api/files/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${getStoredToken()}`
+        },
+        body: formData
+      });
+      
+      if (!response.ok) throw new Error('Upload ảnh thất bại');
+      const data = await response.json();
+      if (data.url) {
+        setNewsForm(prev => ({
+          ...prev,
+          thumbnail: data.url
+        }));
+      }
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setUploadingNewsImage(false);
+      e.target.value = null;
+    }
   };
 
   const openEditNews = (n) => {
@@ -1821,8 +1858,28 @@ const Admin = () => {
             </div>
 
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '6px' }}>URL Ảnh thu nhỏ</label>
-              <input type="text" value={newsForm.thumbnail} onChange={e => setNewsForm({ ...newsForm, thumbnail: e.target.value })} style={inputStyle} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600' }}>Ảnh thu nhỏ</label>
+                <div>
+                  <input 
+                    type="file" 
+                    id="upload-news-img" 
+                    style={{ display: 'none' }} 
+                    accept="image/*"
+                    onChange={handleNewsImageUpload}
+                  />
+                  <label 
+                    htmlFor="upload-news-img" 
+                    style={{ 
+                      fontSize: '13px', color: '#2563EB', cursor: 'pointer', fontWeight: '600',
+                      opacity: uploadingNewsImage ? 0.5 : 1, pointerEvents: uploadingNewsImage ? 'none' : 'auto' 
+                    }}
+                  >
+                    {uploadingNewsImage ? 'Đang tải lên...' : '+ Tải ảnh từ thiết bị'}
+                  </label>
+                </div>
+              </div>
+              <input type="text" value={newsForm.thumbnail || ''} onChange={e => setNewsForm({ ...newsForm, thumbnail: e.target.value })} style={{ ...inputStyle, width: '100%', boxSizing: 'border-box' }} placeholder="Hoặc nhập URL trực tiếp..." />
             </div>
 
             <div style={{ marginBottom: '16px' }}>

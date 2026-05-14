@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
-import { 
-  Mail, Lock, User, Phone, AlertCircle, 
-  ChevronRight, Gift, Star, ShieldCheck, Eye, EyeOff 
+import {
+  Mail, Lock, User, Phone, AlertCircle,
+  ChevronRight, Gift, Star, ShieldCheck, Eye, EyeOff
 } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8080';
@@ -56,8 +56,8 @@ const Register = () => {
   };
 
   const benefits = [
-    { icon: <Gift size={20} />, title: "Quà tặng chào mừng", desc: "Giảm ngay 10% cho đơn đặt phòng đầu tiên sau khi đăng ký thành công." },
-    { icon: <Star size={20} />, title: "Tích điểm thưởng", desc: "Tích lũy điểm cho mỗi đêm nghỉ và đổi lấy các dịch vụ miễn phí." },
+    { icon: <Gift size={20} />, title: "Đăng ký thành viên", desc: "đăng ký để nhận phòng." },
+    { icon: <Star size={20} />, title: "Đặt phòng dễ dàng", desc: "Tìm kiếm, so sánh và đặt phòng khách sạn chỉ trong vài cú nhấp chuột" },
     { icon: <ShieldCheck size={20} />, title: "Ưu tiên dịch vụ", desc: "Nhận tin khuyến mãi sớm nhất và hỗ trợ check-in nhanh tại quầy." }
   ];
 
@@ -72,7 +72,7 @@ const Register = () => {
             <p style={{ color: '#DCFCE7', marginBottom: '40px', fontSize: '15px' }}>
               Gia nhập cộng đồng Hotel 22 để tận hưởng những đặc quyền nghỉ dưỡng đẳng cấp nhất.
             </p>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
               {benefits.map((b, i) => (
                 <div key={i} style={{ display: 'flex', gap: '15px', alignItems: 'flex-start' }}>
@@ -89,8 +89,8 @@ const Register = () => {
           {/* Bên phải: Form đăng ký */}
           <div style={formSideStyle}>
             <div style={headerStyle}>
-                <h1 style={titleStyle}>Đăng ký</h1>
-                <p style={subtitleStyle}>Điền thông tin để tạo tài khoản mới</p>
+              <h1 style={titleStyle}>Đăng ký</h1>
+              <p style={subtitleStyle}>Điền thông tin để tạo tài khoản mới</p>
             </div>
 
             {error && (
@@ -187,7 +187,7 @@ const Register = () => {
             </form>
 
             <p style={footerTextStyle}>
-                Đã có tài khoản? <Link to="/login" style={linkStyle}>Đăng nhập ngay</Link>
+              Đã có tài khoản? <Link to="/login" style={linkStyle}>Đăng nhập ngay</Link>
             </p>
           </div>
         </div>

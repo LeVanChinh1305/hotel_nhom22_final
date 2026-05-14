@@ -125,8 +125,8 @@ const Admin = () => {
     address: '',
     description: '',
     maxOccupancy: '',
-    amenities: [],
-    images: []
+    amenities: '',
+    images: ''
   });
   const [creatingRoom, setCreatingRoom] = useState(false);
   const [updatingRoom, setUpdatingRoom] = useState(false);
@@ -547,8 +547,8 @@ const Admin = () => {
       address: room.address || '',
       description: room.description || '',
       maxOccupancy: room.maxOccupancy || '',
-      amenities: Array.isArray(room.amenities) ? room.amenities : [],
-      images: Array.isArray(room.images) ? room.images : []
+      amenities: Array.isArray(room.amenities) ? room.amenities.join('\n') : '',
+      images: Array.isArray(room.images) ? room.images.join('\n') : ''
     });
     setShowEditRoomModal(true);
   };
@@ -568,8 +568,8 @@ const Admin = () => {
         address: roomForm.address.trim() || null,
         description: roomForm.description.trim() || null,
         maxOccupancy: roomForm.maxOccupancy ? parseInt(roomForm.maxOccupancy) : null,
-        amenities: roomForm.amenities.filter(a => a.trim()).map(a => a.trim()),
-        images: roomForm.images.filter(i => i.trim()).map(i => i.trim())
+        amenities: roomForm.amenities.split('\n').map(a => a.trim()).filter(a => a !== ''),
+        images: roomForm.images.split('\n').map(i => i.trim()).filter(i => i !== '')
       };
 
       const response = await fetch(`${API_BASE}/api/admin/rooms`, {
@@ -599,8 +599,8 @@ const Admin = () => {
         address: '',
         description: '',
         maxOccupancy: '',
-        amenities: [],
-        images: []
+        amenities: '',
+        images: ''
       });
       alert('Thêm phòng thành công!');
     } catch (e) {
@@ -625,8 +625,8 @@ const Admin = () => {
         address: roomForm.address.trim() || null,
         description: roomForm.description.trim() || null,
         maxOccupancy: roomForm.maxOccupancy ? parseInt(roomForm.maxOccupancy) : null,
-        amenities: roomForm.amenities.filter(a => a.trim()).map(a => a.trim()),
-        images: roomForm.images.filter(i => i.trim()).map(i => i.trim())
+        amenities: roomForm.amenities.split('\n').map(a => a.trim()).filter(a => a !== ''),
+        images: roomForm.images.split('\n').map(i => i.trim()).filter(i => i !== '')
       };
 
       const response = await fetch(`${API_BASE}/api/admin/rooms/${editingRoom.id}`, {
@@ -657,8 +657,8 @@ const Admin = () => {
         address: '',
         description: '',
         maxOccupancy: '',
-        amenities: [],
-        images: []
+        amenities: '',
+        images: ''
       });
       alert('Cập nhật phòng thành công!');
     } catch (e) {
@@ -740,7 +740,7 @@ const Admin = () => {
       if (data.url) {
         setRoomForm(prev => ({
           ...prev,
-          images: [...prev.images, data.url]
+          images: prev.images ? prev.images + '\n' + data.url : data.url
         }));
       }
     } catch (err) {
@@ -1369,8 +1369,8 @@ const Admin = () => {
                   Tiện nghi (mỗi tiện nghi một dòng)
                 </label>
                 <textarea
-                  value={roomForm.amenities.join('\n')}
-                  onChange={(e) => setRoomForm({ ...roomForm, amenities: e.target.value.split('\n').filter(a => a.trim()) })}
+                  value={roomForm.amenities}
+                  onChange={(e) => setRoomForm({ ...roomForm, amenities: e.target.value })}
                   placeholder="WiFi miễn phí&#10;Điều hòa&#10;Tivi&#10;Minibar"
                   rows={4}
                   style={{
@@ -1405,8 +1405,8 @@ const Admin = () => {
                   </div>
                 </div>
                 <textarea
-                  value={roomForm.images.join('\n')}
-                  onChange={(e) => setRoomForm({ ...roomForm, images: e.target.value.split('\n').filter(i => i.trim()) })}
+                  value={roomForm.images}
+                  onChange={(e) => setRoomForm({ ...roomForm, images: e.target.value })}
                   placeholder="Hoặc nhập URL trực tiếp (mỗi URL một dòng)&#10;https://example.com/image1.jpg"
                   rows={3}
                   style={{
@@ -1514,6 +1514,23 @@ const Admin = () => {
                     <p style={{ margin: 0, fontSize: '14px', color: '#334155' }}>
                       {selectedRoom.description}
                     </p>
+                  </div>
+                )}
+                {selectedRoom.amenities && selectedRoom.amenities.length > 0 && (
+                  <div style={{ marginTop: '16px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#64748B', marginBottom: '4px' }}>
+                      Tiện nghi
+                    </label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                      {selectedRoom.amenities.map((a, idx) => (
+                        <span key={idx} style={{ 
+                          padding: '4px 10px', background: '#F1F5F9', border: '1px solid #E2E8F0', 
+                          borderRadius: '6px', fontSize: '12px', color: '#475569' 
+                        }}>
+                          {a}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -1666,8 +1683,8 @@ const Admin = () => {
                   Tiện nghi (mỗi tiện nghi một dòng)
                 </label>
                 <textarea
-                  value={roomForm.amenities.join('\n')}
-                  onChange={(e) => setRoomForm({ ...roomForm, amenities: e.target.value.split('\n').filter(a => a.trim()) })}
+                  value={roomForm.amenities}
+                  onChange={(e) => setRoomForm({ ...roomForm, amenities: e.target.value })}
                   placeholder="WiFi miễn phí&#10;Điều hòa&#10;Tivi&#10;Minibar"
                   rows={4}
                   style={{
@@ -1702,8 +1719,8 @@ const Admin = () => {
                   </div>
                 </div>
                 <textarea
-                  value={roomForm.images.join('\n')}
-                  onChange={(e) => setRoomForm({ ...roomForm, images: e.target.value.split('\n').filter(i => i.trim()) })}
+                  value={roomForm.images}
+                  onChange={(e) => setRoomForm({ ...roomForm, images: e.target.value })}
                   placeholder="Hoặc nhập URL trực tiếp (mỗi URL một dòng)&#10;https://example.com/image1.jpg"
                   rows={3}
                   style={{

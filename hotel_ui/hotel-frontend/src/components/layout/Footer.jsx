@@ -7,12 +7,12 @@ const Footer = () => {
       <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '48px', paddingBottom: '48px' }}>
         <div>
           <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '24px', fontWeight: '700', color: '#fff', marginBottom: '12px' }}>Hotel 22</div>
-          <p style={{ fontSize: '14px', lineHeight: 1.7, color: '#64748B' }}>Nghỉ dưỡng sang trọng giữa lòng Đà Nẵng. Nơi mỗi khoảnh khắc đều trở nên đáng nhớ.</p>
+          <p style={{ fontSize: '14px', lineHeight: 1.7, color: '#64748B' }}>Nghỉ dưỡng sang trọng giữa lòng thành phố Hà Nội. Nơi mỗi khoảnh khắc đều trở nên đáng nhớ.</p>
         </div>
         <div>
           <h3 style={{ fontFamily: "'Playfair Display', serif", color: '#E2E8F0', fontSize: '18px', marginBottom: '20px' }}>Liên hệ</h3>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {[{ Icon: Phone, text: '090 000 0000' }, { Icon: Mail, text: 'support@hotel22.com' }, { Icon: MapPin, text: '123 Đường Ven Biển, Đà Nẵng' }].map(({ Icon, text }) => (
+            {[{ Icon: Phone, text: '090 000 0000' }, { Icon: Mail, text: 'support@hotel22.com' }, { Icon: MapPin, text: '12 , ngách 43, ngõ 59, Mễ Trì Hạ, Nam Từ Liêm, Hà Nội' }].map(({ Icon, text }) => (
               <li key={text} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px' }}>
                 <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(59,130,246,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Icon size={15} color="#60A5FA" />

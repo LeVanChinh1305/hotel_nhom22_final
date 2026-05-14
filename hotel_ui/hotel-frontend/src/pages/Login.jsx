@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
-import { 
-  Mail, Lock, AlertCircle, ChevronRight, Heart, 
-  ShieldCheck, History, Eye, EyeOff 
+import {
+  Mail, Lock, AlertCircle, ChevronRight, Heart,
+  ShieldCheck, History, Eye, EyeOff
 } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8080';
@@ -33,7 +33,7 @@ const Login = () => {
       // Lưu thông tin vào localStorage để Navbar và các trang khác sử dụng
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data));
-      
+
       window.location.href = '/'; // Reload lại để cập nhật trạng thái Navbar
     } catch (err) {
       setError(err.message);
@@ -43,7 +43,7 @@ const Login = () => {
   };
 
   const benefits = [
-    { icon: <Heart size={20} />, title: "Ưu đãi độc quyền", desc: "Nhận voucher giảm giá tới 15% dành riêng cho thành viên." },
+    { icon: <Heart size={20} />, title: "Đặt phòng dễ dàng", desc: "Tìm kiếm, so sánh và đặt phòng khách sạn chỉ trong vài cú nhấp chuột" },
     { icon: <History size={20} />, title: "Quản lý chuyến đi", desc: "Dễ dàng xem lại lịch sử đặt phòng và hóa đơn điện tử." },
     { icon: <ShieldCheck size={20} />, title: "Thanh toán an toàn", desc: "Bảo mật thông tin tuyệt đối và đặt phòng nhanh chóng hơn." }
   ];
@@ -59,7 +59,7 @@ const Login = () => {
             <p style={{ color: '#BFDBFE', marginBottom: '40px', fontSize: '15px' }}>
               Đăng nhập để tiếp tục trải nghiệm những dịch vụ đẳng cấp nhất tại Hotel 22.
             </p>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
               {benefits.map((b, i) => (
                 <div key={i} style={{ display: 'flex', gap: '15px', alignItems: 'flex-start' }}>
@@ -76,8 +76,8 @@ const Login = () => {
           {/* Bên phải: Form */}
           <div style={formSideStyle}>
             <div style={headerStyle}>
-                <h1 style={titleStyle}>Đăng nhập</h1>
-                <p style={subtitleStyle}>Nhập thông tin tài khoản của bạn</p>
+              <h1 style={titleStyle}>Đăng nhập</h1>
+              <p style={subtitleStyle}>Nhập thông tin tài khoản của bạn</p>
             </div>
 
             {error && (
@@ -131,7 +131,7 @@ const Login = () => {
             </form>
 
             <p style={footerTextStyle}>
-                Chưa có tài khoản? <Link to="/register" style={linkStyle}>Đăng ký ngay</Link>
+              Chưa có tài khoản? <Link to="/register" style={linkStyle}>Đăng ký ngay</Link>
             </p>
           </div>
         </div>
@@ -153,10 +153,10 @@ const headerStyle = { marginBottom: '32px' };
 const titleStyle = { fontFamily: "'Playfair Display', serif", fontSize: '28px', color: '#0F2E5A', marginBottom: '8px', margin: 0 };
 const subtitleStyle = { fontSize: '15px', color: '#64748B' };
 
-const errorBoxStyle = { 
-  display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', 
-  background: '#FEF2F2', color: '#EF4444', borderRadius: '12px', 
-  fontSize: '14px', marginBottom: '24px', border: '1px solid #FCA5A5' 
+const errorBoxStyle = {
+  display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px',
+  background: '#FEF2F2', color: '#EF4444', borderRadius: '12px',
+  fontSize: '14px', marginBottom: '24px', border: '1px solid #FCA5A5'
 };
 
 const formStyle = { display: 'flex', flexDirection: 'column', gap: '20px' };
@@ -166,9 +166,9 @@ const inputWrapperStyle = { position: 'relative', display: 'flex', alignItems: '
 const iconStyle = { position: 'absolute', left: '14px', color: '#94A3B8' };
 const inputStyle = { width: '100%', padding: '12px 40px 12px 44px', borderRadius: '12px', border: '1px solid #CBD5E1', fontSize: '15px', outline: 'none', transition: '0.2s', boxSizing: 'border-box' };
 const eyeButtonStyle = { position: 'absolute', right: '12px', background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px' };
-const buttonStyle = { 
-  width: '100%', padding: '14px', borderRadius: '12px', border: 'none', 
-  background: 'linear-gradient(135deg, #3B82F6, #1D4ED8)', color: '#fff', 
+const buttonStyle = {
+  width: '100%', padding: '14px', borderRadius: '12px', border: 'none',
+  background: 'linear-gradient(135deg, #3B82F6, #1D4ED8)', color: '#fff',
   fontSize: '16px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '10px'
 };
 const footerTextStyle = { textAlign: 'center', marginTop: '24px', fontSize: '14px', color: '#64748B' };

@@ -292,6 +292,22 @@ const RoomDetail = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#334155', fontSize: '14px' }}><Clock size={18} /> Nhận: 14:00</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#334155', fontSize: '14px' }}><Clock size={18} /> Trả: 12:00</div>
               </div>
+
+              {room.amenities && room.amenities.length > 0 && (
+                <div style={{ marginTop: '25px' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#0F2E5A', marginBottom: '12px' }}>Tiện nghi phòng</h3>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                    {room.amenities.map((a, idx) => (
+                      <span key={idx} style={{ 
+                        padding: '6px 12px', background: '#F8FAFC', border: '1px solid #E2E8F0', 
+                        borderRadius: '20px', fontSize: '13px', color: '#475569' 
+                      }}>
+                        {a}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

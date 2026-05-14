@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  CheckCircle, XCircle, Eye, Info,
+  CheckCircle, XCircle, Menu, Info,
   User, Calendar, CreditCard, Package, X, Copy, Check, Gift
 } from 'lucide-react';
 import StatusBadge from './StatusBadge';
@@ -150,47 +150,8 @@ const AdminBookings = ({ bookings, onUpdateStatus }) => {
                       style={{ ...actionBtnStyle, color: '#2563EB' }}
                       onClick={() => setSelectedBooking(b)}
                     >
-                      <Eye size={18} />
+                      <Menu size={18} />
                     </button>
-
-                    {b.status === 'PENDING' && (
-                      <>
-                        <button
-                          title="Duyệt đơn"
-                          style={{ ...actionBtnStyle, color: '#059669' }}
-                          onClick={() => handleApprove(b.id)}
-                        >
-                          <CheckCircle size={18} />
-                        </button>
-                        <button
-                          title="Hủy đơn"
-                          style={{ ...actionBtnStyle, color: '#EF4444' }}
-                          onClick={() => handleCancel(b.id)}
-                        >
-                          <XCircle size={18} />
-                        </button>
-                      </>
-                    )}
-
-                    {b.status === 'CONFIRMED' && (
-                      <button
-                        title="Nhận phòng"
-                        style={{ ...actionBtnStyle, color: '#059669' }}
-                        onClick={() => handleCheckIn(b.id)}
-                      >
-                        <CheckCircle size={18} />
-                      </button>
-                    )}
-
-                    {b.status === 'CHECKED_IN' && (
-                      <button
-                        title="Trả phòng"
-                        style={{ ...actionBtnStyle, color: '#475569' }}
-                        onClick={() => handleCheckOut(b.id)}
-                      >
-                        <CheckCircle size={18} />
-                      </button>
-                    )}
                   </div>
                 </td>
               </tr>

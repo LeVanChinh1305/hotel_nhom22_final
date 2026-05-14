@@ -16,23 +16,36 @@ const RoomCard = ({ room }) => {
       flexDirection: 'column',
       boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
     }}>
-      {/* Ảnh minh họa */}
       <div style={{ height: '200px', background: '#E2E8F0', position: 'relative' }}>
+        {/* Nhãn loại phòng - Luôn hiển thị trên cùng */}
+        <div style={{
+          position: 'absolute', top: '12px', right: '12px',
+          padding: '4px 14px', background: 'rgba(255, 255, 255, 0.85)',
+          backdropFilter: 'blur(8px)',
+          borderRadius: '20px', fontSize: '11px', fontWeight: '800', 
+          color: '#1E40AF', zIndex: 10,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          border: '1px solid rgba(255,255,255,0.3)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em'
+        }}>
+          {room.type}
+        </div>
+
         {room.images && room.images.length > 0 ? (
-          <img src={room.images[0]} alt={`Ảnh phòng ${room.roomNumber}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img 
+            src={room.images[0]} 
+            alt={`Ảnh phòng ${room.roomNumber}`} 
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+          />
         ) : (
-          <>
-            <div style={{
-              position: 'absolute', top: '12px', right: '12px',
-              padding: '4px 12px', background: 'rgba(255,255,255,0.9)',
-              borderRadius: '20px', fontSize: '12px', fontWeight: '700', color: '#1E40AF'
-            }}>
-              {room.type}
-            </div>
-            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8' }}>
-              Ảnh phòng {room.roomNumber}
-            </div>
-          </>
+          <div style={{ 
+            width: '100%', height: '100%', display: 'flex', 
+            alignItems: 'center', justifyContent: 'center', color: '#94A3B8',
+            fontSize: '14px', fontWeight: '500'
+          }}>
+            Ảnh phòng {room.roomNumber}
+          </div>
         )}
       </div>
 

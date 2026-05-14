@@ -43,7 +43,7 @@ public class Booking extends PanacheEntityBase {
     public Double totalPrice;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     public BookingStatus status = BookingStatus.PENDING; // Trạng thái: PENDING, CONFIRMED, CANCELLED, COMPLETED
 
     @Column(name = "created_at")
@@ -63,6 +63,6 @@ public class Booking extends PanacheEntityBase {
     }
 
     public enum BookingStatus {
-        PENDING, CONFIRMED, CANCELLED, COMPLETED
+        PENDING, CONFIRMED, CHECKED_IN, CANCELLED, COMPLETED
     }
 }

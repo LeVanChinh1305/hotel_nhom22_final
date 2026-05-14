@@ -180,6 +180,21 @@ const RoomDetail = () => {
     return { nights, roomTotal, serviceTotal, subtotal, discount, total: subtotal - discount };
   }, [room, checkIn, checkOut, selectedServices, selectedVoucher, services]);
 
+  // Lọc voucher đủ điều kiện dựa trên subtotal của hóa đơn hiện tại
+  const eligibleVouchers = useMemo(() => {
+    if (!invoice) return [];
+    return vouchers.filter(v => (invoice.subtotal >= (v.minOrderValue || 0)));
+  }, [vouchers, invoice]);
+
+  // Tự động bỏ chọn voucher nếu nó không còn đủ điều kiện (khi đổi ngày/dịch vụ)
+  useEffect(() => {
+    if (selectedVoucher && invoice) {
+      if (invoice.subtotal < (selectedVoucher.minOrderValue || 0)) {
+        setSelectedVoucher(null);
+      }
+    }
+  }, [invoice, selectedVoucher]);
+
   const handleServiceToggle = (svc) => {
     setSelectedServices(prev => {
       const isExist = prev.find(s => s.serviceId === svc.id);
@@ -397,17 +412,29 @@ const RoomDetail = () => {
           <div>
             <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#0F2E5A', marginBottom: '15px' }}>Ưu đãi áp dụng</h3>
             <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '10px' }}>
-              {vouchers.map(v => (
+              {eligibleVouchers.length > 0 ? eligibleVouchers.map(v => (
                 <div key={v.id} onClick={() => setSelectedVoucher(selectedVoucher?.id === v.id ? null : v)} style={{
-                  minWidth: '200px', padding: '15px', borderRadius: '16px', border: `2px solid ${selectedVoucher?.id === v.id ? '#8B5CF6' : '#E2E8F0'}`,
-                  background: selectedVoucher?.id === v.id ? '#F5F3FF' : '#fff', cursor: 'pointer'
+                  minWidth: '220px', padding: '15px', borderRadius: '16px', border: `2px solid ${selectedVoucher?.id === v.id ? '#8B5CF6' : '#E2E8F0'}`,
+                  background: selectedVoucher?.id === v.id ? '#F5F3FF' : '#fff', cursor: 'pointer', transition: '0.2s'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#7C3AED', fontWeight: '700', marginBottom: '4px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#7C3AED', fontWeight: '700', marginBottom: '6px' }}>
                     <Gift size={16} /> Giảm {v.discountPercent}%
                   </div>
-                  <div style={{ fontSize: '12px', fontWeight: '600', color: '#475569' }}>Mã: {v.code}</div>
+                  <div style={{ fontSize: '13px', fontWeight: '700', color: '#1E293B', marginBottom: '2px' }}>Mã: {v.code}</div>
+                  <div style={{ fontSize: '11px', color: '#64748B' }}>
+                    Áp dụng cho đơn từ {v.minOrderValue?.toLocaleString()}đ
+                  </div>
                 </div>
-              ))}
+              )) : (
+                <div style={{ 
+                  padding: '20px', background: '#F1F5F9', borderRadius: '16px', width: '100%', 
+                  textAlign: 'center', color: '#64748B', fontSize: '14px', border: '1px dashed #CBD5E1' 
+                }}>
+                  {invoice 
+                    ? 'Không có mã giảm giá nào phù hợp với giá trị đơn hàng hiện tại.' 
+                    : 'Vui lòng chọn ngày để xem các mã giảm giá khả dụng.'}
+                </div>
+              )}
             </div>
           </div>
         </section>

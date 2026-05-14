@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { 
-  CheckCircle, XCircle, Eye, Info, 
+import {
+  CheckCircle, XCircle, Eye, Info,
   User, Calendar, CreditCard, Package, X, Copy, Check, Gift
 } from 'lucide-react';
 import StatusBadge from './StatusBadge';
@@ -30,6 +30,14 @@ const AdminBookings = ({ bookings, onUpdateStatus }) => {
     onUpdateStatus(id, 'CANCELLED');
   };
 
+  const handleCheckIn = (id) => {
+    onUpdateStatus(id, 'CHECKED_IN');
+  };
+
+  const handleCheckOut = (id) => {
+    onUpdateStatus(id, 'COMPLETED');
+  };
+
   const handleCopyPhone = (phone) => {
     if (!phone) return;
     navigator.clipboard.writeText(phone);
@@ -41,16 +49,16 @@ const AdminBookings = ({ bookings, onUpdateStatus }) => {
     <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
       <div style={{ padding: '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <h2 style={{ margin: 0, fontSize: '18px', color: '#0F2E5A' }}>Quản lý Đặt phòng ({filteredBookings.length})</h2>
-        
+
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          <select 
+          <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            style={{ 
-              padding: '10px 16px', 
-              borderRadius: '12px', 
-              border: '1px solid #E2E8F0', 
-              fontSize: '14px', 
+            style={{
+              padding: '10px 16px',
+              borderRadius: '12px',
+              border: '1px solid #E2E8F0',
+              fontSize: '14px',
               outline: 'none',
               background: '#fff',
               color: '#475569',
@@ -60,27 +68,27 @@ const AdminBookings = ({ bookings, onUpdateStatus }) => {
             <option value="ALL">Tất cả trạng thái</option>
             <option value="PENDING">Chờ xác nhận</option>
             <option value="CONFIRMED">Đã xác nhận</option>
-            <option value="CHECKED_IN">Đã nhận phòng</option>
-            <option value="CHECKED_OUT">Đã trả phòng</option>
+            <option value="CHECKED_IN">Đang ở (Đã nhận)</option>
+            <option value="COMPLETED">Đã trả phòng (Xong)</option>
             <option value="CANCELLED">Đã hủy</option>
           </select>
 
           <div style={{ position: 'relative', width: '250px' }}>
-            <input 
-              type="text" 
-              placeholder="Tìm theo số điện thoại..." 
+            <input
+              type="text"
+              placeholder="Tìm theo số điện thoại..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ 
-                width: '100%', 
-                padding: '10px 16px', 
-                borderRadius: '12px', 
-                border: '1px solid #E2E8F0', 
-                fontSize: '14px', 
+              style={{
+                width: '100%',
+                padding: '10px 16px',
+                borderRadius: '12px',
+                border: '1px solid #E2E8F0',
+                fontSize: '14px',
                 outline: 'none',
                 background: '#F8FAFC',
                 boxSizing: 'border-box'
-              }} 
+              }}
             />
           </div>
         </div>
@@ -119,13 +127,13 @@ const AdminBookings = ({ bookings, onUpdateStatus }) => {
                 <td style={tdStyle}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <StatusBadge value={b.paymentStatus ? 'PAID' : 'UNPAID'} />
-                    <button 
+                    <button
                       onClick={() => onUpdateStatus(b.id, b.status, !b.paymentStatus)}
-                      style={{ 
-                        border: 'none', background: '#F1F5F9', color: '#059669', 
-                        borderRadius: '4px', width: '24px', height: '24px', 
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                        cursor: 'pointer', transition: '0.2s' 
+                      style={{
+                        border: 'none', background: '#F1F5F9', color: '#059669',
+                        borderRadius: '4px', width: '24px', height: '24px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer', transition: '0.2s'
                       }}
                       onMouseEnter={e => e.currentTarget.style.background = '#DCFCE7'}
                       onMouseLeave={e => e.currentTarget.style.background = '#F1F5F9'}
@@ -137,31 +145,51 @@ const AdminBookings = ({ bookings, onUpdateStatus }) => {
                 </td>
                 <td style={{ ...tdStyle, textAlign: 'center' }}>
                   <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
-                    <button 
-                      title="Xem chi tiết" 
-                      style={{ ...actionBtnStyle, color: '#2563EB' }} 
+                    <button
+                      title="Xem chi tiết"
+                      style={{ ...actionBtnStyle, color: '#2563EB' }}
                       onClick={() => setSelectedBooking(b)}
                     >
                       <Eye size={18} />
                     </button>
-                    
+
                     {b.status === 'PENDING' && (
                       <>
-                        <button 
-                          title="Duyệt đơn" 
-                          style={{ ...actionBtnStyle, color: '#059669' }} 
+                        <button
+                          title="Duyệt đơn"
+                          style={{ ...actionBtnStyle, color: '#059669' }}
                           onClick={() => handleApprove(b.id)}
                         >
                           <CheckCircle size={18} />
                         </button>
-                        <button 
-                          title="Hủy đơn" 
-                          style={{ ...actionBtnStyle, color: '#EF4444' }} 
+                        <button
+                          title="Hủy đơn"
+                          style={{ ...actionBtnStyle, color: '#EF4444' }}
                           onClick={() => handleCancel(b.id)}
                         >
                           <XCircle size={18} />
                         </button>
                       </>
+                    )}
+
+                    {b.status === 'CONFIRMED' && (
+                      <button
+                        title="Nhận phòng"
+                        style={{ ...actionBtnStyle, color: '#059669' }}
+                        onClick={() => handleCheckIn(b.id)}
+                      >
+                        <CheckCircle size={18} />
+                      </button>
+                    )}
+
+                    {b.status === 'CHECKED_IN' && (
+                      <button
+                        title="Trả phòng"
+                        style={{ ...actionBtnStyle, color: '#475569' }}
+                        onClick={() => handleCheckOut(b.id)}
+                      >
+                        <CheckCircle size={18} />
+                      </button>
                     )}
                   </div>
                 </td>
@@ -179,26 +207,26 @@ const AdminBookings = ({ bookings, onUpdateStatus }) => {
               <h3 style={{ margin: 0 }}>Chi tiết Đơn hàng #{selectedBooking.id}</h3>
               <button onClick={() => setSelectedBooking(null)} style={closeButtonStyle}><X size={20} /></button>
             </div>
-            
+
             <div style={{ padding: '24px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
                 <div style={infoBoxStyle}>
                   <h4 style={sectionTitleStyle}><User size={16} /> Khách hàng</h4>
                   <div style={{ fontWeight: '700', fontSize: '15px', color: '#0F2E5A' }}>{selectedBooking.customerName || 'N/A'}</div>
                   <div style={{ fontSize: '13px', color: '#64748B', marginTop: '4px' }}>{selectedBooking.customerEmail || 'N/A'}</div>
-                  
-                  <div style={{ 
-                    marginTop: '12px', padding: '8px 12px', background: '#fff', borderRadius: '10px', 
-                    border: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' 
+
+                  <div style={{
+                    marginTop: '12px', padding: '8px 12px', background: '#fff', borderRadius: '10px',
+                    border: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                   }}>
                     <span style={{ fontSize: '14px', fontWeight: '600', color: '#1E293B' }}>
                       {selectedBooking.customerPhone || 'N/A'}
                     </span>
-                    <button 
+                    <button
                       onClick={() => handleCopyPhone(selectedBooking.customerPhone)}
-                      style={{ 
-                        border: 'none', background: copied ? '#DCFCE7' : '#EFF6FF', 
-                        color: copied ? '#15803D' : '#2563EB', padding: '6px', 
+                      style={{
+                        border: 'none', background: copied ? '#DCFCE7' : '#EFF6FF',
+                        color: copied ? '#15803D' : '#2563EB', padding: '6px',
                         borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
                         fontSize: '11px', fontWeight: '700', transition: '0.2s'
                       }}
@@ -225,7 +253,7 @@ const AdminBookings = ({ bookings, onUpdateStatus }) => {
                   </div>
                   <div style={{ fontWeight: '700' }}>{selectedBooking.totalRoomPrice?.toLocaleString()}đ</div>
                 </div>
-                
+
                 {/* Detailed Services */}
                 {selectedBooking.services && selectedBooking.services.length > 0 && (
                   <div style={{ marginBottom: '15px' }}>
@@ -275,17 +303,39 @@ const AdminBookings = ({ bookings, onUpdateStatus }) => {
 
               {selectedBooking.status === 'PENDING' && (
                 <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-                  <button 
+                  <button
                     onClick={() => { handleApprove(selectedBooking.id); setSelectedBooking(null); }}
                     style={{ flex: 1, padding: '12px', background: '#059669', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}
                   >
                     Duyệt & Xác nhận
                   </button>
-                  <button 
+                  <button
                     onClick={() => { handleCancel(selectedBooking.id); setSelectedBooking(null); }}
                     style={{ flex: 1, padding: '12px', background: '#EF4444', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}
                   >
                     Hủy đơn hàng
+                  </button>
+                </div>
+              )}
+
+              {selectedBooking.status === 'CONFIRMED' && (
+                <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+                  <button
+                    onClick={() => { handleCheckIn(selectedBooking.id); setSelectedBooking(null); }}
+                    style={{ flex: 1, padding: '12px', background: '#059669', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}
+                  >
+                    Xác nhận khách đã nhận phòng
+                  </button>
+                </div>
+              )}
+
+              {selectedBooking.status === 'CHECKED_IN' && (
+                <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+                  <button
+                    onClick={() => { handleCheckOut(selectedBooking.id); setSelectedBooking(null); }}
+                    style={{ flex: 1, padding: '12px', background: '#475569', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}
+                  >
+                    Xác nhận Khách trả phòng
                   </button>
                 </div>
               )}

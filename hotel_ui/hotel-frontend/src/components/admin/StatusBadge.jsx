@@ -5,7 +5,7 @@ const STATUS_MAP = {
   PENDING:    { bg: '#E0F2FE', color: '#0369A1', label: 'Chờ duyệt' },
   CANCELLED:  { bg: '#FEE2E2', color: '#991B1B', label: 'Đã huỷ' },
   CHECKED_IN: { bg: '#DBEAFE', color: '#1E40AF', label: 'Đang ở' },
-  CHECKED_OUT:{ bg: '#F3F4F6', color: '#374151', label: 'Đã trả phòng' },
+  COMPLETED:  { bg: '#F3F4F6', color: '#374151', label: 'Đã trả phòng' },
   PAID:       { bg: '#DBEAFE', color: '#1E40AF', label: 'Đã thanh toán' },
   UNPAID:     { bg: '#FEE2E2', color: '#991B1B', label: 'Chưa TT' },
   ACTIVE:     { bg: '#DBEAFE', color: '#1E40AF', label: 'Hoạt động' },

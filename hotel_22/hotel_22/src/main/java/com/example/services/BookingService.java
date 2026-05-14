@@ -302,6 +302,7 @@ public class BookingService {
         String newStatus;
         switch (booking.status) {
             case CONFIRMED:
+            case CHECKED_IN:
             case PENDING:
                 newStatus = "BOOKED";
                 break;
@@ -313,8 +314,11 @@ public class BookingService {
                 newStatus = "AVAILABLE";
         }
 
-        Long bookingId = (booking.status == Booking.BookingStatus.CONFIRMED || booking.status == Booking.BookingStatus.PENDING)
+        Long bookingId = (booking.status == Booking.BookingStatus.CONFIRMED 
+                         || booking.status == Booking.BookingStatus.CHECKED_IN
+                         || booking.status == Booking.BookingStatus.PENDING)
                 ? booking.id : null;
+        
         roomAvailabilityRepository.updateRoomStatusRange(booking.roomId, booking.checkInDate, booking.checkOutDate, newStatus, bookingId);
     }
 
@@ -353,11 +357,14 @@ public class BookingService {
                                           Booking.BookingStatus next) {
         if (current == next) return; // Không đổi trạng thái thì luôn hợp lệ
         boolean valid = switch (current) {
-            case PENDING   -> next == Booking.BookingStatus.CONFIRMED
-                           || next == Booking.BookingStatus.CANCELLED;
-            case CONFIRMED -> next == Booking.BookingStatus.COMPLETED
-                           || next == Booking.BookingStatus.CANCELLED;
-            default        -> false;
+            case PENDING    -> next == Booking.BookingStatus.CONFIRMED
+                            || next == Booking.BookingStatus.CANCELLED;
+            case CONFIRMED  -> next == Booking.BookingStatus.CHECKED_IN
+                            || next == Booking.BookingStatus.CANCELLED
+                            || next == Booking.BookingStatus.COMPLETED;
+            case CHECKED_IN -> next == Booking.BookingStatus.COMPLETED
+                            || next == Booking.BookingStatus.CANCELLED;
+            default         -> false;
         };
         if (!valid)
             throw new AppException(

@@ -4,7 +4,7 @@ import StatCard from './StatCard';
 
 const AdminDashboard = ({ bookings, rooms, users, services, vouchers, lastFetch }) => {
   const totalRevenue = bookings
-    .filter(b => b.paymentStatus === 'PAID')
+    .filter(b => b.status === 'COMPLETED' && b.paymentStatus === true)
     .reduce((sum, b) => sum + (b.totalPrice || 0), 0);
 
   const pendingBookings = bookings.filter(b => b.status === 'PENDING').length;
@@ -29,7 +29,7 @@ const AdminDashboard = ({ bookings, rooms, users, services, vouchers, lastFetch 
       />
       <StatCard
         icon={<TrendingUp />} color="#1D4ED8"
-        label="Doanh thu (đã TT)" value={totalRevenue.toLocaleString('vi-VN') + '₫'}
+        label="Doanh thu hoàn tất" value={totalRevenue.toLocaleString('vi-VN') + '₫'}
       />
       <StatCard
         icon={<Tag />} color="#3B82F6"

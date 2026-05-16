@@ -23,14 +23,4 @@ public class BookingRepository implements PanacheRepository<Booking> {
         """, roomId, checkIn, checkOut) > 0;
     }
 
-    /** Lấy các booking cần gửi mail nhắc nhở (check-in ngày mai, chưa gửi) */
-    public List<Booking> findBookingsNeedingReminder(LocalDate tomorrow) {
-        return find("checkInDate = ?1 AND isReminderMailSent = false AND status = 'CONFIRMED'",
-                tomorrow).list();
-    }
-
-    /** Lấy các booking vừa tạo chưa gửi mail xác nhận */
-    public List<Booking> findBookingsNeedingConfirmation() {
-        return find("isConfirmedMailSent = false AND status = 'CONFIRMED'").list();
-    }
 }

@@ -52,11 +52,6 @@ public class Booking extends PanacheEntityBase {
     @Column(name = "payment_status", nullable = false) // Trạng thái thanh toán
     public Boolean paymentStatus = false;
 
-    @Column(name = "is_confirmed_mail_sent", nullable = false)
-    public Boolean isConfirmedMailSent = false;
-
-    @Column(name = "is_reminder_mail_sent", nullable = false)
-    public Boolean isReminderMailSent = false;
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();

@@ -178,7 +178,16 @@ const Admin = () => {
         },
         body: JSON.stringify({ status, paymentStatus })
       });
-      if (!res.ok) throw new Error('Lỗi khi cập nhật trạng thái');
+      if (!res.ok) {
+        let errMsg = 'Lỗi khi cập nhật trạng thái';
+        try {
+          const errData = await res.json();
+          if (errData && errData.message) {
+            errMsg = errData.message;
+          }
+        } catch (_) {}
+        throw new Error(errMsg);
+      }
       const data = await res.json();
       setBookings(prev => prev.map(b => b.id === id ? data : b));
       alert('Cập nhật thành công!');

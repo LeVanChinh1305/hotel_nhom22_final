@@ -254,7 +254,7 @@ public class BookingService {
                 Booking.BookingStatus bs = Booking.BookingStatus.valueOf(newStatus.toUpperCase());
 
                 // Validate chuyển trạng thái hợp lý
-                validateStatusTransition(booking.status, bs);
+                validateStatusTransition(booking, bs);
                 booking.status = bs;
             } catch (IllegalArgumentException e) {
                 throw new AppException("Trạng thái không hợp lệ: " + newStatus, 400);
@@ -353,8 +353,9 @@ public class BookingService {
      * CONFIRMED → COMPLETED hoặc CANCELLED
      * COMPLETED / CANCELLED → không thể thay đổi
      */
-    private void validateStatusTransition(Booking.BookingStatus current,
+    private void validateStatusTransition(Booking booking,
                                           Booking.BookingStatus next) {
+        Booking.BookingStatus current = booking.status;
         if (current == next) return; // Không đổi trạng thái thì luôn hợp lệ
         boolean valid = switch (current) {
             case PENDING    -> next == Booking.BookingStatus.CONFIRMED
@@ -370,5 +371,20 @@ public class BookingService {
             throw new AppException(
                 "Không thể chuyển từ " + current + " sang " + next, 400
             );
+
+        // Kiểm tra điều kiện thời gian thực tế để nhận phòng
+        LocalDate today = LocalDate.now();
+        if (current == Booking.BookingStatus.CONFIRMED && next == Booking.BookingStatus.CHECKED_IN) {
+            if (today.isBefore(booking.checkInDate)) {
+                throw new AppException("Chỉ được chuyển sang trạng thái CHECKED_IN kể từ ngày nhận phòng (" + booking.checkInDate + ")", 400);
+            }
+        }
+
+        // Kiểm tra điều kiện thời gian thực tế để trả phòng
+        if (current == Booking.BookingStatus.CHECKED_IN && next == Booking.BookingStatus.COMPLETED) {
+            if (today.isBefore(booking.checkOutDate)) {
+                throw new AppException("Chỉ được chuyển sang trạng thái COMPLETED kể từ ngày trả phòng (" + booking.checkOutDate + ")", 400);
+            }
+        }
     }
 }

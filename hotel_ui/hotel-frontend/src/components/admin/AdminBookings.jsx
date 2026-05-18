@@ -13,12 +13,41 @@ const AdminBookings = ({ bookings, onUpdateStatus }) => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [copied, setCopied] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [roomSearchTerm, setRoomSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [sortBy, setSortBy] = useState('NEWEST');
 
   const filteredBookings = bookings.filter(b => {
-    const matchPhone = (b.customerPhone || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const phoneTerm = searchTerm.toLowerCase().trim();
+    const roomTerm = roomSearchTerm.toLowerCase().trim();
+    
+    // Khớp số điện thoại
+    const matchPhone = phoneTerm === '' || (b.customerPhone || '').toLowerCase().includes(phoneTerm);
+    
+    // Khớp số phòng (bỏ tiền tố "P." hoặc "p." hoặc "p")
+    const cleanRoomNum = (b.roomNumber || '').toLowerCase().replace(/^p\.?/, '');
+    const cleanSearch = roomTerm.replace(/^p\.?/, '');
+    const matchRoom = cleanSearch === '' || cleanRoomNum.includes(cleanSearch);
+    
     const matchStatus = statusFilter === 'ALL' || b.status === statusFilter;
-    return matchPhone && matchStatus;
+    
+    return matchPhone && matchRoom && matchStatus;
+  });
+
+  const sortedBookings = [...filteredBookings].sort((a, b) => {
+    if (sortBy === 'NEWEST') {
+      return b.id - a.id;
+    }
+    if (sortBy === 'OLDEST') {
+      return a.id - b.id;
+    }
+    if (sortBy === 'CHECKIN_ASC') {
+      return new Date(a.checkInDate) - new Date(b.checkInDate);
+    }
+    if (sortBy === 'CHECKIN_DESC') {
+      return new Date(b.checkInDate) - new Date(a.checkInDate);
+    }
+    return 0;
   });
 
 
@@ -48,7 +77,7 @@ const AdminBookings = ({ bookings, onUpdateStatus }) => {
   return (
     <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
       <div style={{ padding: '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-        <h2 style={{ margin: 0, fontSize: '18px', color: '#0F2E5A' }}>Quản lý Đặt phòng ({filteredBookings.length})</h2>
+        <h2 style={{ margin: 0, fontSize: '18px', color: '#0F2E5A' }}>Quản lý Đặt phòng ({sortedBookings.length})</h2>
 
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           <select
@@ -73,12 +102,51 @@ const AdminBookings = ({ bookings, onUpdateStatus }) => {
             <option value="CANCELLED">Đã hủy</option>
           </select>
 
-          <div style={{ position: 'relative', width: '250px' }}>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            style={{
+              padding: '10px 16px',
+              borderRadius: '12px',
+              border: '1px solid #E2E8F0',
+              fontSize: '14px',
+              outline: 'none',
+              background: '#fff',
+              color: '#475569',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="NEWEST">Sắp xếp: Mới nhất</option>
+            <option value="OLDEST">Sắp xếp: Cũ nhất</option>
+            <option value="CHECKIN_ASC">Sắp xếp: Nhận phòng (Tăng dần)</option>
+            <option value="CHECKIN_DESC">Sắp xếp: Nhận phòng (Giảm dần)</option>
+          </select>
+
+          <div style={{ position: 'relative', width: '180px' }}>
             <input
               type="text"
-              placeholder="Tìm theo số điện thoại..."
+              placeholder="Tìm theo số ĐT..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '10px 16px',
+                borderRadius: '12px',
+                border: '1px solid #E2E8F0',
+                fontSize: '14px',
+                outline: 'none',
+                background: '#F8FAFC',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
+
+          <div style={{ position: 'relative', width: '180px' }}>
+            <input
+              type="text"
+              placeholder="Tìm theo số phòng..."
+              value={roomSearchTerm}
+              onChange={(e) => setRoomSearchTerm(e.target.value)}
               style={{
                 width: '100%',
                 padding: '10px 16px',
@@ -103,9 +171,9 @@ const AdminBookings = ({ bookings, onUpdateStatus }) => {
             </tr>
           </thead>
           <tbody>
-            {filteredBookings.length === 0 ? (
+            {sortedBookings.length === 0 ? (
               <tr><td colSpan={8} style={emptyTdStyle}>Không tìm thấy đơn đặt phòng nào phù hợp</td></tr>
-            ) : filteredBookings.map(b => (
+            ) : sortedBookings.map(b => (
               <tr key={b.id} style={trStyle} onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                 <td style={tdStyle}><strong>#{b.id}</strong></td>
                 <td style={tdStyle}>

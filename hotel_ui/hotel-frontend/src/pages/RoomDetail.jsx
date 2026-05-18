@@ -29,7 +29,7 @@ const RoomDetail = () => {
       try {
         const [roomRes, svcRes, vchRes, availRes] = await Promise.all([
           fetch(`${API_BASE}/api/rooms/${id}`),
-          fetch(`${API_BASE}/api/services`),
+          fetch(`${API_BASE}/api/services/available`),
           fetch(`${API_BASE}/api/vouchers`),
           fetch(`${API_BASE}/api/rooms/${id}/availability`)
         ]);

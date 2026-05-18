@@ -13,7 +13,7 @@ const Services = () => {
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const response = await fetch(`${API_BASE}/api/services`);
+        const response = await fetch(`${API_BASE}/api/services/available`);
         if (!response.ok) {
           throw new Error(`Lỗi tải dịch vụ: ${response.status} ${response.statusText}`);
         }

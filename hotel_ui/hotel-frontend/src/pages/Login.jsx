@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import {
@@ -13,7 +13,14 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -51,10 +58,10 @@ const Login = () => {
   return (
     <div style={{ minHeight: '100vh', background: '#F8FBFF' }}>
       <Navbar />
-      <div style={containerStyle}>
-        <div style={wrapperStyle}>
+      <div style={{ ...containerStyle, padding: isMobile ? '20px 15px' : '60px 20px' }}>
+        <div style={{ ...wrapperStyle, flexDirection: isMobile ? 'column' : 'row' }}>
           {/* Bên trái: Lợi ích */}
-          <div style={benefitsSideStyle}>
+          <div style={{ ...benefitsSideStyle, padding: isMobile ? '40px 20px' : '50px', display: isMobile ? 'none' : 'flex' }}>
             <h2 style={benefitsTitleStyle}>Chào mừng bạn quay lại!</h2>
             <p style={{ color: '#BFDBFE', marginBottom: '40px', fontSize: '15px' }}>
               Đăng nhập để tiếp tục trải nghiệm những dịch vụ đẳng cấp nhất tại Hotel 22.
@@ -74,7 +81,7 @@ const Login = () => {
           </div>
 
           {/* Bên phải: Form */}
-          <div style={formSideStyle}>
+          <div style={{ ...formSideStyle, padding: isMobile ? '30px 20px' : '50px' }}>
             <div style={headerStyle}>
               <h1 style={titleStyle}>Đăng nhập</h1>
               <p style={subtitleStyle}>Nhập thông tin tài khoản của bạn</p>

@@ -15,6 +15,13 @@ const Rooms = () => {
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [error, setError] = useState('');
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const loadRooms = () => {
     setLoading(true);
@@ -66,7 +73,7 @@ const Rooms = () => {
       {/* Premium Hero Header */}
       <div style={{ 
         background: 'linear-gradient(135deg, #0F2E5A 0%, #1E40AF 100%)',
-        padding: '100px 2rem 160px',
+        padding: isMobile ? '80px 1rem 120px' : '100px 2rem 160px',
         textAlign: 'center',
         position: 'relative',
         overflow: 'hidden'
@@ -91,7 +98,7 @@ const Rooms = () => {
             <Sparkles size={14} /> KHÔNG GIAN NGHỈ DƯỠNG ĐẲNG CẤP
           </div>
           <h1 style={{ 
-            fontFamily: "'Playfair Display', serif", fontSize: '48px', color: '#FFFFFF', 
+            fontFamily: "'Playfair Display', serif", fontSize: isMobile ? '36px' : '48px', color: '#FFFFFF', 
             marginBottom: '20px', lineHeight: '1.2', fontWeight: '700'
           }}>
             Danh sách phòng nghỉ
@@ -102,12 +109,12 @@ const Rooms = () => {
         </div>
       </div>
 
-      <div style={{ maxWidth: '1200px', margin: '-80px auto 80px', padding: '0 2rem', position: 'relative', zIndex: 2 }}>
+      <div style={{ maxWidth: '1200px', margin: isMobile ? '-60px auto 40px' : '-80px auto 80px', padding: isMobile ? '0 1rem' : '0 2rem', position: 'relative', zIndex: 2 }}>
         
         {/* Main Search Bar */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr auto',
+          gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr auto',
           gap: '24px',
           alignItems: 'flex-end',
           marginBottom: '32px',
@@ -228,7 +235,7 @@ const Rooms = () => {
             style={{ 
               background: '#2563EB', color: '#fff', padding: '10px 24px', 
               borderRadius: '12px', fontSize: '14px', fontWeight: '700', 
-              border: 'none', cursor: 'pointer', transition: 'all 0.2s'
+              border: 'none', cursor: 'pointer', transition: 'all 0.2s', width: isMobile ? '100%' : 'auto', marginTop: isMobile ? '16px' : '0'
             }}
           >
             ÁP DỤNG LỌC

@@ -16,6 +16,13 @@ const RoomDetail = () => {
   const [services, setServices] = useState([]);
   const [vouchers, setVouchers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 992);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 992);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   // Booking State
   const [checkIn, setCheckIn] = useState('');
@@ -267,12 +274,12 @@ const RoomDetail = () => {
     <div style={{ minHeight: '100vh', background: '#F8FBFF' }}>
       <Navbar />
       
-      <main style={{ maxWidth: '1200px', margin: '40px auto', padding: '0 20px', display: 'grid', gridTemplateColumns: '1fr 380px', gap: '30px' }}>
+      <main style={{ maxWidth: '1200px', margin: isMobile ? '20px auto' : '40px auto', padding: isMobile ? '0 10px' : '0 20px', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 380px', gap: isMobile ? '20px' : '30px' }}>
         
         {/* CỘT TRÁI: THÔNG TIN PHÒNG & DỊCH VỤ */}
-        <section>
+        <section style={{ order: isMobile ? 1 : 'unset', gridColumn: isMobile ? '1' : '1' }}>
           <div style={{ background: '#fff', borderRadius: '24px', overflow: 'hidden', border: '1px solid #E2E8F0', marginBottom: '30px' }}>
-            <div style={{ height: '400px', position: 'relative', background: '#CBD5E1' }}>
+            <div style={{ height: isMobile ? '250px' : '400px', position: 'relative', background: '#CBD5E1' }}>
   {room.images && room.images.length > 0 ? (
     <img src={room.images[0]} alt={`Ảnh phòng ${room.roomNumber}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
   ) : (
@@ -281,10 +288,10 @@ const RoomDetail = () => {
     </div>
   )}
 </div>
-            <div style={{ padding: '30px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '32px', color: '#0F2E5A', margin: 0 }}>Phòng {room.roomNumber} - {room.type}</h1>
-                <span style={{ fontSize: '24px', fontWeight: '800', color: '#2563EB' }}>{room.basePrice.toLocaleString()}đ<small style={{ fontSize: '14px', color: '#64748B', fontWeight: '400' }}>/đêm</small></span>
+            <div style={{ padding: isMobile ? '20px' : '30px' }}>
+              <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', marginBottom: '15px', gap: isMobile ? '10px' : '0' }}>
+                <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: isMobile ? '24px' : '32px', color: '#0F2E5A', margin: 0 }}>Phòng {room.roomNumber} - {room.type}</h1>
+                <span style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: '800', color: '#2563EB' }}>{room.basePrice.toLocaleString()}đ<small style={{ fontSize: '14px', color: '#64748B', fontWeight: '400' }}>/đêm</small></span>
               </div>
               <p style={{ color: '#475569', lineHeight: 1.7, fontSize: '16px' }}>{room.description}</p>
               
@@ -314,7 +321,7 @@ const RoomDetail = () => {
           {/* Dịch vụ bao gồm (Miễn phí) */}
           <div style={{ marginBottom: '30px' }}>
             <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#0F2E5A', marginBottom: '15px' }}>Dịch vụ bao gồm</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: '12px' }}>
               {includedServices.map(s => (
                 <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px', background: '#ECFDF5', color: '#059669', borderRadius: '10px', fontSize: '14px', fontWeight: '500' }}>
                   <CheckCircle2 size={16} /> {s.serviceName}
@@ -322,7 +329,10 @@ const RoomDetail = () => {
               ))}
             </div>
           </div>
+        </section>
 
+        {/* PHẦN 2: DỊCH VỤ BỔ SUNG & VOUCHER */}
+        <section style={{ order: isMobile ? 3 : 'unset', gridColumn: isMobile ? '1' : '1' }}>
           {/* Dịch vụ bổ sung (Trả phí) */}
           <div style={{ marginBottom: '30px' }}>
             <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#0F2E5A', marginBottom: '15px' }}>Nâng tầm trải nghiệm (Có phí)</h3>
@@ -352,7 +362,7 @@ const RoomDetail = () => {
                     </div>
 
                     {isSelected && (
-                      <div style={{ marginTop: '15px', padding: '12px', background: '#fff', borderRadius: '12px', display: 'flex', gap: '20px', border: '1px solid #DBEAFE' }}>
+                      <div style={{ marginTop: '15px', padding: '12px', background: '#fff', borderRadius: '12px', display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '10px' : '20px', border: '1px solid #DBEAFE' }}>
                         {/* Trường hợp: Người/Ngày -> Nhập cả 2 */}
                         {s.unit === 'Người/Ngày' && (
                           <>
@@ -456,7 +466,7 @@ const RoomDetail = () => {
         </section>
 
         {/* CỘT PHẢI: ĐẶT PHÒNG & HÓA ĐƠN */}
-        <aside>
+        <aside style={{ order: isMobile ? 2 : 'unset', gridColumn: isMobile ? '1' : '2', gridRow: isMobile ? 'auto' : '1 / span 2' }}>
           <div style={{ position: 'sticky', top: '100px', background: '#fff', borderRadius: '24px', padding: '24px', border: '1px solid #E2E8F0', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)' }}>
             <h4 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <CalendarIcon size={20} /> Chọn ngày lưu trú

@@ -2,11 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { Menu, User, LogIn, UserPlus, X, Settings, History, LogOut, LayoutDashboard } from 'lucide-react';
 
 const Navbar = () => {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 992);
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [authState, setAuthState] = useState({ isLoggedIn: false, user: null });
   const currentPath = window.location.pathname;
 
+  // Mobile resize listener
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 992;
+      setIsMobile(mobile);
+      if (!mobile) {
+        setIsMenuOpen(false);
+        setShowMobileSidebar(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const readAuth = () => {
     const token = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
@@ -99,13 +114,13 @@ const Navbar = () => {
       </a>
 
       {/* ── DESKTOP NAV LINKS ────────────────────────────────────── */}
-      <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+      <div style={{ display: !isMobile ? 'flex' : 'none', alignItems: 'center', gap: '24px' }}>
         {navItems.map(item => {
           const isActive = currentPath === item.href;
           return (
             <a key={item.label} href={item.href} style={{
               color: isActive ? '#2563EB' : '#475569',
-              fontSize: '14px', fontWeight: isActive ? '600' : '500',
+              fontSize: '15px', fontWeight: '500',
               padding: '6px 2px',
               borderBottom: isActive ? '2px solid #2563EB' : '2px solid transparent',
               transition: 'all 0.2s', textDecoration: 'none',
@@ -185,7 +200,9 @@ const Navbar = () => {
               {isLoggedIn && (
                 <>
                   {/* header tên */}
-                  <div style={{ padding: '10px 12px 10px', borderBottom: '1px solid #EFF6FF', marginBottom: '6px' }}>
+                  {/* Adjust spacing for mobile */}
+                <div style={{ padding: '10px 12px 10px', borderBottom: isMobile ? 'none' : '1px solid #EFF6FF', marginBottom: isMobile ? '6px' : '6px' }}>
+
                     <p style={{ fontSize: '12px', color: '#94A3B8', margin: 0 }}>Đã đăng nhập</p>
                     <p style={{ fontSize: '14px', fontWeight: '600', color: '#0F2E5A', margin: '2px 0 0' }}>
                       {user?.username}
@@ -201,6 +218,20 @@ const Navbar = () => {
                       </span>
                     )}
                   </div>
+                  {/* Mobile navigation links */}
+                  {navItems.map(item => (
+                    <a key={item.label} href={item.href}
+                      style={{
+                        ...menuItemStyle,
+                        background: currentPath === item.href ? '#EFF6FF' : 'transparent',
+                      }}
+                      onClick={() => setIsMenuOpen(false)}
+                      onMouseEnter={e => e.currentTarget.style.background = '#EFF6FF'}
+                      onMouseLeave={e => e.currentTarget.style.background = currentPath === item.href ? '#EFF6FF' : 'transparent'}
+                    >
+                      {item.label}
+                    </a>
+                  ))}
 
                   {/* Trang cá nhân */}
                   <a

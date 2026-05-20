@@ -13,6 +13,13 @@ const BookingHistory = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     loadBookings();
@@ -106,7 +113,7 @@ const BookingHistory = () => {
       {/* Premium Hero Header */}
       <div style={{
         background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
-        padding: '100px 2rem 160px',
+        padding: isMobile ? '80px 1rem 120px' : '100px 2rem 160px',
         textAlign: 'center',
         position: 'relative',
         overflow: 'hidden'
@@ -131,7 +138,7 @@ const BookingHistory = () => {
             <Receipt size={14} /> QUẢN LÝ GIAO DỊCH
           </div>
           <h1 style={{
-            fontFamily: "'Playfair Display', serif", fontSize: '48px', color: '#FFFFFF',
+            fontFamily: "'Playfair Display', serif", fontSize: isMobile ? '36px' : '48px', color: '#FFFFFF',
             marginBottom: '20px', lineHeight: '1.2', fontWeight: '700'
           }}>
             Lịch sử đặt phòng
@@ -142,7 +149,7 @@ const BookingHistory = () => {
         </div>
       </div>
 
-      <div style={{ maxWidth: '1200px', margin: '-80px auto 80px', padding: '0 2rem', position: 'relative', zIndex: 2 }}>
+      <div style={{ maxWidth: '1200px', margin: isMobile ? '-60px auto 40px' : '-80px auto 80px', padding: isMobile ? '0 1rem' : '0 2rem', position: 'relative', zIndex: 2 }}>
 
         {loading ? (
           <div style={{ textAlign: 'center', padding: '100px', background: '#fff', borderRadius: '32px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.05)' }}>
@@ -178,7 +185,7 @@ const BookingHistory = () => {
             </button>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '32px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(420px, 1fr))', gap: '32px' }}>
             {bookings.map((b) => {
               const status = getStatusColor(b.status);
               return (
@@ -195,7 +202,7 @@ const BookingHistory = () => {
                   position: 'relative',
                   cursor: 'default'
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: isMobile ? '12px' : '0' }}>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                         <Receipt size={14} color="#2563EB" />
@@ -229,7 +236,7 @@ const BookingHistory = () => {
                   </div>
 
                   <div style={{
-                    display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px',
+                    display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px',
                     padding: '20px', background: 'rgba(255, 255, 255, 0.6)', borderRadius: '20px',
                     border: '1px solid #fff'
                   }}>
@@ -287,8 +294,8 @@ const BookingHistory = () => {
       {/* DETAIL MODAL - Premium Redesign */}
       {selectedBooking && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }} onClick={() => setSelectedBooking(null)}>
-          <div style={{ background: '#fff', borderRadius: '32px', maxWidth: '640px', width: '100%', maxHeight: '90vh', overflowY: 'auto', position: 'relative', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', animation: 'modalIn 0.3s ease-out' }} onClick={e => e.stopPropagation()}>
-            <div style={{ padding: '24px 32px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: '#fff', zIndex: 1 }}>
+          <div style={{ background: '#fff', borderRadius: isMobile ? '20px' : '32px', maxWidth: '640px', width: '100%', maxHeight: '90vh', overflowY: 'auto', position: 'relative', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', animation: 'modalIn 0.3s ease-out' }} onClick={e => e.stopPropagation()}>
+            <div style={{ padding: isMobile ? '16px 20px' : '24px 32px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: '#fff', zIndex: 1 }}>
               <div>
                 <span style={{ fontSize: '12px', fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '1px' }}>Chi tiết giao dịch</span>
                 <h3 style={{ margin: 0, fontSize: '20px', fontWeight: '800', color: '#0F172A' }}>Mã đơn #{selectedBooking.id}</h3>
@@ -296,7 +303,7 @@ const BookingHistory = () => {
               <button onClick={() => setSelectedBooking(null)} style={{ border: 'none', background: '#F8FAFC', color: '#64748B', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={22} /></button>
             </div>
 
-            <div style={{ padding: '32px' }}>
+            <div style={{ padding: isMobile ? '20px' : '32px' }}>
               {/* Customer Info Section */}
               <div style={{ marginBottom: '32px' }}>
                 <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: '800', color: '#94A3B8', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.5px' }}><Info size={16} /> THÔNG TIN KHÁCH ĐẶT</h4>
@@ -329,7 +336,7 @@ const BookingHistory = () => {
                       <div style={{ color: '#0EA5E9', fontSize: '13px', fontWeight: '600' }}>{selectedBooking.roomType}</div>
                     </div>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
                     <div style={{ background: '#fff', padding: '14px', borderRadius: '16px', border: '1px solid #E0F2FE' }}>
                       <span style={{ display: 'block', fontSize: '11px', color: '#94A3B8', textTransform: 'uppercase', fontWeight: '700', marginBottom: '4px' }}>Ngày nhận</span>
                       <span style={{ display: 'block', fontSize: '15px', fontWeight: '800', color: '#1E293B' }}>{selectedBooking.checkInDate}</span>
@@ -399,7 +406,7 @@ const BookingHistory = () => {
                     <span style={{ color: '#2563EB' }}>{selectedBooking.totalPrice?.toLocaleString()}đ</span>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px' }}>
+                  <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', marginTop: '24px', gap: isMobile ? '16px' : '0' }}>
                     <div style={{ padding: '8px 16px', borderRadius: '12px', background: selectedBooking.paymentStatus ? '#ECFDF5' : '#FFF7ED', color: selectedBooking.paymentStatus ? '#059669' : '#C2410C', fontSize: '12px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       {selectedBooking.paymentStatus ? <CheckCircle2 size={14} /> : <Clock size={14} />}
                       {selectedBooking.paymentStatus ? 'ĐÃ THANH TOÁN' : 'CHỜ THANH TOÁN'}

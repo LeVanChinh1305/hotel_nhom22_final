@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import {
@@ -15,7 +15,14 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const validate = () => {
     const phoneRegex = /^\d{10}$/;
@@ -64,10 +71,10 @@ const Register = () => {
   return (
     <div style={{ minHeight: '100vh', background: '#F8FBFF' }}>
       <Navbar />
-      <div style={containerStyle}>
-        <div style={wrapperStyle}>
+      <div style={{ ...containerStyle, padding: isMobile ? '20px 15px' : '60px 20px' }}>
+        <div style={{ ...wrapperStyle, flexDirection: isMobile ? 'column' : 'row' }}>
           {/* Bên trái: Benefits */}
-          <div style={benefitsSideStyle}>
+          <div style={{ ...benefitsSideStyle, padding: isMobile ? '40px 20px' : '50px', display: isMobile ? 'none' : 'flex' }}>
             <h2 style={benefitsTitleStyle}>Quyền lợi thành viên</h2>
             <p style={{ color: '#DCFCE7', marginBottom: '40px', fontSize: '15px' }}>
               Gia nhập cộng đồng Hotel 22 để tận hưởng những đặc quyền nghỉ dưỡng đẳng cấp nhất.
@@ -87,7 +94,7 @@ const Register = () => {
           </div>
 
           {/* Bên phải: Form đăng ký */}
-          <div style={formSideStyle}>
+          <div style={{ ...formSideStyle, padding: isMobile ? '30px 20px' : '50px' }}>
             <div style={headerStyle}>
               <h1 style={titleStyle}>Đăng ký</h1>
               <p style={subtitleStyle}>Điền thông tin để tạo tài khoản mới</p>
@@ -101,7 +108,7 @@ const Register = () => {
             )}
 
             <form onSubmit={handleSubmit} style={formStyle}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
                 <div style={inputGroupStyle}>
                   <label style={labelStyle}>Username</label>
                   <div style={inputWrapperStyle}>

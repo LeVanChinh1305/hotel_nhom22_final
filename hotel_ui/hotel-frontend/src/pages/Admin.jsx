@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Users, BedDouble, CalendarCheck,
   Tag, Newspaper, AlertTriangle, RefreshCw,
   Shield, Edit, Trash2,
-  Plus, ConciergeBell, Eye, CheckCircle, XCircle,
+  Plus, ConciergeBell, Eye, CheckCircle, XCircle, Menu
 } from 'lucide-react';
 import AdminDashboard from '../components/admin/AdminDashboard';
 import AdminBookings from '../components/admin/AdminBookings';
@@ -82,6 +82,19 @@ const inputStyle = {
 ───────────────────────────────────────────── */
 const Admin = () => {
   const navigate = useNavigate();
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 992);
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 992;
+      setIsMobile(mobile);
+      if (!mobile) setShowMobileSidebar(false);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   /* Auth guard */
   const [authOk, setAuthOk] = useState(null); // null=loading, true/false
@@ -866,64 +879,107 @@ const Admin = () => {
       <Navbar />
 
       <div style={{ display: 'flex', minHeight: 'calc(100vh - 68px)' }}>
+        {/* Backdrop for mobile sidebar */}
+        {isMobile && showMobileSidebar && (
+          <div 
+            onClick={() => setShowMobileSidebar(false)}
+            style={{
+              position: 'fixed',
+              top: '68px',
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(15, 23, 42, 0.4)',
+              zIndex: 998,
+              backdropFilter: 'blur(4px)',
+              transition: 'opacity 0.3s ease'
+            }}
+          />
+        )}
+
         {/* Sidebar */}
         <div style={{
-          width: '250px', background: '#fff', borderRight: '1px solid #E2E8F0',
-          padding: '20px 0', boxShadow: '2px 0 8px rgba(0,0,0,0.05)',
+          width: '250px', 
+          background: '#fff', 
+          borderRight: '1px solid #E2E8F0',
+          padding: '20px 0', 
+          boxShadow: isMobile ? '4px 0 20px rgba(0,0,0,0.1)' : '2px 0 8px rgba(0,0,0,0.05)',
+          position: isMobile ? 'fixed' : 'relative',
+          top: isMobile ? '68px' : 'auto',
+          left: isMobile ? (showMobileSidebar ? '0' : '-260px') : 'auto',
+          bottom: isMobile ? 0 : 'auto',
+          height: isMobile ? 'calc(100vh - 68px)' : 'auto',
+          zIndex: 999,
+          transition: 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          display: 'flex',
+          flexDirection: 'column'
         }}>
           <div style={{
-            padding: '0 20px 20px', borderBottom: '1px solid #E2E8F0',
-            display: 'flex', alignItems: 'center', gap: '10px',
+            padding: '0 20px 20px', 
+            borderBottom: '1px solid #E2E8F0',
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between'
           }}>
-            <Shield size={20} color="#2563EB" />
-            <h3 style={{ margin: 0, fontSize: '16px', color: '#0F2E5A' }}>Quản trị</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Shield size={20} color="#2563EB" />
+              <h3 style={{ margin: 0, fontSize: '16px', color: '#0F2E5A', fontWeight: '700' }}>Quản trị</h3>
+            </div>
+            {isMobile && (
+              <button 
+                onClick={() => setShowMobileSidebar(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', fontSize: '16px', fontWeight: '700' }}
+              >
+                ✕
+              </button>
+            )}
           </div>
 
-          <nav style={{ padding: '20px 0' }}>
+          <nav style={{ padding: '20px 0', flex: 1, overflowY: 'auto' }}>
             <button
-              onClick={() => setActiveTab('dashboard')}
+              onClick={() => { setActiveTab('dashboard'); if (isMobile) setShowMobileSidebar(false); }}
               style={activeTab === 'dashboard' ? activeMenuBtn : menuBtn}
             >
               <LayoutDashboard size={16} style={{ marginRight: '8px' }} />
               Dashboard
             </button>
             <button
-              onClick={() => setActiveTab('bookings')}
+              onClick={() => { setActiveTab('bookings'); if (isMobile) setShowMobileSidebar(false); }}
               style={activeTab === 'bookings' ? activeMenuBtn : menuBtn}
             >
               <CalendarCheck size={16} style={{ marginRight: '8px' }} />
               Đặt phòng
             </button>
             <button
-              onClick={() => setActiveTab('rooms')}
+              onClick={() => { setActiveTab('rooms'); if (isMobile) setShowMobileSidebar(false); }}
               style={activeTab === 'rooms' ? activeMenuBtn : menuBtn}
             >
               <BedDouble size={16} style={{ marginRight: '8px' }} />
               Phòng nghỉ
             </button>
             <button
-              onClick={() => setActiveTab('services')}
+              onClick={() => { setActiveTab('services'); if (isMobile) setShowMobileSidebar(false); }}
               style={activeTab === 'services' ? activeMenuBtn : menuBtn}
             >
               <ConciergeBell size={16} style={{ marginRight: '8px' }} />
               Dịch vụ
             </button>
             <button
-              onClick={() => setActiveTab('users')}
+              onClick={() => { setActiveTab('users'); if (isMobile) setShowMobileSidebar(false); }}
               style={activeTab === 'users' ? activeMenuBtn : menuBtn}
             >
               <Users size={16} style={{ marginRight: '8px' }} />
               Người dùng
             </button>
             <button
-              onClick={() => setActiveTab('vouchers')}
+              onClick={() => { setActiveTab('vouchers'); if (isMobile) setShowMobileSidebar(false); }}
               style={activeTab === 'vouchers' ? activeMenuBtn : menuBtn}
             >
               <Tag size={16} style={{ marginRight: '8px' }} />
               Voucher
             </button>
             <button
-              onClick={() => setActiveTab('news')}
+              onClick={() => { setActiveTab('news'); if (isMobile) setShowMobileSidebar(false); }}
               style={activeTab === 'news' ? activeMenuBtn : menuBtn}
             >
               <Newspaper size={16} style={{ marginRight: '8px' }} />
@@ -933,21 +989,52 @@ const Admin = () => {
         </div>
 
         {/* Main Content */}
-        <div style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
+        <div style={{ 
+          flex: 1, 
+          padding: isMobile ? '16px 16px 40px' : '32px', 
+          overflowY: 'auto',
+          width: '100%',
+          marginLeft: isMobile ? 0 : 'auto'
+        }}>
           {/* Header */}
           <div style={{
-            display: 'flex', justifyContent: 'space-between',
-            alignItems: 'center', marginBottom: '28px',
+            display: 'flex', 
+            justifyContent: 'space-between',
+            alignItems: 'center', 
+            marginBottom: '24px',
+            gap: '12px',
+            flexWrap: 'wrap'
           }}>
-            <div>
-              <h1 style={{ margin: 0, fontSize: '24px', fontWeight: '800', color: '#0F2E5A' }}>
-                {getTabTitle(activeTab)}
-              </h1>
-              {lastFetch && activeTab === 'dashboard' && (
-                <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748B' }}>
-                  Cập nhật lúc {lastFetch}
-                </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              {isMobile && (
+                <button
+                  onClick={() => setShowMobileSidebar(!showMobileSidebar)}
+                  style={{
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    padding: '10px', 
+                    border: '1px solid #E2E8F0', 
+                    background: '#fff',
+                    borderRadius: '10px', 
+                    cursor: 'pointer', 
+                    color: '#0F2E5A',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                  }}
+                >
+                  <Menu size={20} />
+                </button>
               )}
+              <div>
+                <h1 style={{ margin: 0, fontSize: isMobile ? '20px' : '24px', fontWeight: '800', color: '#0F2E5A' }}>
+                  {getTabTitle(activeTab)}
+                </h1>
+                {lastFetch && activeTab === 'dashboard' && (
+                  <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748B' }}>
+                    Cập nhật lúc {lastFetch}
+                  </p>
+                )}
+              </div>
             </div>
 
             <button
@@ -955,13 +1042,13 @@ const Admin = () => {
               disabled={loading}
               style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
-                padding: '10px 20px', background: '#2563EB', color: '#fff',
+                padding: isMobile ? '8px 16px' : '10px 20px', background: '#2563EB', color: '#fff',
                 border: 'none', borderRadius: '10px', cursor: loading ? 'not-allowed' : 'pointer',
-                fontWeight: '600', fontSize: '14px', opacity: loading ? 0.7 : 1,
+                fontWeight: '600', fontSize: '13px', opacity: loading ? 0.7 : 1,
                 fontFamily: "'DM Sans', sans-serif",
               }}
             >
-              <RefreshCw size={16} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+              <RefreshCw size={14} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
               {loading ? 'Đang tải...' : 'Làm mới'}
             </button>
           </div>
@@ -1271,7 +1358,7 @@ const Admin = () => {
             </div>
 
             <div style={{ padding: '24px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>
                     Số phòng <span style={{ color: '#EF4444' }}>*</span>
@@ -1585,7 +1672,7 @@ const Admin = () => {
             </div>
 
             <div style={{ padding: '24px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>
                     Số phòng <span style={{ color: '#EF4444' }}>*</span>

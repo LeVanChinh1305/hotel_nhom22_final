@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   CheckCircle, XCircle, Menu, Info,
   User, Calendar, CreditCard, Package, X, Copy, Check, Gift
@@ -16,6 +16,13 @@ const AdminBookings = ({ bookings, onUpdateStatus }) => {
   const [roomSearchTerm, setRoomSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [sortBy, setSortBy] = useState('NEWEST');
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const filteredBookings = bookings.filter(b => {
     const phoneTerm = searchTerm.toLowerCase().trim();
@@ -232,13 +239,13 @@ const AdminBookings = ({ bookings, onUpdateStatus }) => {
       {selectedBooking && (
         <div style={modalOverlayStyle} onClick={() => setSelectedBooking(null)}>
           <div style={modalContentStyle} onClick={e => e.stopPropagation()}>
-            <div style={modalHeaderStyle}>
-              <h3 style={{ margin: 0 }}>Chi tiết Đơn hàng #{selectedBooking.id}</h3>
+            <div style={{ ...modalHeaderStyle, padding: isMobile ? '16px' : '20px 24px', position: 'sticky', top: 0, background: '#fff', zIndex: 10 }}>
+              <h3 style={{ margin: 0, fontSize: isMobile ? '16px' : '18px' }}>Chi tiết Đơn hàng #{selectedBooking.id}</h3>
               <button onClick={() => setSelectedBooking(null)} style={closeButtonStyle}><X size={20} /></button>
             </div>
 
-            <div style={{ padding: '24px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+            <div style={{ padding: isMobile ? '16px' : '24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
                 <div style={infoBoxStyle}>
                   <h4 style={sectionTitleStyle}><User size={16} /> Khách hàng</h4>
                   <div style={{ fontWeight: '700', fontSize: '15px', color: '#0F2E5A' }}>{selectedBooking.customerName || 'N/A'}</div>
@@ -331,7 +338,7 @@ const AdminBookings = ({ bookings, onUpdateStatus }) => {
               </div>
 
               {selectedBooking.status === 'PENDING' && (
-                <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+                <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '12px', marginTop: '24px' }}>
                   <button
                     onClick={() => { handleApprove(selectedBooking.id); setSelectedBooking(null); }}
                     style={{ flex: 1, padding: '12px', background: '#059669', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}
@@ -386,7 +393,7 @@ const trStyle = { transition: 'background 0.15s' };
 const emptyTdStyle = { padding: '40px', textAlign: 'center', color: '#94A3B8', fontSize: '14px' };
 
 const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 };
-const modalContentStyle = { background: '#fff', borderRadius: '20px', width: '90%', maxWidth: '600px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' };
+const modalContentStyle = { background: '#fff', borderRadius: '20px', width: '90%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' };
 const modalHeaderStyle = { padding: '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
 const closeButtonStyle = { border: 'none', background: '#F1F5F9', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' };
 const infoBoxStyle = { padding: '16px', background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0' };

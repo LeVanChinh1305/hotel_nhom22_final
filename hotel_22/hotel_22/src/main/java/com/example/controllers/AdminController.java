@@ -33,6 +33,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.validation.Valid;
 
 @Path("/admin")
 @RequestScoped
@@ -58,7 +59,7 @@ public class AdminController {
     }
 
     @POST @Path("/rooms")
-    public Response createRoom(CreateRoomRequest req) {
+    public Response createRoom(@Valid CreateRoomRequest req) {
         return Response.status(201).entity(roomService.create(req)).build();
     }
     @PUT @Path("/rooms/{id}")
